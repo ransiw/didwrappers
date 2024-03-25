@@ -14,3 +14,5 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     stringr
+URL: https://github.com/ransiw/didwrappers
+BugReports: https://github.com/ransiw/didwrappers/issues
