@@ -13,7 +13,8 @@ The goal of didwrappers is to …
 You can install the development version of didwrappers like so:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+# install.packages("devtools")
+devtools::install_github("ransiw/didwrappers")
 ```
 
 ## Example
