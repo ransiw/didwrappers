@@ -4,7 +4,7 @@ Version: 0.0.0.9000
 Authors@R: 
     person("Ransi", "W.Clark", , "ransi@caltech.edu", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: The package allows for unit level matching and aggregation into a more broader set.
+Description: The package allows for unit level matching and aggregation of units with different dosages.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -13,6 +13,7 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
+    stats,
     stringr
 URL: https://github.com/ransiw/didwrappers
 BugReports: https://github.com/ransiw/didwrappers/issues
