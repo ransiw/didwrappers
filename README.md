@@ -10,7 +10,7 @@ The goal of didwrappers is to …
 
 ## Installation
 
-You can install the development version of didwrappers like so:
+You can install the development version of didwrappers:
 
 ``` r
 # install.packages("devtools")
