@@ -9,6 +9,7 @@
 #' \item{att}{the unit time average treatment effect (NA if there were propensity score problems)}
 #' \item{ipwqual}{the maximum propensity score}
 #' \item{attcalc}{the unit time average treatment effect (always complete unless NaN)}
+#'
 #' @export
 #'
 process_attit <- function(attgt.list) {

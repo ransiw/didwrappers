@@ -30,6 +30,7 @@ compute.aggite <- function(MP,
   # load parameters
   group <- MP$group
   t <- MP$t
+  id <- MP$id
   att <- MP$att
   dp <- MP$DIDparams
   inffunc1 <- MP$inffunc
@@ -40,6 +41,9 @@ compute.aggite <- function(MP,
   data <- as.data.frame(dp$data)
   tname <- dp$tname
   idname <- dp$idname
+  cohortnames <- dp$cohortnames
+
+
   if(is.null(clustervars)){
     clustervars <- dp$clustervars
   }
@@ -58,6 +62,7 @@ compute.aggite <- function(MP,
 
   tlist <- dp$tlist
   glist <- dp$glist
+  idlist <- dp$idlist
   panel <- dp$panel
 
   # overwrite MP objects (so we can actually compute bootstrap)
@@ -68,21 +73,22 @@ compute.aggite <- function(MP,
   MP$DIDparams$cband <- cband
   dp <- MP$DIDparams
 
-  if(!(type %in% c("simple", "dynamic", "group", "calendar"))) {
-    stop('`type` must be one of c("simple", "dynamic", "group", "calendar")')
+  if(!(type %in% c("simple", "dynamic", "group", "unit", "calendar"))) {
+    stop('`type` must be one of c("simple", "dynamic", "group", "unit", "calendar")')
   }
 
   if(na.rm){
     notna <- !is.na(att)
     group <- group[notna]
     t <- t[notna]
+    id <- id[notna]
     att <- att[notna]
     inffunc1 <- inffunc1[, notna]
     #tlist <- sort(unique(t))
-    glist <- sort(unique(group))
 
     # If aggte is of the group type, ensure we have non-missing post-treatment ATTs for each group
     if(type == "group"){
+      glist <- sort(unique(group))
       # Get the groups that have some non-missing ATT(g,t) in post-treatmemt periods
       gnotna <- sapply(glist, function(g) {
         # look at post-treatment periods for group g
@@ -97,20 +103,41 @@ compute.aggite <- function(MP,
       # Re-do the na.rm thing to update the groups
       group <- group[not_all_na]
       t <- t[not_all_na]
+      id <- id[not_all_na]
       att <- att[not_all_na]
       inffunc1 <- inffunc1[, not_all_na]
       #tlist <- sort(unique(t))
       glist <- sort(unique(group))
     }
+
+    if(type == "unit"){
+      glist <- sort(unique(id))
+      # Get the groups that have some non-missing ATT(g,t) in post-treatmemt periods
+      gnotna <- sapply(glist, function(g) {
+        # look at post-treatment periods for group g
+        whichg <- which( (id == g) & (group <= t))
+        attg <- att[whichg]
+        group_select <- !is.na(mean(attg))
+        return(group_select)
+      })
+      gnotna <- glist[gnotna]
+      # indicator for not all post-treatment ATT(g,t) missing
+      not_all_na <- group %in% gnotna
+      # Re-do the na.rm thing to update the groups
+      group <- group[not_all_na]
+      t <- t[not_all_na]
+      id <- id[not_all_na]
+      att <- att[not_all_na]
+      inffunc1 <- inffunc1[, not_all_na]
+      #tlist <- sort(unique(t))
+      glist <- sort(unique(id))
+    }
   }
+
 
   if((na.rm == FALSE) && base::anyNA(att)) stop("Missing values at att_gt found. If you want to remove these, set `na.rm = TRUE'.")
 
-  # data from first period
-  #ifelse(panel,
-  #       dta <- data[ data[,tname]==tlist[1], ],
-  #       dta <- data
-  #       )
+  # recover a data-frame with only cross-sectional observations
   if(panel){
     # data from first period
     dta <- data[ data[,tname]==tlist[1], ]
@@ -122,6 +149,11 @@ compute.aggite <- function(MP,
   #-----------------------------------------------------------------------------
   # data organization and recoding
   #-----------------------------------------------------------------------------
+
+  # if the na.rm is FALSE the glist for group should be unique
+  if (type == "group"){
+    glist <- sort(unique(group))
+  }
 
   # do some recoding to make sure time periods are 1 unit apart
   # and then put these back together at the end
@@ -152,21 +184,14 @@ compute.aggite <- function(MP,
   # Set the weights
   weights.ind  <-  dta$.w
 
-  # we can work in overall probabilities because conditioning will cancel out
-  # cause it shows up in numerator and denominator
-  pg <- sapply(originalglist, function(g) mean(weights.ind*(dta[,gname]==g)))
-
-  # length of this is equal to number of groups
-  pgg <- pg
-
-  # same but length is equal to the number of ATT(g,t)
-  pg <- pg[match(group, glist)]
-
   # which group time average treatment effects are post-treatment
   keepers <- which(group <= t & t<= (group + max_e)) ### added second condition to allow for limit on longest period included in att
 
   # n x 1 vector of group variable
   G <-  unlist(lapply(dta[,gname], orig2t))
+
+  # since our estimates are at the unit-time level, aggregation into simple does not require reweighting to group size
+  pg <- rep(1,length(group))
 
   #-----------------------------------------------------------------------------
   # Compute the simple ATT summary
@@ -178,6 +203,7 @@ compute.aggite <- function(MP,
     # averages all post-treatment ATT(g,t) with weights
     # given by group size
     simple.att <- sum(att[keepers]*pg[keepers])/(sum(pg[keepers]))
+    #simple.att <- sum(att[keepers])/(length(att[keepers]))
     if(is.nan(simple.att)) simple.att <- NA
 
     # get the part of the influence function coming from estimated weights
@@ -210,6 +236,16 @@ compute.aggite <- function(MP,
   #-----------------------------------------------------------------------------
   # Compute the group (i.e., selective) treatment timing estimators
   #-----------------------------------------------------------------------------
+
+  # we can work in overall probabilities because conditioning will cancel out
+  # cause it shows up in numerator and denominator
+  pg <- sapply(originalglist, function(g) mean(weights.ind*(dta[,gname]==g)))
+
+  # length of this is equal to number of groups
+  pgg <- pg
+
+  # same but length is equal to the number of ATT(g,t)
+  pg <- pg[match(group, glist)]
 
   if (type == "group") {
 
