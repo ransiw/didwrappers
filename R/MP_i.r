@@ -10,8 +10,8 @@
 #' @param c simultaneous critical value if one is obtaining simultaneous confidence
 #'  bands. Otherwise it reports the critical value based on pointwise normal
 #'  approximation.
-#' @param V_analytical Analytical estimator for the asymptotic variance-covariance matrix for group-time average treatment effects
-#' @param se standard errors for group-time average treatment effects. If bootstrap is set to TRUE, this provides bootstrap-based se.
+#' @param V_analytical Analytical estimator for the asymptotic variance-covariance matrix for unit-time average treatment effects
+#' @param se standard errors for unit-time average treatment effects. If bootstrap is set to TRUE, this provides bootstrap-based se.
 #' @param inffunc the influence function for estimating group-time average treatment effects
 #' @param n the number of unique cross-sectional units (unique values of idname)
 #' @param aggite an aggregate treatment effects object
@@ -48,9 +48,6 @@ summary.MP_i <- function(object, ...) {
   print(mpobj$DIDparams$call)
   cat("\n")
 
-  # citation
-  citation()
-  cat("\n")
 
   # unit time average treatment effects
   cat("Unit-Time Average Treatment Effects:\n")
@@ -102,7 +99,7 @@ summary.MP_i <- function(object, ...) {
 
   # estimation method text
   est_method <- mpobj$DIDparams$est_method
-  if ( is(est_method,"character") ) {
+  if ( methods::is(est_method,"character") ) {
     est_method_text <- est_method
     if (est_method == "dr") {
       est_method_text <- "Doubly Robust"

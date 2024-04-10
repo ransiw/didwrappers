@@ -6,7 +6,7 @@
 \usage{
 sim_data(
   basetreat = seq(10, 100, 10),
-  timetreat = rep(c(5, 10), 5),
+  timetreat = rep(c(10, 15), 5),
   dosage = rep(c(1, 1), each = 5),
   tef = rep(10, 10),
   basecontrol = seq(5, 100, 5),
@@ -20,9 +20,9 @@ sim_data(
 \arguments{
 \item{basetreat}{a numeric vector that specifies the pre-treatment outcomes}
 
-\item{timetreat}{a numeric vector of the same length as \code{basetreat} that specifies the treatment time (avoid zero)}
+\item{timetreat}{a numeric vector of the same length as \code{basetreat} that specifies the treatment time (avoid negative or zero times)}
 
-\item{dosage}{a numeric vector of the same length as \code{basetreat} that specifies the treatment dosage received by the unit}
+\item{dosage}{a numeric vector of the same length as \code{basetreat} that specifies the treatment dosage received by a treatment unit. Zero for control units.}
 
 \item{tef}{a numeric vector of the same length as \code{basetreat} that specifies the treatment effect. The argument \code{dosage} multiplies the treatment effect by the number of doses.}
 

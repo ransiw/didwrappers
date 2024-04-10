@@ -1,4 +1,4 @@
-#' Compute Group-Time Average Treatment Effects
+#' @title Compute Group-Time Average Treatment Effects
 #'
 #' @description
 #' `compute.att_it` does the main work for computing
@@ -10,8 +10,7 @@
 #' @return a list object with the calculated att_it() and corresponding influence functions
 #' @export
 #'
-#' @examples
-compute.att_gt <- function(dp) {
+compute.att_it <- function(dp) {
 
   #-----------------------------------------------------------------------------
   # unpack DIDparams_i
@@ -35,6 +34,7 @@ compute.att_gt <- function(dp) {
   nG <- dp$nG
   tlist <- dp$tlist
   glist <- dp$glist
+  idlist <- dp$idlist
 
   #-----------------------------------------------------------------------------
   # main computations
@@ -91,7 +91,7 @@ compute.att_gt <- function(dp) {
       # universal base period
       if (base_period == "universal") {
         # use same base period as for post-treatment periods
-        pret <- tail(which( (tlist+anticipation) < glist[g]),1)
+        pret <- utils::tail(which( (tlist+anticipation) < glist[g]),1)
       }
 
       # use "not yet treated as control"
@@ -109,7 +109,7 @@ compute.att_gt <- function(dp) {
 
         # update pre-period if in post-treatment period to
         # be  period (g-delta-1)
-        pret <- tail(which( (tlist+anticipation) < glist[g]),1)
+        pret <- utils::tail(which( (tlist+anticipation) < glist[g]),1)
 
         # print a warning message if there are no pre-treatment period
         if (length(pret) == 0) {
@@ -149,12 +149,14 @@ compute.att_gt <- function(dp) {
       # total number of units (not just included in G or C)
       disdat <- data[data[,tname] == tlist[t+tfac] | data[,tname] == tlist[pret],]
 
+      n0 <- nrow(disdat)
+
       # pick up the indices for units that will be used to compute ATT(g,t)
       # these conditions are (1) you are observed in the right period and
       # (2) you are in the right group (it is possible to be observed in
       # the right period but still not be part of the treated or control
       # group in that period here
-      rightids <- disdat$.rowid[ disdat$.G==1 | disdat$.C==1]
+      rightids <- disdat[,idname][ disdat$.G==1 | disdat$.C==1]
 
       # rightids should be observed pre-treatment
       table_rightids <- table(rightids)
@@ -186,19 +188,19 @@ compute.att_gt <- function(dp) {
       # checks to make sure that we have enough observations
       skip_this_att_gt <- FALSE
       if ( sum(G*post) == 0 ) {
-        warning(paste0("No units in group ", glist[g], " in time period ", tlist[t+tfac]))
+        message(paste0("No units in group ", glist[g], " in time period ", tlist[t+tfac]))
         skip_this_att_gt <- TRUE
       }
       if ( sum(G*(1-post)) == 0) {
-        warning(paste0("No units in group ", glist[g], " in time period ", tlist[t]))
+        message(paste0("No units in group ", glist[g], " in time period ", tlist[t]))
         skip_this_att_gt <- TRUE
       }
       if (sum(C*post) == 0) {
-        warning(paste0("No available control units for group ", glist[g], " in time period ", tlist[t+tfac]))
+        message(paste0("No available control units for group ", glist[g], " in time period ", tlist[t+tfac]))
         skip_this_att_gt <- TRUE
       }
       if (sum(C*(1-post)) == 0) {
-        warning(paste0("No availabe control units for group ", glist[g], " in time period ", tlist[t]))
+        message(paste0("No availabe control units for group ", glist[g], " in time period ", tlist[t]))
         skip_this_att_gt <- TRUE
       }
 
@@ -210,17 +212,14 @@ compute.att_gt <- function(dp) {
       }
 
       # Now force to a panel because it balances both sides
-      disdat <- data[data[,tname] == tlist[t+tfac] | data[,tname] == tlist[pret],]
-      n0 = nrow(disdat)
-      # pick up the data that will be used to compute ATT(g,t)
-      disdat <- disdat[disdat[,idname] %in% unique(rightids),]
-      n1 <- nrow(disdat) # num obs. for computing ATT(g,t)
-
       disdat <- BMisc::panel2cs2(disdat, yname, idname, tname, balance_panel=FALSE)
-      # pick up the indices for units that will be used to compute ATT(g,t)
-      disidx <- disdat$.G==1 | disdat$.C==1
       # drop missing factors
       disdat <- droplevels(disdat)
+
+      # save the indices for the inffunc
+      disidx <- data.frame(id = data[,idname],tt = data[,tname],idx = disidx)
+      disidx <- disidx[disidx$tt == tlist[t+tfac],]
+      disidx <- disidx$idx
 
       # give short names for data in this iteration
       G <- disdat$.G
@@ -236,7 +235,7 @@ compute.att_gt <- function(dp) {
 
 
       # matrix of covariates
-      covariates <- model.matrix(xformla, data=disdat)
+      covariates <- stats::model.matrix(xformla, data=disdat)
 
       # if using custom estimation method, skip this part
       custom_est_method <- class(est_method) == "function"
@@ -248,8 +247,8 @@ compute.att_gt <- function(dp) {
 
         # checks for pscore based methods
         if (est_method %in% c("dr", "ipw")) {
-          preliminary_logit <- glm(G ~ covariates, family=binomial(link=logit))
-          preliminary_pscores <- predict(preliminary_logit, type="response")
+          preliminary_logit <- stats::glm(G ~ covariates, family=stats::binomial(link="logit"))
+          preliminary_pscores <- stats::predict(preliminary_logit, type="response")
           if (max(preliminary_pscores) >= 0.999) {
             pscore_problems_likely <- TRUE
             warning(paste0("overlap condition violated for ", glist[g], " in time period ", tlist[t+tfac]))
@@ -364,6 +363,10 @@ compute.att_gt <- function(dp) {
       inf.func <- rep(0, dp$n)
 
       # populate the influence function in the right places
+      if (length(disidx)!=length(inf.func)){
+        stop("The indexing vector is a different size to the number of cross-sectional units")
+      }
+
       inf.func[disidx] <- attgt$att.inf.func
 
 

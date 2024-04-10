@@ -10,7 +10,6 @@
 #' @return returns an object DIDparams_i
 #' @export
 #'
-#' @examples
 pre_process_did_i <- function(yname,
                              tname,
                              idname,
@@ -54,8 +53,8 @@ pre_process_did_i <- function(yname,
   #  make sure gname is numeric
   if (! (is.numeric(data[, gname])) ) stop("data[, gname] must be numeric")
 
-  #  make sure idname is numeric
-  # if (! (is.numeric(data[, idname])) ) stop("data[, idname] must be numeric")
+  #  make sure every time is strictly positive
+  if (min(data[,tname]) < 1 ) stop("data[, tname] must be greater than zero")
 
   # make sure idname is unique in each period observation
   ## # Check if idname is unique by tname
@@ -69,11 +68,11 @@ pre_process_did_i <- function(yname,
   }
 
   # drop irrelevant columns from data
-  data <- cbind.data.frame(data[,c(idname, tname, yname, gname, weightsname, clustervars,dosename,cohortnames)], model.frame(xformla, data=data, na.action=na.pass))
+  data <- cbind.data.frame(data[,c(idname, tname, yname, gname, weightsname, clustervars,cohortnames)], stats::model.frame(xformla, data=data, na.action=stats::na.pass))
 
   # check if any covariates were missing
   n_orig <- nrow(data)
-  data <- data[complete.cases(data),]
+  data <- data[stats::complete.cases(data),]
   n_diff <- n_orig - nrow(data)
   if (n_diff != 0) {
     warning(paste0("dropped ", n_diff, " rows from original data due to missing data"))
@@ -125,7 +124,7 @@ pre_process_did_i <- function(yname,
 
       idtog <- idtog[,gname]
 
-      # don't comput ATT(g,t) for groups that are only treated at end
+      # don't compute ATT(i,t) for groups that are only treated at end
       # and only play a role as a comparison group
       idtog <- idtog[idtog[,gname]<max(glist),]
       glist <- idtog[,gname]
@@ -174,7 +173,7 @@ pre_process_did_i <- function(yname,
     # this is the case where we coerce balanced panel
 
     # check for complete cases
-    keepers <- complete.cases(data)
+    keepers <- stats::complete.cases(data)
     n0 <- length(unique(data[,idname]))
     n.keep <- length(unique(data[keepers,idname]))
     if (nrow(data[keepers,]) < nrow(data)) {
@@ -214,7 +213,7 @@ pre_process_did_i <- function(yname,
   if (!panel) {
 
     # check for complete cases
-    keepers <- complete.cases(data)
+    keepers <- stats::complete.cases(data)
     if (nrow(data[keepers,]) < nrow(data)) {
       warning(paste0("Dropped ", nrow(data) - nrow(data[keepers,]), " observations that had missing data."))
       data <- data[keepers,]
@@ -270,14 +269,14 @@ pre_process_did_i <- function(yname,
   # more error handling after we have balanced the panel
 
   # check against very small groups
-  gsize <- aggregate(data[,gname], by=list(data[,gname]), function(x) length(x)/length(tlist))
+  gsize <- stats::aggregate(data[,gname], by=list(data[,gname]), function(x) length(x)/length(tlist))
 
   # how many in each group before give warning
   # 5 is just a buffer, could pick something else, but seems to work fine
   reqsize <- length(BMisc::rhs.vars(xformla)) + 5
 
   # which groups to warn about
-  gsize <- subset(gsize, x < reqsize) # x is name of column from aggregate
+  gsize <- subset(gsize, get(colnames(gsize)[2]) < reqsize) # x is name of column from aggregate
 
   # warn if some groups are small
   if (nrow(gsize) > 0) {

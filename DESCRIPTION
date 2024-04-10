@@ -2,7 +2,7 @@ Package: didwrappers
 Title: Wrappers for the R did package
 Version: 0.0.0.9000
 Authors@R: 
-    person("Ransi", "W.Clark", , "ransi@caltech.edu", role = c("aut", "cre"),
+    person("Ransi", "W. Clark", , "ransi@caltech.edu", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
 Description: The package allows for unit level matching and aggregation of units with different dosages.
 License: MIT + file LICENSE
@@ -15,6 +15,9 @@ Config/testthat/edition: 3
 Imports: 
     BMisc (>= 1.4.4),
     did (>= 2.1.1),
+    DRDID,
+    Matrix,
+    methods,
     stats,
     stringr
 URL: https://github.com/ransiw/didwrappers

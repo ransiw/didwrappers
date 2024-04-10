@@ -11,7 +11,6 @@
 #' \item{attcalc}{the unit time average treatment effect (always complete unless NaN)}
 #' @export
 #'
-#' @examples
 process_attit <- function(attgt.list) {
   nG <- length(unique(unlist(BMisc::getListElement(attgt.list, "id"))))
   nT <- length(unique(unlist(BMisc::getListElement(attgt.list, "year"))))

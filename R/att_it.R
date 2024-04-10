@@ -2,25 +2,25 @@
 #'
 #' @description
 #' Computes the 2x2 DID estimate at the unit-time level and allows for unit-level covariate matching in a staggered treatment setting.
-#' The original package by Brantly Callaway and Pedro Santa'Anna (did) only allows for group-time ATTs
-#' where units treated in the same period is in a single group. Unlike the related did package, there is no provision for repeated cross-sections.
+#' The original package by Brantly Callaway and Pedro Santa'Anna (`did`) only allows for group-time ATTs
+#' where units treated in the same period is in a single group. Unlike the related `did` package, there is no provision for repeated cross-sections.
 #'
 #'
-#' @param yname The name of the outcome variable in the `data`
-#' @param tname The name of the column containing the time periods in `data`. Must be numeric
-#' @param idname The individual (cross-sectional unit) id name in `data`. Cannot be missing and must be numeric.
-#' @param gname The name of the variable in `data` that
+#' @param yname the name of the outcome variable in the `data`
+#' @param tname the name of the column containing the time periods in `data`. Must be numeric
+#' @param idname the individual (cross-sectional unit) id name in `data`. Cannot be missing and must be numeric.
+#' @param gname the name of the variable in `data` that
 #'  contains the first period when a particular observation is treated.
 #'  This should be a positive number for all observations in treated groups.
 #'  It defines which "treatment-group" a unit belongs to. A zero (0) value is considered to be a unit that is never treated.
 #'  A unit treated after the last period in `tname` is also considered never treated.
-#' @param cohortnames The names of additional aggregation variables in `data`.
-#' @param xformla A formula for the covariates to include in the
+#' @param cohortnames the names of additional aggregation variables in `data`.
+#' @param xformla a formula for the covariates to include in the
 #'  model.  It should be of the form `~ X1 + X2`. An intercept is automatically included. Default
 #'  is NULL which is equivalent to `xformla=~1`.
-#' @param data The name of the data.frame that contains the data.
-#' @param panel If panel is TRUE, the data is coerced to a balanced panel on the. Default is TRUE.
-#' @param control_group Which units to use the control group.
+#' @param data the name of the data.frame that contains the data.
+#' @param panel if panel is TRUE, the data is coerced to a balanced panel on the. Default is TRUE.
+#' @param control_group which units to use the control group.
 #'  The default is "nevertreated" which sets the control group
 #'  to be the group of units that never participate in the
 #'  treatment.  This group does not change across groups or
@@ -31,49 +31,48 @@
 #'  never treated units, but it includes additional units that
 #'  eventually participate in the treatment, but have not
 #'  participated yet.
-#' @param anticipation The number of time periods before participating
+#' @param anticipation the number of time periods before participating
 #'  in the treatment where units can anticipate participating in the
 #'  treatment and therefore it can affect their untreated potential outcomes.
-#' @param weightsname The name of the column containing the sampling weights.
+#' @param weightsname the name of the column containing the sampling weights.
 #'  If not set, all observations have same weight.
 #' @param alp the significance level, default is 0.05
-#' @param bstrap Boolean for whether or not to compute standard errors using
+#' @param bstrap boolean for whether or not to compute standard errors using
 #'  the multiplier bootstrap.  If standard errors are clustered, then one
 #'  must set `bstrap=TRUE`. Default is `TRUE` (in addition, cband
 #'  is also by default `TRUE` indicating that uniform confidence bands
 #'  will be returned.  If bstrap is `FALSE`, then analytical
 #'  standard errors are reported.
-#' @param cband Boolean for whether or not to compute a uniform confidence
+#' @param cband boolean for whether or not to compute a uniform confidence
 #'  band that covers all of the group-time average treatment effects
 #'  with fixed probability `1-alp`.  In order to compute uniform confidence
 #'  bands, `bstrap` must also be set to `TRUE`.  The default is
 #' `TRUE`.
-#' @param biters The number of bootstrap iterations to use.  The default is 1000,
+#' @param biters the number of bootstrap iterations to use.  The default is 1000,
 #'  and this is only applicable if `bstrap=TRUE`.
-#' @param clustervars A vector of variables names to cluster on.  At most, there
+#' @param clustervars a vector of variables names to cluster on.  At most, there
 #'  can be two variables (otherwise will throw an error) and one of these
 #'  must be the same as idname which allows for clustering at the individual
 #'  level. By default, we cluster at individual level (when `bstrap=TRUE`)
-#' @param est_method The method to compute group-time average treatment effects.  The default is "dr" which uses the doubly robust
+#' @param est_method the method to compute group-time average treatment effects.  The default is "dr" which uses the doubly robust
 #' approach in the `DRDID` package.  Other built-in methods
 #' include "ipw" for inverse probability weighting (Hajek type) and "reg" for
 #' first step regression estimators.
-#' @param overlap The treatment of units that violate overlap conditions when the `est_method` is "dr" or "ipw".
+#' @param overlap the treatment of units that violate overlap conditions when the `est_method` is "dr" or "ipw".
 #' The default, "trim", is to drop the unit but report the calculated ATT for further analysis. Overlap is violated if the maximum pscore exceeds 0.999
 #' The other option, "retain" retains these units for inference.
-#' @param base_period Whether to use a "varying" base period or a
+#' @param base_period whether to use a "varying" base period or a
 #'  "universal" base period for placebo tests. A varying base period calculates a pseudo-ATT for every two consecutive pre-treatment periods.
 #'  A universal base period fixes the base period to always be (g-anticipation-1).  Either choice results in the same
 #'  post-treatment estimates of ATT(g,t)'s.
-#' @param print_details Whether or not to show details/progress of computations.
+#' @param print_details whether or not to show details/progress of computations.
 #'   Default is `FALSE`.
-#' @param pl Whether or not to use parallel processing
-#' @param cores The number of cores to use for parallel processing
+#' @param pl whether or not to use parallel processing
+#' @param cores the number of cores to use for parallel processing
 #'
-#' @return an [`MP_i`] object containing all the results for unit-time treatment effects
+#' @return An [`MP_i`] object containing all the results for unit-time treatment effects.
 #' @export
 #'
-#' @examples
 att_it <- function(yname,
                    tname,
                    idname,
@@ -179,7 +178,7 @@ att_it <- function(yname,
   #-----------------------------------------------------------------------------
 
   # critical value from N(0,1), for pointwise
-  cval <- qnorm(1-alp/2)
+  cval <- stats::qnorm(1-alp/2)
 
   # in order to get uniform confidence bands
   # HAVE to use the bootstrap
@@ -189,14 +188,14 @@ att_it <- function(yname,
       # compute new critical value
       # see paper for details
       bSigma <- apply(bres, 2,
-                      function(b) (quantile(b, .75, type=1, na.rm = T) -
-                                     quantile(b, .25, type=1, na.rm = T))/(qnorm(.75) - qnorm(.25)))
+                      function(b) (stats::quantile(b, .75, type=1, na.rm = T) -
+                                     stats::quantile(b, .25, type=1, na.rm = T))/(stats::qnorm(.75) - stats::qnorm(.25)))
 
       bSigma[bSigma <= sqrt(.Machine$double.eps)*10] <- NA
 
       # sup-t confidence band
-      bT <- apply(bres, 1, function(b) max( abs(b/bSigma), na.rm = TRUE))
-      cval <- quantile(bT, 1-alp, type=1, na.rm = T)
+      bT <- apply(bres, 1, function(b) max(abs(b/bSigma), na.rm = TRUE))
+      cval <- stats::quantile(bT, 1-alp, type=1, na.rm = T)
       if(cval >= 7){
         warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
       }

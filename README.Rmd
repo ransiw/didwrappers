@@ -31,25 +31,23 @@ devtools::install_github("ransiw/didwrappers")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+This is a basic example generating code with a sample dataset:
 
 ```{r example}
 library(didwrappers)
-## basic example code
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+Simulate sample data
 
-```{r cars}
-summary(cars)
+```{r}
+simdata = sim_data()
+head(simdata)
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
-
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
+Run an att_it() object and tabulate it
+```{r}
+attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", data = simdata)
+attdf = attit_table(attobject)
+head(attdf)
 ```
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.

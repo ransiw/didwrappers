@@ -2,7 +2,7 @@
 #'
 #' @inheritParams att_it
 #' @inheritParams pre_process_did_i
-#' @param n0 The number of individual and time observations
+#' @param n The number of individual and time observations
 #' @param nG The number of units and not just treatment cohorts
 #' @param nT The number of time periods
 #' @param tlist A vector containing all time periods
@@ -12,7 +12,6 @@
 #' @return a DIDparams_i object
 #' @export
 #'
-#' @examples
 DIDparams_i <- function(yname,
                        tname,
                        idname,
@@ -26,6 +25,7 @@ DIDparams_i <- function(yname,
                        alp=0.05,
                        bstrap=TRUE,
                        biters=1000,
+                       clustervars = NULL,
                        cband=TRUE,
                        print_details=TRUE,
                        pl=FALSE,
@@ -54,6 +54,7 @@ DIDparams_i <- function(yname,
               alp=alp,
               bstrap=bstrap,
               biters=biters,
+              clustervars=clustervars,
               cband=cband,
               print_details=print_details,
               pl=pl,

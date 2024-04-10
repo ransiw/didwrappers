@@ -1,8 +1,8 @@
 #' Creates a simulated dataset with treatment dosages and a control group
 #'
 #' @param basetreat a numeric vector that specifies the pre-treatment outcomes
-#' @param timetreat a numeric vector of the same length as `basetreat` that specifies the treatment time (avoid zero)
-#' @param dosage a numeric vector of the same length as `basetreat` that specifies the treatment dosage received by the unit
+#' @param timetreat a numeric vector of the same length as `basetreat` that specifies the treatment time (avoid negative or zero times)
+#' @param dosage a numeric vector of the same length as `basetreat` that specifies the treatment dosage received by a treatment unit. Zero for control units.
 #' @param tef a numeric vector of the same length as `basetreat` that specifies the treatment effect. The argument `dosage` multiplies the treatment effect by the number of doses.
 #' @param basecontrol a numeric vector that specifies the outcome level at the earliest treatment time
 #' @param cohort a vector of the length of `basecontrol` and `basetreat` combined that identifies the cohort of the unit
@@ -22,7 +22,7 @@
 #' # A default dataframe with 5 different cohorts
 #' sim_data(cohort = rep(c(1,2,3,4,5),6))
 sim_data <- function(basetreat = seq(10,100,10),
-                     timetreat = rep(c(5,10),5),
+                     timetreat = rep(c(10,15),5),
                      dosage = rep(c(1,1),each=5),
                      tef=rep(10,10),
                      basecontrol=seq(5,100,5),
@@ -112,7 +112,7 @@ sim_data <- function(basetreat = seq(10,100,10),
 
     # add a missing treatment effect and dosage
     dfcont$tef = rep(NA, nrow(dfcont))
-    dfcont$dosage = rep(NA, nrow(dfcont))
+    dfcont$dosage = rep(0, nrow(dfcont))
 
     # add an error term
     dfcont$error = stats::rnorm(nrow(dfcont),0,sige)
