@@ -41,7 +41,7 @@ Simulate sample data
 
 ```{r}
 simdata = sim_data()
-head(simdata)
+head(simdata[,c("unit","time","treatg","dosage","y")])
 ```
 
 Run an att_it() object and tabulate it
