@@ -111,18 +111,17 @@ compute.aggite <- function(MP,
     }
 
     if(type == "unit"){
-      glist <- sort(unique(id))
       # Get the groups that have some non-missing ATT(g,t) in post-treatmemt periods
-      gnotna <- sapply(glist, function(g) {
+      gnotna <- sapply(idlist, function(g) {
         # look at post-treatment periods for group g
         whichg <- which( (id == g) & (group <= t))
         attg <- att[whichg]
         group_select <- !is.na(mean(attg))
         return(group_select)
       })
-      gnotna <- glist[gnotna]
+      gnotna <- idlist[gnotna]
       # indicator for not all post-treatment ATT(g,t) missing
-      not_all_na <- group %in% gnotna
+      not_all_na <- id %in% gnotna
       # Re-do the na.rm thing to update the groups
       group <- group[not_all_na]
       t <- t[not_all_na]
@@ -130,7 +129,8 @@ compute.aggite <- function(MP,
       att <- att[not_all_na]
       inffunc1 <- inffunc1[, not_all_na]
       #tlist <- sort(unique(t))
-      glist <- sort(unique(id))
+      # redoing the glist here to drop any NA observations
+      glist <- unique(data.frame(id,group))$group
     }
   }
 
@@ -177,7 +177,10 @@ compute.aggite <- function(MP,
   }
   t <- sapply(originalt, orig2t)
   group <- sapply(originalgroup, orig2t)
-  glist <- sapply(originalglist, orig2t)
+  glist <- unique(data.frame(id,group))$group
+  if (type == "group"){
+    glist <- sort(unique(group))
+  }
   tlist <- unique(t)
   maxT <- max(t)
 
@@ -190,8 +193,14 @@ compute.aggite <- function(MP,
   # n x 1 vector of group variable
   G <-  unlist(lapply(dta[,gname], orig2t))
 
-  # since our estimates are at the unit-time level, aggregation into simple does not require reweighting to group size
-  pg <- rep(1,length(group))
+  # since estimates are at the unit-time level, aggregation into simple does not require reweighting to group size
+  pg <- sapply(idlist, function(g) mean(weights.ind*(dta[,idname]==g)))
+
+  # length of this is equal to number of groups
+  pgg <- pg
+
+  # same but length is equal to the number of ATT(g,t)
+  pg <- pg[match(group, glist)]
 
   #-----------------------------------------------------------------------------
   # Compute the simple ATT summary
@@ -346,6 +355,119 @@ compute.aggite <- function(MP,
 
   }
 
+  #-----------------------------------------------------------------------------
+  # Compute the unit level aggregates
+  #-----------------------------------------------------------------------------
+
+  # we can work in overall probabilities because conditioning will cancel out
+  # cause it shows up in numerator and denominator
+  pg <- sapply(idlist, function(g) mean(weights.ind*(dta[,idname]==g)))
+
+  # length of this is equal to number of groups
+  pgg <- pg
+
+  # same but length is equal to the number of ATT(g,t)
+  pg <- pg[match(group, glist)]
+
+  if (type == "unit") {
+
+    # get group specific ATTs
+    # note: there are no estimated weights here
+    selective.att.g <- sapply(idlist, function(g) {
+      # look at post-treatment periods for group g
+      whichg <- which( (id == g) & (group <= t) & (t<= (group + max_e))) ### added last condition to allow for limit on longest period included in att
+      attg <- att[whichg]
+      mean(attg)
+    })
+    selective.att.g[is.nan(selective.att.g)] <- NA
+
+
+    # get standard errors for each group specific ATT
+    selective.se.inner <- lapply(idlist, function(g) {
+      whichg <- which( (id == g) & (group <= t) & (t<= (group + max_e)))  ### added last condition to allow for limit on longest period included in att
+      inf.func.g <- as.numeric(get_agg_inf_func(att=att,
+                                                inffunc1=inffunc1,
+                                                whichones=whichg,
+                                                weights.agg=pg[whichg]/sum(pg[whichg]),
+                                                wif=NULL))
+      se.g <- getSE(inf.func.g, dp)
+      list(inf.func=inf.func.g, se=se.g)
+    })
+
+    # recover standard errors separately by group
+    selective.se.g <- unlist(BMisc::getListElement(selective.se.inner, "se"))
+    selective.se.g[selective.se.g <= sqrt(.Machine$double.eps)*10] <- NA
+
+    # recover influence function separately by group
+    selective.inf.func.g <- simplify2array(BMisc::getListElement(selective.se.inner, "inf.func"))
+
+    # use multiplier bootstrap (across groups) to get critical value
+    # for constructing uniform confidence bands
+    selective.crit.val <- stats::qnorm(1 - alp/2)
+    if(dp$cband==TRUE){
+      if(dp$bstrap == FALSE){
+        warning('Used bootstrap procedure to compute simultaneous confidence band')
+      }
+      selective.crit.val <- did::mboot(selective.inf.func.g, dp)$crit.val
+
+      if(is.na(selective.crit.val) | is.infinite(selective.crit.val)){
+        warning('Simultaneous critival value is NA. This probably happened because we cannot compute t-statistic (std errors are NA). We then report pointwise conf. intervals.')
+        selective.crit.val <- stats::qnorm(1 - alp/2)
+        dp$cband <- FALSE
+      }
+
+      if(selective.crit.val < stats::qnorm(1 - alp/2)){
+        warning('Simultaneous conf. band is somehow smaller than pointwise one using normal approximation. Since this is unusual, we are reporting pointwise confidence intervals')
+        selective.crit.val <- stats::qnorm(1 - alp/2)
+        dp$cband <- FALSE
+      }
+
+      if(selective.crit.val >= 7){
+        warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
+      }
+
+    }
+
+    # get overall att under selective treatment timing
+    # (here use pgg instead of pg because we can just look at each group)
+    selective.att <- sum(selective.att.g * pgg)/sum(pgg)
+
+    # account for having to estimate pgg in the influence function
+    selective.wif <- wif(keepers=1:length(glist),
+                         pg=pgg,
+                         weights.ind=weights.ind,
+                         G=G,
+                         group=group)
+
+    # get overall influence function
+    selective.inf.func <- get_agg_inf_func(att=selective.att.g,
+                                           inffunc1=selective.inf.func.g,
+                                           whichones=(1:length(glist)),
+                                           weights.agg=pgg/sum(pgg),
+                                           wif=selective.wif)
+
+
+    selective.inf.func <- as.numeric(selective.inf.func)
+    # get overall standard error
+    selective.se <- getSE(selective.inf.func, dp)
+    if(!is.na(selective.se)){
+      if((selective.se <= sqrt(.Machine$double.eps)*10)) selective.se <- NA
+    }
+
+    return(AGGITEobj(overall.att=selective.att,
+                     overall.se=selective.se,
+                     type=type,
+                     egt=idlist,
+                     att.egt=selective.att.g,
+                     se.egt=selective.se.g,
+                     crit.val.egt=selective.crit.val,
+                     inf.function = list(selective.inf.func.g = selective.inf.func.g,
+                                         selective.inf.func = selective.inf.func),
+                     call=call,
+                     DIDparams=dp))
+
+  }
+
 
 
   #-----------------------------------------------------------------------------
@@ -367,7 +489,7 @@ compute.aggite <- function(MP,
     # keep everything (that is what this variable is for)
     include.balanced.gt <- rep(TRUE, length(originalgroup))
 
-    # if we balance the sample with resepect to event time
+    # if we balance the sample with respect to event time
     if (!is.null(balance_e)) {
       include.balanced.gt <- (t2orig(maxT) - originalgroup >= balance_e)
 
