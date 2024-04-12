@@ -149,6 +149,7 @@ compute.att_it <- function(dp) {
       # total number of units (not just included in G or C)
       disdat <- data[data[,tname] == tlist[t+tfac] | data[,tname] == tlist[pret],]
 
+
       n0 <- nrow(disdat)
 
       # pick up the indices for units that will be used to compute ATT(g,t)
@@ -188,19 +189,19 @@ compute.att_it <- function(dp) {
       # checks to make sure that we have enough observations
       skip_this_att_gt <- FALSE
       if ( sum(G*post) == 0 ) {
-        message(paste0("No units in group ", glist[g], " in time period ", tlist[t+tfac]))
+        message(paste0("No units for id ", idlist[g], " in time period ", tlist[t+tfac]))
         skip_this_att_gt <- TRUE
       }
       if ( sum(G*(1-post)) == 0) {
-        message(paste0("No units in group ", glist[g], " in time period ", tlist[t]))
+        message(paste0("No units for id ", idlist[g], " in time period ", tlist[t]))
         skip_this_att_gt <- TRUE
       }
       if (sum(C*post) == 0) {
-        message(paste0("No available control units for group ", glist[g], " in time period ", tlist[t+tfac]))
+        message(paste0("No available control units for id ", idlist[g], " in time period ", tlist[t+tfac]))
         skip_this_att_gt <- TRUE
       }
       if (sum(C*(1-post)) == 0) {
-        message(paste0("No availabe control units for group ", glist[g], " in time period ", tlist[t]))
+        message(paste0("No availabe control units for group ", idlist[g], " in time period ", tlist[t]))
         skip_this_att_gt <- TRUE
       }
 
@@ -216,10 +217,17 @@ compute.att_it <- function(dp) {
       # drop missing factors
       disdat <- droplevels(disdat)
 
+
       # save the indices for the inffunc
       disidx <- data.frame(id = data[,idname],tt = data[,tname],idx = disidx)
       disidx <- disidx[disidx$tt == tlist[t+tfac],]
-      disidx <- disidx$idx
+      allids <- data.frame(id=sort(unique(data[,idname])))
+      allids <- merge(allids,disidx,by="id",all.x=TRUE,sort=TRUE)
+      allids$idx[is.na(allids$idx)] <- FALSE
+      disidx <- allids$idx
+
+      # sort disdat by idname too
+      disdat <- disdat[order(with(disdat, get(idname))), ]
 
       # give short names for data in this iteration
       G <- disdat$.G

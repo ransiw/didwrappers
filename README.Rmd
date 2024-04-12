@@ -75,9 +75,9 @@ aggite_table(agtobject)
 
 The functions can also accommodate unbalancedness. We can impose unbalancedness in simulated data. For example we could drop the first unit before time period 11, which essentially eliminates the unit.
 
-```{r}
-simdata = sim_data(tef=seq(1:10))
-#simdata = simdata[!(simdata[,"unit"]==1 & simdata[,"time"]<11),]
+```{r, message=FALSE}
+simdata = sim_data()
+simdata = simdata[!(simdata[,"unit"]==1 & simdata[,"time"]<11),]
 attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", panel = FALSE, data = simdata)
 agtobject = aggite(attobject,type="unit", na.rm = TRUE)
 aggite_table(agtobject)
