@@ -73,8 +73,8 @@ compute.aggite <- function(MP,
   MP$DIDparams$cband <- cband
   dp <- MP$DIDparams
 
-  if(!(type %in% c("simple", "dynamic", "group", "unit", "calendar"))) {
-    stop('`type` must be one of c("simple", "dynamic", "group", "unit", "calendar")')
+  if(!(type %in% c("simple", "dynamic", "group", "unit", "calendar", cohortnames))) {
+    stop('`type` must be one of c("simple", "dynamic", "group", "unit", "calendar", or a custom cohort)')
   }
 
   if(na.rm){
@@ -110,8 +110,9 @@ compute.aggite <- function(MP,
       glist <- sort(unique(group))
     }
 
-    if(type == "unit"){
-      # Get the groups that have some non-missing ATT(g,t) in post-treatmemt periods
+    if(type %in% c("unit", cohortnames)){
+      idlist <- sort(unique(id))
+      # Get the units that have some non-missing ATT(g,t) in post-treatmemt periods
       gnotna <- sapply(idlist, function(g) {
         # look at post-treatment periods for group g
         whichg <- which( (id == g) & (group <= t))
@@ -131,11 +132,36 @@ compute.aggite <- function(MP,
       #tlist <- sort(unique(t))
       # redoing the glist here to drop any NA observations
       glist <- unique(data.frame(id,group))$group
+      idlist <- sort(unique(id))
     }
   }
 
 
   if((na.rm == FALSE) && base::anyNA(att)) stop("Missing values at att_gt found. If you want to remove these, set `na.rm = TRUE'.")
+
+
+  # if the type is a cohort, create cohort variable of the size of ATT(g,t) cohortlist and check that each unit is uniquely mapped to a cohort
+  if (type %in% cohortnames){
+    cohortlist <- unique(data[,c(idname,type)])
+    idcohort <- data.frame(id = idlist)
+    colnames(idcohort) <- idname
+    idcohort$save <- rep(1,nrow(idcohort))
+    cohortlist <- merge(cohortlist,idcohort, by=idname, sort=FALSE)
+    # drop if save is missing
+    idcohort <- cohortlist[!is.na(cohortlist$save), , drop = FALSE]
+    # find duplicates
+    has_multiple_types <- any(duplicated(idcohort$id) | duplicated(idcohort$id, fromLast = TRUE))
+    if (has_multiple_types) {
+      stop("Some ids belong to multiple cohorts. Consider dropping duplicates")
+    }
+    # add this to an att_gt
+    idcohortatt <- data.frame(id=id)
+    colnames(idcohortatt) <- idname
+    idcohortatt = merge(idcohortatt,idcohort, by=idname, sort=FALSE)
+    cohort = idcohortatt[,type]
+    cohortlist = sort(unique(idcohort[,type]))
+  }
+
 
   # recover a data-frame with only cross-sectional observations
   if(panel){
@@ -153,6 +179,10 @@ compute.aggite <- function(MP,
   # if the na.rm is FALSE the glist for group should be unique
   if (type == "group"){
     glist <- sort(unique(group))
+  }
+
+  if (type == "unit"){
+    idlist <- sort(unique(id))
   }
 
   # do some recoding to make sure time periods are 1 unit apart
@@ -367,7 +397,7 @@ compute.aggite <- function(MP,
   pgg <- pg
 
   # same but length is equal to the number of ATT(g,t)
-  pg <- pg[match(group, glist)]
+  pg <- pg[match(id, idlist)]
 
   if (type == "unit") {
 
@@ -433,7 +463,7 @@ compute.aggite <- function(MP,
     selective.att <- sum(selective.att.g * pgg)/sum(pgg)
 
     # account for having to estimate pgg in the influence function
-    selective.wif <- wif(keepers=1:length(glist),
+    selective.wif <- wif(keepers=1:length(idlist),
                          pg=pgg,
                          weights.ind=weights.ind,
                          G=G,
@@ -467,6 +497,123 @@ compute.aggite <- function(MP,
                      DIDparams=dp))
 
   }
+
+
+  #-----------------------------------------------------------------------------
+  # Compute the cohort level aggregates
+  #-----------------------------------------------------------------------------
+
+  # we can work in overall probabilities because conditioning will cancel out
+  # cause it shows up in numerator and denominator
+  pg <- sapply(cohortlist, function(g) mean(weights.ind*(dta[,type]==g)))
+
+  # length of this is equal to number of groups
+  pgg <- pg
+
+  # same but length is equal to the number of ATT(g,t)
+  pg <- pg[match(cohort, cohortlist)]
+
+  if (type %in% cohortnames) {
+
+    # get group specific ATTs
+    # note: there are no estimated weights here
+    selective.att.g <- sapply(cohortlist, function(g) {
+      # look at post-treatment periods for group g
+      whichg <- which( (cohort == g) & (group <= t) & (t<= (group + max_e))) ### added last condition to allow for limit on longest period included in att
+      attg <- att[whichg]
+      mean(attg)
+    })
+    selective.att.g[is.nan(selective.att.g)] <- NA
+
+
+    # get standard errors for each group specific ATT
+    selective.se.inner <- lapply(cohortlist, function(g) {
+      whichg <- which( (cohort == g) & (group <= t) & (t<= (group + max_e)))  ### added last condition to allow for limit on longest period included in att
+      inf.func.g <- as.numeric(get_agg_inf_func(att=att,
+                                                inffunc1=inffunc1,
+                                                whichones=whichg,
+                                                weights.agg=pg[whichg]/sum(pg[whichg]),
+                                                wif=NULL))
+      se.g <- getSE(inf.func.g, dp)
+      list(inf.func=inf.func.g, se=se.g)
+    })
+
+    # recover standard errors separately by group
+    selective.se.g <- unlist(BMisc::getListElement(selective.se.inner, "se"))
+    selective.se.g[selective.se.g <= sqrt(.Machine$double.eps)*10] <- NA
+
+    # recover influence function separately by group
+    selective.inf.func.g <- simplify2array(BMisc::getListElement(selective.se.inner, "inf.func"))
+
+    # use multiplier bootstrap (across groups) to get critical value
+    # for constructing uniform confidence bands
+    selective.crit.val <- stats::qnorm(1 - alp/2)
+    if(dp$cband==TRUE){
+      if(dp$bstrap == FALSE){
+        warning('Used bootstrap procedure to compute simultaneous confidence band')
+      }
+      selective.crit.val <- did::mboot(selective.inf.func.g, dp)$crit.val
+
+      if(is.na(selective.crit.val) | is.infinite(selective.crit.val)){
+        warning('Simultaneous critival value is NA. This probably happened because we cannot compute t-statistic (std errors are NA). We then report pointwise conf. intervals.')
+        selective.crit.val <- stats::qnorm(1 - alp/2)
+        dp$cband <- FALSE
+      }
+
+      if(selective.crit.val < stats::qnorm(1 - alp/2)){
+        warning('Simultaneous conf. band is somehow smaller than pointwise one using normal approximation. Since this is unusual, we are reporting pointwise confidence intervals')
+        selective.crit.val <- stats::qnorm(1 - alp/2)
+        dp$cband <- FALSE
+      }
+
+      if(selective.crit.val >= 7){
+        warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
+      }
+
+    }
+
+    # get overall att under selective treatment timing
+    # (here use pgg instead of pg because we can just look at each group)
+    selective.att <- sum(selective.att.g * pgg)/sum(pgg)
+
+    # account for having to estimate pgg in the influence function
+    selective.wif <- wif(keepers=1:length(cohortlist),
+                         pg=pgg,
+                         weights.ind=weights.ind,
+                         G=G,
+                         group=group)
+
+    # get overall influence function
+    selective.inf.func <- get_agg_inf_func(att=selective.att.g,
+                                           inffunc1=selective.inf.func.g,
+                                           whichones=(1:length(cohortlist)),
+                                           weights.agg=pgg/sum(pgg),
+                                           wif=selective.wif)
+
+
+    selective.inf.func <- as.numeric(selective.inf.func)
+    # get overall standard error
+    selective.se <- getSE(selective.inf.func, dp)
+    if(!is.na(selective.se)){
+      if((selective.se <= sqrt(.Machine$double.eps)*10)) selective.se <- NA
+    }
+
+    return(AGGITEobj(overall.att=selective.att,
+                     overall.se=selective.se,
+                     type=type,
+                     egt=cohortlist,
+                     att.egt=selective.att.g,
+                     se.egt=selective.se.g,
+                     crit.val.egt=selective.crit.val,
+                     inf.function = list(selective.inf.func.g = selective.inf.func.g,
+                                         selective.inf.func = selective.inf.func),
+                     call=call,
+                     DIDparams=dp))
+
+  }
+
+
+
 
 
 

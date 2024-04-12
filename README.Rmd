@@ -51,3 +51,26 @@ attdf = attit_table(attobject)
 head(attdf)
 ```
 
+We can now aggregate all post-treatment effects to the unit level. 
+
+```{r}
+agtobject = aggite(attobject,type="unit")
+aggite_table(agtobject)
+```
+
+Now sample a data frame with different dosage amounts and aggregate.
+
+```{r}
+attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", cohortnames = "dosage", data = sim_data(dosage = rep(c(1,2),each=5)))
+agtobject = aggite(attobject,type="unit")
+aggite_table(agtobject)
+```
+
+We could also aggregate to the dosage level by specifying dosage as the `type`. 
+
+```{r}
+agtobject = aggite(attobject,type="dosage")
+aggite_table(agtobject)
+```
+
+
