@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of didwrappers is to ...
+The goal of didwrappers is to extend the functionality of the `did` package, specifically for within treatment-group heterogeneity and unbalanced data. 
 
 ## Installation
 
@@ -79,8 +79,36 @@ The functions can also accommodate unbalancedness. We can impose unbalancedness 
 simdata = sim_data()
 simdata = simdata[!(simdata[,"unit"]==1 & simdata[,"time"]<11),]
 attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", panel = FALSE, data = simdata)
+```
+
+
+```{r, message=FALSE}
 agtobject = aggite(attobject,type="unit", na.rm = TRUE)
 aggite_table(agtobject)
 ```
 
+We could also consider the effect of truncation of the outcome variable at 100. Truncation will affect units whose baselevels are high.
+
+```{r}
+simdata = sim_data()
+simdata$y[simdata$y > 100] <- 100
+unique(simdata[simdata$baselevel>75,c("unit","treatg", "baselevel")])
+```
+
+
+We now calculate the unit level treatment effect for these.
+
+```{r}
+attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", panel = FALSE, data = simdata)
+agtobject = aggite(attobject,type="unit", na.rm = TRUE)
+aggite_table(agtobject)
+```
+
+Units 9 and 10 have negative estimates caused by the truncation. This could be alleviated by matching units at the baselevels, which can be done with matching units at the pre-treatment levels. 
+
+```{r}
+attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", panel = FALSE, xformla = ~y, data = simdata)
+agtobject = aggite(attobject,type="unit", na.rm = TRUE)
+aggite_table(agtobject)
+```
 
