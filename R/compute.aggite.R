@@ -503,17 +503,17 @@ compute.aggite <- function(MP,
   # Compute the cohort level aggregates
   #-----------------------------------------------------------------------------
 
-  # we can work in overall probabilities because conditioning will cancel out
-  # cause it shows up in numerator and denominator
-  pg <- sapply(cohortlist, function(g) mean(weights.ind*(dta[,type]==g)))
-
-  # length of this is equal to number of groups
-  pgg <- pg
-
-  # same but length is equal to the number of ATT(g,t)
-  pg <- pg[match(cohort, cohortlist)]
-
   if (type %in% cohortnames) {
+
+    # we can work in overall probabilities because conditioning will cancel out
+    # cause it shows up in numerator and denominator
+    pg <- sapply(cohortlist, function(g) mean(weights.ind*(dta[,type]==g)))
+
+    # length of this is equal to number of groups
+    pgg <- pg
+
+    # same but length is equal to the number of ATT(g,t)
+    pg <- pg[match(cohort, cohortlist)]
 
     # get group specific ATTs
     # note: there are no estimated weights here
