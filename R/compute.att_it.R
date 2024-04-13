@@ -257,7 +257,7 @@ compute.att_it <- function(dp) {
         if (est_method %in% c("dr", "ipw")) {
           preliminary_logit <- stats::glm(G ~ covariates, family=stats::binomial(link="logit"))
           preliminary_pscores <- stats::predict(preliminary_logit, type="response")
-          if (max(preliminary_pscores) >= 0.999) {
+          if (max(preliminary_pscores) >= 0.999 | max(preliminary_pscores) <= 0.001 ) {
             pscore_problems_likely <- TRUE
             warning(paste0("overlap condition violated for ", glist[g], " in time period ", tlist[t+tfac]))
           }
