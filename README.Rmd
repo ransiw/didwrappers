@@ -24,7 +24,7 @@ The goal of didwrappers is to extend the functionality of the `did` package, spe
 
 You can install the development version of didwrappers:
 
-``` r
+``` {r}
 # install.packages("devtools")
 devtools::install_github("ransiw/didwrappers")
 ```
