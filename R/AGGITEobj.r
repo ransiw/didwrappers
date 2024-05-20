@@ -11,6 +11,7 @@
 #'  group (for selective treatment timing), the unit (for selective treatment),
 #'  cohort (for cohort level effects), or the time period (for calendar
 #'  time effects)
+#' @param egt2 a second aggregation type to hold a secondary object, NULL if no such object
 #' @param att.egt The ATT specific to egt
 #' @param se.egt The standard error specific to egt
 #' @param crit.val.egt A critical value for computing uniform confidence
@@ -24,7 +25,9 @@
 AGGITEobj <- function(overall.att = NULL,
                      overall.se = NULL,
                      type = "simple",
+                     type2 = NULL,
                      egt = NULL,
+                     egt2 = NULL,
                      att.egt = NULL,
                      se.egt = NULL,
                      crit.val.egt = NULL,
@@ -38,7 +41,9 @@ AGGITEobj <- function(overall.att = NULL,
   out <- list(overall.att = overall.att,
               overall.se = overall.se,
               type = type,
+              type2 = type2,
               egt = egt,
+              egt2 = egt2,
               att.egt = att.egt,
               se.egt = se.egt,
               crit.val.egt = crit.val.egt,
@@ -83,7 +88,9 @@ summary.AGGITEobj <- function(object, ...) {
   cat("\n")
   #cat("Overall ATT:  \n")
   if (object$type=="dynamic") cat("Overall summary of ATT\'s based on event-study/dynamic aggregation:  \n")
-  if (object$type=="group") cat("Overall summary of ATT\'s based on group/cohort aggregation:  \n")
+  if (object$type=="group") cat("Overall summary of ATT\'s based on group aggregation:  \n")
+  if (object$type=="unit") cat("Overall summary of ATT\'s based on unit aggregation:  \n")
+  if (object$type %in% object$DIDparams$cohortnames) cat("Overall summary of ATT\'s based on other aggregation:  \n")
   if (object$type=="calendar") cat("Overall summary of ATT\'s based on calendar time aggregation:  \n")
   colnames(out1) <- c("ATT","   Std. Error", paste0("    [ ",100*(1-object$DIDparams$alp),"% "), "Conf. Int.]","")
   print(out1, row.names=FALSE)
@@ -95,6 +102,8 @@ summary.AGGITEobj <- function(object, ...) {
     # header
     if (object$type=="dynamic") { c1name <- "Event time"; cat("Dynamic Effects:") }
     if (object$type=="group") { c1name <- "Group"; cat("Group Effects:") }
+    if (object$type=="unit") { c1name <- "Unit"; cat("Unit Effects:") }
+    if (object$type %in% object$DIDparams$cohortnames) { c1name <- "Other"; cat("Other Effects:") }
     if (object$type=="calendar") { c1name <- "Time"; cat("Time Effects:") }
 
     cat("\n")

@@ -8,7 +8,9 @@ AGGITEobj(
   overall.att = NULL,
   overall.se = NULL,
   type = "simple",
+  type2 = NULL,
   egt = NULL,
+  egt2 = NULL,
   att.egt = NULL,
   se.egt = NULL,
   crit.val.egt = NULL,
@@ -39,10 +41,14 @@ the overall effect averages the effect across different groups); and
 time periods; here the overall effect averages the effect across each
 time period).}
 
+\item{type2}{the second type of aggregator}
+
 \item{egt}{Holds the length of exposure (for dynamic effects), the
 group (for selective treatment timing), the unit (for selective treatment),
 cohort (for cohort level effects), or the time period (for calendar
 time effects)}
+
+\item{egt2}{a second aggregation type to hold a secondary object, NULL if no such object}
 
 \item{att.egt}{The ATT specific to egt}
 
