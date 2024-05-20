@@ -57,7 +57,7 @@
 #'
 
 #' @export
-aggite <- function(MP,
+aggite2 <- function(MP,
                    type = "group",
                    type2 = "dynamic",
                    balance_e = NULL,

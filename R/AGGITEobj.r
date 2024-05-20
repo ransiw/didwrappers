@@ -3,8 +3,8 @@
 #' @description Objects of this class hold results on aggregated
 #'  unit-time average treatment effects
 #'
-#' @inheritParams aggite
-#' @inheritParams compute.aggite
+#' @inheritParams aggite2
+#' @inheritParams compute.aggite2
 #' @param overall.att The estimated overall ATT
 #' @param overall.se Standard error for overall ATT
 #' @param egt Holds the length of exposure (for dynamic effects), the
