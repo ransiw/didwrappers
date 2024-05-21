@@ -2,7 +2,7 @@
 % Please edit documentation in R/compute.aggite2.R
 \name{compute.aggite2}
 \alias{compute.aggite2}
-\title{Compute Aggregated Treatment Effect Parameters}
+\title{Compute Pair Aggregated Treatment Effect Parameters}
 \usage{
 compute.aggite2(
   MP,
@@ -81,7 +81,7 @@ level. Default is the variables set in the MP object}
 \code{\link{AGGITEobj}} object
 }
 \description{
-For computing aggregated group-time
+For computing pair aggregated group-time
 average treatment effects
 }
 \keyword{internal}

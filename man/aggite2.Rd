@@ -2,7 +2,7 @@
 % Please edit documentation in R/aggite2.R
 \name{aggite2}
 \alias{aggite2}
-\title{Aggregate Unit-Time Average Treatment Effects}
+\title{Pair Aggregate Unit-Time Average Treatment Effects}
 \usage{
 aggite2(
   MP,
@@ -83,6 +83,6 @@ aggregation
 \description{
 A function to take unit-time average treatment effects
 and aggregate them into sub-effects where there is more than one aggregating type.
-Possible aggregations include pairs of any of the following: "dynamic", "unit,
-"group","dosage","calendar, and any or any two custom aggregation name."
+Possible aggregations include pairs of any of the following:
+"group" or a custom aggregation name" with "dynamic"
 }
