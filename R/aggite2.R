@@ -1,9 +1,9 @@
-#' @title Aggregate Unit-Time Average Treatment Effects
+#' @title Pair Aggregate Unit-Time Average Treatment Effects
 #'
 #' @description A function to take unit-time average treatment effects
 #'  and aggregate them into sub-effects where there is more than one aggregating type.
-#'  Possible aggregations include pairs of any of the following: "dynamic", "unit,
-#'  "group","dosage","calendar, and any or any two custom aggregation name."
+#'  Possible aggregations include pairs of any of the following:
+#'  "group" or a custom aggregation name" with "dynamic"
 #'
 #' @param MP an MP_i object (i.e., the results of the [att_it()] method)
 #' @param type Which type of aggregated treatment effect parameter to compute.

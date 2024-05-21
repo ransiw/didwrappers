@@ -1,6 +1,6 @@
-#' @title Compute Aggregated Treatment Effect Parameters
+#' @title Compute Pair Aggregated Treatment Effect Parameters
 #'
-#' @description For computing aggregated group-time
+#' @description For computing pair aggregated group-time
 #'  average treatment effects
 #'
 #' @inheritParams aggite
@@ -280,9 +280,15 @@ compute.aggite2 <- function(MP,
           # keep att(g,t) for the right g&t as well as ones that
           # are not trimmed out from balancing the sample
           whiche <- which( (group == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
-          atte <- att[whiche]
-          pge <- pg[whiche]/(sum(pg[whiche]))
-          sum(atte*pge)})
+          if (length(whiche)==0){
+            NA
+          }
+          else{
+            atte <- att[whiche]
+            pge <- pg[whiche]/(sum(pg[whiche]))
+            sum(atte*pge)
+          }
+          })
       })
 
       dynamic.att.e = c(dynamic.att.e)
@@ -290,14 +296,19 @@ compute.aggite2 <- function(MP,
       dynamic.se.inner <- lapply(glist, function(g) {
         lapply(eseq, function(e){
           whiche <- which( (group == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
-          pge <- pg[whiche]/(sum(pg[whiche]))
-          wif.e <- wif(whiche, pg, weights.ind, G, group)
-          inf.func.e <- as.numeric(get_agg_inf_func(att=att,
-                                                    inffunc1=inffunc1,
-                                                    whichones=whiche,
-                                                    weights.agg=pge,
-                                                    wif=wif.e))
-          se.e <- getSE(inf.func.e, dp)
+          if (length(whiche)==0){
+            inf.func.e = rep(0,dim(inffunc1)[1])
+            se.e <- 0
+          } else{
+            pge <- pg[whiche]/(sum(pg[whiche]))
+            wif.e <- wif(whiche, pg, weights.ind, G, group)
+            inf.func.e <- as.numeric(get_agg_inf_func(att=att,
+                                                      inffunc1=inffunc1,
+                                                      whichones=whiche,
+                                                      weights.agg=pge,
+                                                      wif=wif.e))
+            se.e <- getSE(inf.func.e, dp)
+          }
           list(inf.func=inf.func.e, se=se.e)
         })
       })
@@ -335,7 +346,7 @@ compute.aggite2 <- function(MP,
 
       # get overall average treatment effect
       # by averaging over positive dynamics
-      epos <- unlist(BMisc::getListElement(egtlist, "egt2")) >= 0
+      epos <- (unlist(BMisc::getListElement(egtlist, "egt2")) >= 0 & !is.na(dynamic.att.e))
 
       dynamic.att <- mean(dynamic.att.e[epos])
       dynamic.inf.func <- get_agg_inf_func(att=dynamic.att.e[epos],
@@ -393,9 +404,15 @@ compute.aggite2 <- function(MP,
           # keep att(g,t) for the right g&t as well as ones that
           # are not trimmed out from balancing the sample
           whiche <- which( (cohort == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
-          atte <- att[whiche]
-          pge <- pg[whiche]/(sum(pg[whiche]))
-          sum(atte*pge)})
+          if (length(whiche)==0){
+            NA
+          }
+          else{
+            atte <- att[whiche]
+            pge <- pg[whiche]/(sum(pg[whiche]))
+            sum(atte*pge)
+          }
+          })
       })
 
       dynamic.att.e = c(dynamic.att.e)
@@ -403,14 +420,19 @@ compute.aggite2 <- function(MP,
       dynamic.se.inner <- lapply(cohortlist, function(g) {
         lapply(eseq, function(e){
           whiche <- which( (cohort == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
-          pge <- pg[whiche]/(sum(pg[whiche]))
-          wif.e <- wif(whiche, pg, weights.ind, G, group)
-          inf.func.e <- as.numeric(get_agg_inf_func(att=att,
-                                                    inffunc1=inffunc1,
-                                                    whichones=whiche,
-                                                    weights.agg=pge,
-                                                    wif=wif.e))
-          se.e <- getSE(inf.func.e, dp)
+          if (length(whiche)==0){
+            inf.func.e = rep(0,dim(inffunc1)[1])
+            se.e <- 0
+          } else{
+            pge <- pg[whiche]/(sum(pg[whiche]))
+            wif.e <- wif(whiche, pg, weights.ind, G, group)
+            inf.func.e <- as.numeric(get_agg_inf_func(att=att,
+                                                      inffunc1=inffunc1,
+                                                      whichones=whiche,
+                                                      weights.agg=pge,
+                                                      wif=wif.e))
+            se.e <- getSE(inf.func.e, dp)
+          }
           list(inf.func=inf.func.e, se=se.e)
         })
       })
@@ -448,7 +470,7 @@ compute.aggite2 <- function(MP,
 
       # get overall average treatment effect
       # by averaging over positive dynamics
-      epos <- unlist(BMisc::getListElement(egtlist, "egt2")) >= 0
+      epos <- (unlist(BMisc::getListElement(egtlist, "egt2")) >= 0 & !is.na(dynamic.att.e))
 
       dynamic.att <- mean(dynamic.att.e[epos])
       dynamic.inf.func <- get_agg_inf_func(att=dynamic.att.e[epos],
