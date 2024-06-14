@@ -142,7 +142,7 @@ compute.aggite2 <- function(MP,
   }
 
 
-  if((na.rm == FALSE) && base::anyNA(att)) warning("Missing values at att_gt found. If you want to remove these, set `na.rm = TRUE'.")
+  if((na.rm == FALSE) && base::anyNA(att)) stop("Missing values at att_gt found. If you want to remove these, set `na.rm = TRUE'.")
 
 
   # if the type is a cohort, create cohort variable of the size of ATT(g,t) cohortlist and check that each unit is uniquely mapped to a cohort
