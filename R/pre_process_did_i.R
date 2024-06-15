@@ -163,7 +163,35 @@ pre_process_did_i <- function(yname,
 
   }
 
+  #-----------------------------------------------------------------------------
+  # if the cohort_names vary within unit issue an error to fix this
+  #-----------------------------------------------------------------------------
 
+  if (!is.null(cohortnames)){
+
+
+    data_filtered <- data[data[,tname] == data[,gname]-1, ]
+
+    new_names <- paste0(cohortnames, "_atpre")
+
+    names(data_filtered)[names(data_filtered) %in% cohortnames] <- new_names
+
+    data_filtered <- data_filtered[,c(idname, gname, new_names)]
+
+    df <- merge(data, data_filtered, by=c(idname, gname))
+
+    # Create a logical condition for rows where any of the columns differ from their "_atpre" counterparts
+    condition <- Reduce(`|`, lapply(seq_along(cohortnames), function(i) df[[cohortnames[i]]] != df[[new_names[i]]]))
+
+    # Subset the dataframe based on the condition
+    df_different <- df[condition, ]
+
+    # Report the error for the first
+    if (dim(df_different)[1]>0){
+      stop(paste("the unit",df_different[1,idname],"and possibly others have cohort identifiers that differ across time"))
+    }
+
+  }
 
 
   #-----------------------------------------------------------------------------
