@@ -122,7 +122,7 @@ pre_process_did_i <- function(yname,
 
       tlist <- sort(unique(data[,tname]))
 
-      idtog <- idtog[,gname]
+      glist <- idtog[,gname]
 
       # don't compute ATT(i,t) for groups that are only treated at end
       # and only play a role as a comparison group

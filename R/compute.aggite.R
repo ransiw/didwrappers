@@ -32,6 +32,7 @@ compute.aggite <- function(MP,
   t <- MP$t
   id <- MP$id
   att <- MP$att
+  se <- MP$se
   dp <- MP$DIDparams
   inffunc1 <- MP$inffunc
   n <- MP$n
@@ -78,7 +79,7 @@ compute.aggite <- function(MP,
   }
 
   if(na.rm){
-    notna <- !is.na(att)
+    notna <- !is.na(se)
     group <- group[notna]
     t <- t[notna]
     id <- id[notna]
