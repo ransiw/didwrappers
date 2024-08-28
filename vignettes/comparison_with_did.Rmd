@@ -1,0 +1,136 @@
+---
+title: "Comparison between did and didwrappers"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Comparison between did and didwrappers}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This vignette compares the `did` and the current package using the example data in the `did` package, `mpdta`.
+
+The example dataset that is used here contain county-level teen employment (`lemp`) for years 2003-2007. The treatment is minimum wage. The `first.treat` variable in the data encodes the year the county raised minimum wage over the federally-mandated level. 
+
+This vignette should be read along with the linked [article](https://bcallaway11.github.io/did/) by Brantly Callaway. I recreate the main results that were produced by the `did` package, and then follow up with the comparable results of `didwrappers`. The differences between the packages will become clear soon.  
+
+
+```{r setup}
+library(didwrappers)
+library(did)
+data(mpdta)
+```
+
+The first step in the `did` algorithm is to produce the group-time component differences-in-differences estimates. I also time the run times.
+
+```{r}
+startt = Sys.time()
+out <- did::att_gt(yname = "lemp",
+              gname = "first.treat",
+              idname = "countyreal",
+              tname = "year",
+              xformla = ~1,
+              data = mpdta,
+              est_method = "reg"
+              )
+endt = Sys.time()
+print(paste("Time elapsed:",endt-startt,"seconds"))
+```
+
+The `didwrappers` package produces a similar object but at the more granular unit-time level.
+This takes longer to run. The syntax remains the same, only the function name should need to change. 
+
+```{r}
+startt = Sys.time()
+out_it <- didwrappers::att_it(yname = "lemp",
+              gname = "first.treat",
+              idname = "countyreal",
+              tname = "year",
+              xformla = ~1,
+              data = mpdta,
+              est_method = "reg"
+              )
+endt = Sys.time()
+print(paste("Time elapsed:",endt-startt,"seconds"))
+```
+
+It takes quite a bit longer to do things at the county-level than at the group level, which is the year that minimum wage is raised. There are certain advantages to having the more disaggregate county-level object that `didwrappers:att_it` produces, particularly, if aggregation across other attributes are needed. 
+
+The `didwrappers` package has a function to view this data as a data frame. It is similar to `summary` functionality in `did`, but handier if you wish to export the object as a data-frame than a list. Here are the first 5 records of the table.
+
+```{r}
+didwrappers::attit_table(out_it)[1:5,1:5]
+```
+
+Now these can be aggregated at the group level, dynamic level, calendar-time level. Starting with the object produced by the call to the `did:att_gt` function, let's take the group average. 
+
+```{r}
+group_effects <- did::aggte(out, type = "group")
+```
+
+The `didwrappers` package has a handy function to view these as a data frame.
+
+```{r}
+didwrappers::aggite_table(group_effects)
+```
+
+Now, to trying this with the unit-time object. The syntax is quite similar, and these aggregation functions are not so computationally expensive to run, even with a larger object. 
+
+```{r}
+group_effects_it <- didwrappers::aggite(out_it, type = "group")
+didwrappers::aggite_table(group_effects_it)
+```
+
+The estimates produced by these packages are the same. The differences are in the standard errors, even though they both use simultaneous confidence intervals. The effect for year 2007 is now significant at the 5\% level. This isn't necessarily good or bad. As you will see, `didwrappers:aggite` standard errors are not always smaller than the `did::aggte` standard errors. 
+
+One more aggregation method before the end of this vignette. Going back to the group-time object, 
+
+```{r}
+es <- did::aggte(out, type = "dynamic")
+didwrappers::aggite_table(es)
+```
+
+With the unit-time level algorithm,
+
+```{r}
+es_it <- didwrappers::aggite(out_it, type = "dynamic")
+didwrappers::aggite_table(es_it)
+```
+
+The standard errors for time lag 1 are larger here than with the `did` package. If you are curious, you can go look in the object produced by `attit` to see which unit might be causing this. I do a bit more sleuthing in a different vignette. 
+
+The last thing is to look at the overall post-treatment effect. Different aggregations give different effects. Starting with the outputs of `did`,
+
+```{r}
+paste("Overall effect from group aggregation is",group_effects$overall.att)
+paste("Overall effect from dynamic aggregation is",es$overall.att)
+```
+
+For the outputs of `didwrappers`,
+
+```{r}
+paste("Overall effect from group aggregation is",group_effects_it$overall.att)
+paste("Overall effect from dynamic aggregation is",es_it$overall.att)
+```
+
+They are the same here. This is not surprising because the mid-level aggregations were also the same. 
+
+For 95\% confidence intervals, starting with the `did` objects:
+
+```{r}
+paste("CI for overall effect from group aggregation is","[",round(group_effects$overall.att-1.96*group_effects$overall.se,3),",",round(group_effects$overall.att+1.96*group_effects$overall.se,3),"]")
+paste("CI for overall effect from dynamic aggregation is","[",round(es$overall.att-1.96*group_effects$overall.se,3),",",round(es$overall.att+1.96*group_effects$overall.se,3),"]")
+```
+
+Using the `didwrappers` object,
+
+```{r}
+paste("CI for overall effect from group aggregation is","[",round(group_effects_it$overall.att-1.96*group_effects_it$overall.se,3),",",round(group_effects_it$overall.att+1.96*group_effects_it$overall.se,3),"]")
+paste("CI for overall effect from dynamic aggregation is","[",round(es_it$overall.att-1.96*es_it$overall.se,3),",",round(es_it$overall.att+1.96*es_it$overall.se,3),"]")
+```
