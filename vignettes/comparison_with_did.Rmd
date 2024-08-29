@@ -105,7 +105,7 @@ didwrappers::aggite_table(es_it)
 
 The standard errors for time lag 1 are larger here than with the `did` package. If you are curious, you can go look in the object produced by `attit` to see which unit might be causing this. I do a bit more sleuthing in a different vignette. 
 
-The last thing is to look at the overall post-treatment effect. Different aggregations give different effects. Starting with the outputs of `did`,
+Let's now look at the overall post-treatment effect. Different aggregations give different effects. Starting with the outputs of `did`,
 
 ```{r}
 paste("Overall effect from group aggregation is",group_effects$overall.att)
@@ -134,3 +134,33 @@ Using the `didwrappers` object,
 paste("CI for overall effect from group aggregation is","[",round(group_effects_it$overall.att-1.96*group_effects_it$overall.se,3),",",round(group_effects_it$overall.att+1.96*group_effects_it$overall.se,3),"]")
 paste("CI for overall effect from dynamic aggregation is","[",round(es_it$overall.att-1.96*es_it$overall.se,3),",",round(es_it$overall.att+1.96*es_it$overall.se,3),"]")
 ```
+
+The results presented were for an unconditional differences-in-difference. But unconditional results might be misleading, because the treatment and control groups are too different. In such cases, re-weighting the control units so that they look similar is one way to proceed. This is the snippet that would implement a weighting algorithm in the `did` package.
+
+```{r}
+out_lpop <- did::att_gt(yname = "lemp",
+              gname = "first.treat",
+              idname = "countyreal",
+              tname = "year",
+              xformla = ~lpop,
+              data = mpdta,
+              est_method = "ipw"
+              )
+```
+
+The call in the `didwrappers` package is similar, but I am going to suppress warnings because I expect some overlap violations.
+
+```{r, message=FALSE, warning=FALSE}
+out_it_lpop <- didwrappers::att_it(yname = "lemp",
+              gname = "first.treat",
+              idname = "countyreal",
+              tname = "year",
+              xformla = ~lpop,
+              data = mpdta,
+              est_method = "ipw"
+              )
+```
+
+Even when the group-level algorithm doesn't have overlap violations, the unit-level algorithm does. The default setting is to remove the violating units, but this can be changed by setting `overlap = "retain"` in the initial `att_it` call. The unit that the overlap violation occurred at has the lowest population of all the counties in the sample. For such a violation to occur at the group level, the counties treated at a time must have a lower average population than all the untreated counties. 
+
+Whether aggregation should be at the group-level or the unit-level should come down to the nature of the data. If there are many units, and there is reason to think there is not much heterogeneity within the group, the group level algorithm is ideal. If there are a few units, such as with cross-country studies, or the units that get treated at the same time are sufficiently different, the unit-level algorithm is better. 

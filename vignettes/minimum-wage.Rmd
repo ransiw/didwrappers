@@ -1,0 +1,141 @@
+---
+title: "Minimum wage example"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Minimum wage example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This vignette goes through some of the main functions of the `didwrappers` package using the example data in the `did` package. Another vignette compares these two packages for the same data. Use `browseVignettes("didwrappers")` to access that, and other vignettes. I also recommend Brantly Callaway's [article](https://bcallaway11.github.io/did/).  
+
+```{r setup}
+library(didwrappers)
+data(mpdta)
+```
+
+The data consists of the minimal number of elements required for the algorithm. The outcome variable of log of teen employment `lemp`, the time (numeric) that the county first raised minimum wage `first.treat`, the numeric identifier for the county or unit `countyreal`, and the `year`. 
+
+```{r}
+mpdta[1:4,]
+```
+
+The first step is to calculate every unit-time difference-in-difference object. This code snippet does that.
+
+```{r}
+out_it <- didwrappers::att_it(yname = "lemp",
+              gname = "first.treat",
+              idname = "countyreal",
+              tname = "year",
+              data = mpdta
+              )
+```
+
+Then these could be aggregated to give an overall post-treatment effect. A simple aggregation could be done as follows,
+
+```{r}
+simple = didwrappers::aggite(out_it, type="simple")
+simple$overall.att
+simple$overall.se
+```
+
+But there is more that can be done. Perhaps, we want to see the effect of raising minimum wage for all counties that raised the minimum wage in 2004, or 2007. 
+
+```{r}
+group = didwrappers::aggite(out_it, type="group")
+```
+
+A further function can be useful to unravel the list object into a data-frame.
+
+```{r}
+didwrappers::aggite_table(group)
+```
+
+This shows that on average counties that raised minimum wage in 2004, and 2007 saw a statistically significant (95\%) drop in teen employment. For 2006, the effect was negative, but not statistically significant. 
+
+Once concern with this type of aggregation is that the counties that raised minimum wage in 2004 have more post-treatment observations than counties that raise minimum wage later. If raising the minimum wage has different dynamic effects, we want to be able to see that. To do that, we could cut the unit-time object `out_it` a different way: at the dynamic level. 
+
+
+```{r}
+dynamic = didwrappers::aggite(out_it, type="dynamic")
+didwrappers::aggite_table(dynamic)
+```
+
+It also gives us placebo trends. 
+
+We can also retrieve the overall effect and standard error from this same object.
+
+```{r}
+dynamic$overall.att
+dynamic$overall.se
+```
+
+
+Until now we have run unconditional differences-in-differences. But, it might be appropriate to compare counties based on their population. There are a variety of reweighting algorithms in the package to achieve this. I'll demonstrate with inverse-propensity score weighting. I suppress the warning messages that come when the overlap condition is violated, but we'll quickly see how to figure out the ones that are the problem. 
+
+```{r, message=FALSE, warning=FALSE}
+out_it_lpop <- didwrappers::att_it(yname = "lemp",
+              gname = "first.treat",
+              idname = "countyreal",
+              tname = "year",
+              xformla = ~lpop,
+              data = mpdta,
+              est_method = "ipw"
+              )
+```
+
+Save this into a table, and look at the units for which the overlap condition failed. 
+
+```{r}
+out_it_lpop_tbl <- didwrappers::attit_table(out_it_lpop)
+out_it_lpop_tbl[is.na(out_it_lpop_tbl$se),1:7]
+```
+
+For one of the counties, overlap failed. As shown by the `ipwqual` field, which is very close to 1, the maximum propensity score being that close to 1 shows that almost all the weight lands on just one control unit. This can make standard errors inflate. If you want to see what would happen anyway set the option `overlap="retain"` in the initial `att_it` call. 
+
+The rest of the steps can continue as above. For a quick comparison to the dynamic effects, run the following snippet. Because the overlap problems create issues for the standard errors, we should drop these. 
+
+```{r}
+dynamic_lpop = didwrappers::aggite(out_it_lpop, type="dynamic", na.rm = TRUE)
+didwrappers::aggite_table(dynamic_lpop)
+```
+
+The estimates are a little different from the unconditional version. But the substantive conclusions made would remain the same. 
+
+Another option with the `didwrappers` package is that you can also choose an aggregation level based on a different variable. I'll create such a variable out of the `lpop` variable. 
+
+```{r}
+mpdta$lpop2 = round(mpdta$lpop)
+table(mpdta[mpdta$first.treat>0,"lpop2"])
+```
+
+There are 8 population categories in the treatment set, but the category 0, 1, and 7 have 3 or less units. If we want to aggregate to these new population categories, we can go to the `att_it` function's `cohortnames` option. I'll do it as an unconditional difference-in-difference, but you can do a conditional one with the `xformla` option.
+
+
+```{r}
+out_it_cohort <- didwrappers::att_it(yname = "lemp",
+              gname = "first.treat",
+              idname = "countyreal",
+              tname = "year",
+              cohortnames = "lpop2",
+              data = mpdta
+              )
+```
+
+Aggregating by population level,
+
+```{r}
+cohort = didwrappers::aggite(out_it_cohort, type="lpop2")
+didwrappers::aggite_table(cohort)
+```
+
+The effect is positive for the populations in bucket 0, 1, and 7, but these are also the same ones that we didn't have enough treatment units of. So, they may not be representative of those population levels. 
+
+But even with 11 treatment units, the effect for population bucket 6 is very close to zero. In this sample, minimum wage increases affects the mid-population counties more than the high population counties. 

@@ -22,7 +22,8 @@ The goal of didwrappers is to extend the functionality of the `did` package, spe
 
 ## Installation
 
-You can install the development version of didwrappers:
+You can install the development version of didwrappers, and call for vignettes with 
+`browseVignettes(package = "didwrappers")`
 
 ``` {r}
 # install.packages("devtools")
@@ -104,7 +105,7 @@ agtobject = aggite(attobject,type="unit", na.rm = TRUE)
 aggite_table(agtobject)
 ```
 
-Units 9 and 10 have negative estimates caused by the truncation. This could be alleviated by matching units at the baselevels, which can be done with matching units at the pre-treatment levels. 
+Units 9 and 10 have negative estimates caused by the truncation. This could be alleviated by matching units at the baseline levels as follows.
 
 ```{r}
 attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", panel = FALSE, xformla = ~y, data = simdata)
