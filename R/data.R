@@ -20,7 +20,7 @@
 #' GDP and democratization data (1960-2010)
 #'
 #' A dataset containing the gross domestic product per capita for 175 countries from 1960 to 2010.
-#' This is a subset of the dataset used in
+#' This is a subset of the dataset used in:
 #'
 #' Acemoglu, D., Naidu, S., Restrepo, P., & Robinson, J. A. (2019). Democracy does cause growth. Journal of political economy, 127(1), 47-100.
 #'
