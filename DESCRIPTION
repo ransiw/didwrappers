@@ -22,7 +22,7 @@ Imports:
     methods,
     stats,
     stringr
-URL: https://github.com/ransiw/didwrappers
+URL: https://github.com/ransiw/didwrappers, https://ransiw.github.io/didwrappers/
 BugReports: https://github.com/ransiw/didwrappers/issues
 Depends: 
     R (>= 2.10)

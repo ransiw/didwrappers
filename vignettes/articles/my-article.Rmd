@@ -91,7 +91,7 @@ I plot these group effects. The dark green line are group effect. The lighter gr
 ```{r}
 plot(group_effects$egt, group_effects$att.egt, col="forestgreen", lwd=5,
      type = "l",
-     ylim = c(min(group_effects_df$lowci),max(group_effects_df$highci)),
+     ylim = c(-6000,11000),
      ylab = "Group-level effect on GDP per capita",
      xlab = "Time of democratization",
      main = "Growth effect of democracy by democratizing year",
@@ -152,7 +152,7 @@ Plotting the group effects:
 ```{r}
 plot(group_effects_it$egt, group_effects_it$att.egt, col="forestgreen", lwd=5,
      type = "l",
-     ylim = c(min(group_effects_it_df$lowci),max(group_effects_it_df$highci)),
+     ylim = c(-4000,5000),
      ylab = "Group-level effect on GDP per capita",
      xlab = "Time of democratization",
      main = "Growth effect of democracy by democratizing year",
