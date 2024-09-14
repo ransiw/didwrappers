@@ -1,0 +1,212 @@
+---
+title: "Democratization on growth"
+author : "Ransi Clark"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction and setup
+
+This article applies the `did` and `didwrappers` package to a dataset that considers the impact of democratization on per capita GDP growth. The data for the study is a subset used by the following paper:
+
+Acemoglu, D., Naidu, S., Restrepo, P., & Robinson, J. A. (2019). Democracy does cause growth. Journal of political economy, 127(1), 47-100.
+
+The data is only a sample and is not an attempt at replicating the original paper. The results are purely to demonstrate the functions of the package. 
+
+In a balanced panel, estimates between `did` and `didwrappers` should be the same, although the standard errors differ. But with unbalanced panels, the estimates can also differ. This example considers some reasons why, and provides some guidance on which package might be appropriate to the purposes. 
+
+
+```{r setup}
+# load packages and data
+library(did)
+library(didwrappers)
+demgdp = didwrappers::demgdp
+```
+
+Some pre-processing needs to be done to be suitable for estimation. First, the year of democratization is missing for non-democracies. Replace this with a zero or a year later than the last year of observation, which is 2010.
+
+```{r}
+demgdp[is.na(demgdp$YearFirstDemocracy),"YearFirstDemocracy"] <- 0
+```
+
+The estimator assumes a once-treated-always-treated type of treatment. This is not true of democratization because there can be democracy reversals and breakdowns. There are several way of accommodating reversals in a once-treated-always-treated setup. One would be to remove the country-year records after the first breakdown. Another would be to remove country-year records that correspond to a breakdown. An even more different approach would be to change the identity codes to rename the country each time democracy breaks down. The approach depends on the type of dynamic effect that might interest the analyst. I adopt the second approach, removing any reversals. 
+
+```{r}
+demgdp <- demgdp[demgdp$breakdown==0,]
+```
+
+The country code (`wbcode`) should be numeric. 
+
+```{r}
+demgdp$wbnum <- as.numeric(as.factor(demgdp$wbcode))
+```
+
+We must also make the decision about what would be the control group. The default is those that were never democratized. For demonstration purposes, I change this to the not yet treated group.
+
+# The estimates from the did package
+
+I now produce the estimates from the `did` package. Before running the estimator, it would be informative to consider the groups in the data. A group is determined by the treatment time, or in this case year of democratization. 
+
+```{r}
+table(unique(demgdp[,c("wbcode","YearFirstDemocracy")])[,"YearFirstDemocracy"])
+```
+This shows that there are 35 groups in the data, including the group of 42 countries that are never democracies in the period 1960-2010. The group of countries whose `YearFirstDemocracy` is 1960 will be dropped from the analysis since they enter the analysis as democracies already. I would expect results from no more than 33 groups. They would have different lengths of dynamic effects. For example, the group/country that democratizes in 2010 will only produce the instantaneous effect. 
+
+To produce the unconditional differences-in-differences estimates with the `did` package: 
+
+```{r, message=FALSE, warning=FALSE}
+out <- did::att_gt(yname = "gdppercapitaconstant2000us",
+              gname = "YearFirstDemocracy",
+              idname = "wbnum",
+              tname = "year",
+              xformla = ~1,
+              data = demgdp,
+              panel = FALSE,
+              control_group = "notyettreated",
+              est_method = "reg"
+              )
+```
+
+Messages and warnings were turned off for aesthetic purposes. However, the unbalanced nature of the panel will produce many messages. The warnings will related to small groups, which is unavoidable because of the sparsity of democratizations that occur. 
+
+There are a large number of differences-in-difference estimates produce by the previous operation. Because this is overwhelming it is useful to aggregate this information. I aggregate the effects into the group level here, but many other aggregations are possible. Refer to other functions in the [did](https://bcallaway11.github.io/did/) package. 
+
+```{r}
+group_effects <- did::aggte(out, type = "group", na.rm = TRUE)
+```
+
+Arrange these effects into a table
+
+```{r}
+group_effects_df <- didwrappers::aggite_table(group_effects)
+```
+
+I plot these group effects. The dark green line are group effect. The lighter green band around them is the uniform confidence interval, and the green dots are the individual differences-in-differences effects that were aggregated to produce the group-level estimates.
+
+```{r}
+plot(group_effects$egt, group_effects$att.egt, col="forestgreen", lwd=5,
+     type = "l",
+     ylim = c(min(group_effects_df$lowci),max(group_effects_df$highci)),
+     ylab = "Group-level effect on GDP per capita",
+     xlab = "Time of democratization",
+     main = "Growth effect of democracy by democratizing year",
+     cex.main = 1,
+     cex.lab = 0.82)
+points(out$group, out$att, pch=19, col=adjustcolor("olivedrab3",0.4))
+polygon(x=c(group_effects_df$egt, rev(group_effects_df$egt)),
+        y=c(group_effects_df$lowci, rev(group_effects_df$highci)),
+        col=adjustcolor( "forestgreen", alpha.f = 0.3), border = FALSE)
+abline(h=0,lty=3,col="red")
+```
+
+The overall effect and its significance can also be obtained. 
+
+```{r}
+# Overall effect
+group_effects$overall.att
+```
+
+The 95\% confidence interval
+
+```{r}
+# Confidence interval
+paste("[",group_effects$overall.att-1.96*group_effects$overall.se,",", group_effects$overall.att+1.96*group_effects$overall.se,"]")
+
+```
+
+Overall democratization has a positive effect of GDP growth. But there seems to be a great amount of heterogeneity. Some effects are negative, but rarely significantly. 
+
+# The estimates from the didwrappers package
+
+The `didwrappers` package maintains the syntax of the `did` package. Its algorithm is slightly different. Instead of calculating the individual differences-in-differences estimates at the group level, it calculates those estimates at the unit level. In this case, at the country level. 
+
+It also restricts the comparisons to be observed pre- and post- treatment, so that units that were observed only pre-treatment or only post-treatment are removed. 
+
+```{r, warning=FALSE, message=FALSE}
+out_it <- didwrappers::att_it(yname = "gdppercapitaconstant2000us",
+              gname = "YearFirstDemocracy",
+              idname = "wbnum",
+              tname = "year",
+              xformla = ~1,
+              data = demgdp,
+              panel = FALSE,
+              control_group = "notyettreated",
+              est_method = "reg"
+              )
+```
+
+Group effects are found by aggregating the individual estimates to the group level. 
+
+```{r}
+group_effects_it <- didwrappers::aggite(out_it, type = "group", na.rm = TRUE)
+group_effects_it_df <- didwrappers::aggite_table(group_effects_it)
+```
+
+Plotting the group effects: 
+
+```{r}
+plot(group_effects_it$egt, group_effects_it$att.egt, col="forestgreen", lwd=5,
+     type = "l",
+     ylim = c(min(group_effects_it_df$lowci),max(group_effects_it_df$highci)),
+     ylab = "Group-level effect on GDP per capita",
+     xlab = "Time of democratization",
+     main = "Growth effect of democracy by democratizing year",
+     cex.main = 1,
+     cex.lab = 0.82)
+points(out_it$group, out_it$att, pch=19, col=adjustcolor("olivedrab3",0.4))
+polygon(x=c(group_effects_it_df$egt, rev(group_effects_it_df$egt)),
+        y=c(group_effects_it_df$lowci, rev(group_effects_it_df$highci)),
+        col=adjustcolor( "forestgreen", alpha.f = 0.3), border = FALSE)
+abline(h=0,lty=3,col="red")
+```
+
+There group level effects are quite different to the previous estimates of the `did` package. There are some large negative effects in addition to postive effects.
+
+
+The overall effects is insignificant. 
+
+```{r}
+# overall effect
+group_effects_it$overall.att
+```
+
+The 95\% confidence interval
+
+```{r}
+# Confidence interval
+paste("[",group_effects_it$overall.att-1.96*group_effects_it$overall.se,",", group_effects_it$overall.att+1.96*group_effects_it$overall.se,"]")
+
+```
+
+
+# Comparison
+
+What caused these differences? 
+
+Comparison of the group effects show that they produced quite different effects. One of the biggest differences were for the 1970 group. We could look at this group in the years 1969 and 1970. First we look at the treatment group in 1970. There are 5 countries in the treatment group. 
+
+```{r}
+demgdp[demgdp$YearFirstDemocracy==1970 & demgdp$year %in% c(1969,1970),1:5]
+```
+
+There are 5 countries that enter the analysis in 1970. However, only Ghana is observed pre-democracy. Now consider the countries that might be in the control group.
+
+```{r}
+demgdp[demgdp$YearFirstDemocracy==0 & demgdp$year %in% c(1969,1970),1:5]
+```
+
+Swaziland and Cuba are observed only in 1970. Otherwise, all other countries are observed across both years. 
+
+The 1969-1970 difference-in-difference estimates suffer from a severe case of imbalance. The `did` estimates use all 5 countries in the 1970 group. But the `didwrappers` estimates only use Ghana in the group because it is the only country that is observed both in 1960 and 1970. The instantaneous effect for the `did` estimate is calculated by differencing against only the 1969 value in Ghana, resulting in a large positive effect for this group as richer countries such as Germany and Ireland suddenly appear in 1970 without being seen in 1969. 
+
+Which type of estimator is more appropriate depends on the level of balanced in the data. With unbalanced data, the `did` algorithm implements a repeated cross-section type of analysis. There, the composition of the treatment group pre- and post-treatment does not have to be equal. This is appropriate in individual-level records because heterogeneity across individuals are likely to be minimal. In the case of countries, such an assumption may be too strong. Ghana and Germany are quite different to each other. In the case of Germany (refers to West Germany), its entry into the sample is not the same as democratization. A more serious analysis of democratization would need to check each of the dates in `YearFirstDemocracy`. This consideration matters for the control group as well. In this particular case, only two countries suddenly appear in 1970, so the effect of imbalance is small.
+
+Ensuring the composition of units pre- and post-treatment are the same results in sample losses. In this case, Germany, Fiji, Ireland, and Malta will all be lost. This is an important trade-off to consider. 
+
+
+

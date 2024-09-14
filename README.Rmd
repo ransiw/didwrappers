@@ -18,17 +18,19 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of didwrappers is to extend the functionality of the `did` package, specifically for within treatment-group heterogeneity and unbalanced data. 
+The goal of didwrappers is to extend the functionality of the [did](https://bcallaway11.github.io/did/) package, specifically for within treatment-group heterogeneity and unbalanced data. It also allows for additional type of aggregations. Components estimates can be aggregated at the unit-level, or on any other time-invariant variable (e.g: birth year of an individual, or the region of a country or state). This allows for some types of non-binary treatments, if the dosage level received by the treated unit is used as the aggregation level. See the following examples.
 
 ## Installation
 
-You can install the development version of didwrappers, and call for vignettes with 
-`browseVignettes(package = "didwrappers")`
+You can install the development version of didwrappers
 
 ``` {r}
 # install.packages("devtools")
-devtools::install_github("ransiw/didwrappers")
+# devtools::install_github("ransiw/didwrappers", build_vignettes = TRUE)
 ```
+
+Call for vignettes with `browseVignettes(package = "didwrappers")`
+
 
 ## Example
 
