@@ -3,7 +3,7 @@ Title: Wrappers for the R did package
 Version: 0.0.0.9000
 Authors@R: 
     person("Ransi", "Clark", , "ransi@caltech.edu", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+           comment = c(ORCID = "0009-0003-5574-3450"))
 Description: The package allows for unit level matching and aggregation of treatments received with different doses.
 License: MIT + file LICENSE
 Encoding: UTF-8
