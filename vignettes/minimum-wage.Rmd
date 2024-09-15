@@ -58,9 +58,9 @@ A further function can be useful to unravel the list object into a data-frame.
 didwrappers::aggite_table(group)
 ```
 
-This shows that on average counties that raised minimum wage in 2004, and 2007 saw a statistically significant (95\%) drop in teen employment. For 2006, the effect was negative, but not statistically significant. 
+This shows that on average counties that raised minimum wage in 2004, and 2007 saw a statistically significant (at 95\%) drop in teen employment. For 2006, the effect was negative, but not statistically significant. 
 
-Once concern with this type of aggregation is that the counties that raised minimum wage in 2004 have more post-treatment observations than counties that raise minimum wage later. If raising the minimum wage has different dynamic effects, we want to be able to see that. To do that, we could cut the unit-time object `out_it` a different way: at the dynamic level. 
+One concern with this type of aggregation is that the counties that raised minimum wage in 2004 have more post-treatment observations than counties that raise minimum wage later. If raising the minimum wage has different dynamic effects, we want to be able to see that. To do that, we could cut the unit-time object `out_it` a different way: at the dynamic level. 
 
 
 ```{r}
@@ -78,7 +78,7 @@ dynamic$overall.se
 ```
 
 
-Until now we have run unconditional differences-in-differences. But, it might be appropriate to compare counties based on their population. There are a variety of reweighting algorithms in the package to achieve this. I'll demonstrate with inverse-propensity score weighting. I suppress the warning messages that come when the overlap condition is violated, but we'll quickly see how to figure out the ones that are the problem. 
+Until now we have run unconditional differences-in-differences. But, it might not be appropriate to compare counties of very different population. There are a variety of reweighting algorithms (same as those in the `did` package) that can help. I'll demonstrate with inverse-propensity score weighting. I suppress the warning messages that come when the overlap condition is violated, but we'll quickly see how to figure out the ones that are the problem. 
 
 ```{r, message=FALSE, warning=FALSE}
 out_it_lpop <- didwrappers::att_it(yname = "lemp",

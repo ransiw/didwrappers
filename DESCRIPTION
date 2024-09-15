@@ -1,11 +1,11 @@
 Package: didwrappers
-Title: Wrappers for the R did package
+Title: Expand functionality of the R 'did' package
 Version: 0.0.0.9000
 Authors@R: 
-    person("Ransi", "Clark", , "ransi@caltech.edu", role = c("aut", "cre"),
+    person("Ransi", "Clark", , "t.ransi.weerasooriya@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0003-5574-3450"))
-Description: The package allows for unit level matching and aggregation of treatments received with different doses.
-License: MIT + file LICENSE
+Description: The package calculates differences-in-differences estimates at the unit-level instead of the group-level. It allows for an expanded suite of aggregation methods, including on custom time-invariant variables.
+License: GPL-2
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
