@@ -38,6 +38,7 @@
     <li><a class="dropdown-item" href="../articles/my-article.html">Democratization on growth</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -117,10 +118,10 @@ data-frame.</p>
 <span><span class="co">#&gt; 2 2006 -0.02290954 0.010659896 -0.04861892  0.002799840</span></span>
 <span><span class="co">#&gt; 3 2007 -0.02605441 0.009223667 -0.04829992 -0.003808906</span></span></code></pre></div>
 <p>This shows that on average counties that raised minimum wage in 2004,
-and 2007 saw a statistically significant (95%) drop in teen employment.
-For 2006, the effect was negative, but not statistically
+and 2007 saw a statistically significant (at 95%) drop in teen
+employment. For 2006, the effect was negative, but not statistically
 significant.</p>
-<p>Once concern with this type of aggregation is that the counties that
+<p>One concern with this type of aggregation is that the counties that
 raised minimum wage in 2004 have more post-treatment observations than
 counties that raise minimum wage later. If raising the minimum wage has
 different dynamic effects, we want to be able to see that. To do that,
@@ -146,12 +147,12 @@ same object.</p>
 <span><span class="va">dynamic</span><span class="op">$</span><span class="va">overall.se</span></span>
 <span><span class="co">#&gt; [1] 0.02368082</span></span></code></pre></div>
 <p>Until now we have run unconditional differences-in-differences. But,
-it might be appropriate to compare counties based on their population.
-There are a variety of reweighting algorithms in the package to achieve
-this. I’ll demonstrate with inverse-propensity score weighting. I
-suppress the warning messages that come when the overlap condition is
-violated, but we’ll quickly see how to figure out the ones that are the
-problem.</p>
+it might not be appropriate to compare counties of very different
+population. There are a variety of reweighting algorithms (same as those
+in the <code>did</code> package) that can help. I’ll demonstrate with
+inverse-propensity score weighting. I suppress the warning messages that
+come when the overlap condition is violated, but we’ll quickly see how
+to figure out the ones that are the problem.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out_it_lpop</span> <span class="op">&lt;-</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/att_it.html">att_it</a></span><span class="op">(</span>yname <span class="op">=</span> <span class="st">"lemp"</span>,</span>
 <span>              gname <span class="op">=</span> <span class="st">"first.treat"</span>,</span>
