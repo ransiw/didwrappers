@@ -18,6 +18,7 @@ MP_i(
   alp = 0.05,
   ipwqual = NULL,
   attcalc = NULL,
+  count = NULL,
   DIDparams = NULL
 )
 }
@@ -50,6 +51,8 @@ approximation.}
 \item{ipwqual}{the maximum propensity score}
 
 \item{attcalc}{similar to att but does not remove estimates when there are propensity score problems}
+
+\item{count}{takes a count of the number of units in the component estimate}
 
 \item{DIDparams}{a \code{\link{DIDparams_i}} object.  A way to optionally return the parameters
 of the call to \code{\link[=att_it]{att_it()}}.}

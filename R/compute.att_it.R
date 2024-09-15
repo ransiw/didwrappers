@@ -127,7 +127,7 @@ compute.att_it <- function(dp) {
       # and break without computing anything
       if (base_period == "universal") {
         if (tlist[pret] == tlist[(t+tfac)]) {
-          attgt.list[[counter]] <- list(att=0, id=idlist[g], group=glist[g], year=tlist[(t+tfac)],ipwqual=NA,attcalc=NA, post=0)
+          attgt.list[[counter]] <- list(att=0, id=idlist[g], group=glist[g], year=tlist[(t+tfac)],ipwqual=NA,attcalc=NA, post=0, count=0)
           inffunc[,counter] <- rep(0,n)
           counter <- counter+1
           next
@@ -206,7 +206,7 @@ compute.att_it <- function(dp) {
       }
 
       if (skip_this_att_gt) {
-        attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, post=post.treat, attcalc = NA)
+        attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, post=post.treat, attcalc = NA, count=0)
         inffunc[,counter] <- NA
         counter <- counter+1
         next
@@ -309,7 +309,7 @@ compute.att_it <- function(dp) {
 
 
         if (reg_problems_likely | (pscore_problems_likely & overlap=="trim")) {
-          attgt.list[[counter]] <- list(att=NA, id=idlist[g], group=glist[g], year=tlist[(t+tfac)],ipwqual=maxpscore, post=post.treat, attcalc=attcalc)
+          attgt.list[[counter]] <- list(att=NA, id=idlist[g], group=glist[g], year=tlist[(t+tfac)],ipwqual=maxpscore, post=post.treat, attcalc=attcalc, count=n1/2)
           inffunc[,counter] <- NA
           counter <- counter+1
           next
@@ -361,7 +361,7 @@ compute.att_it <- function(dp) {
 
       attgt.list[[counter]] <- list(
         att = attgt$ATT, id=idlist[g],  group = glist[g], year = tlist[(t+tfac)],ipwqual=maxpscore, post = post.treat,
-        attcalc = attgt$ATT
+        attcalc = attgt$ATT, count=n1/2
       )
 
 

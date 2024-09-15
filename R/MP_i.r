@@ -18,14 +18,15 @@
 #' @param alp the significance level, default is 0.05
 #' @param ipwqual the maximum propensity score
 #' @param attcalc similar to att but does not remove estimates when there are propensity score problems
+#' @param count takes a count of the number of units in the component estimate
 #' @param DIDparams a [`DIDparams_i`] object.  A way to optionally return the parameters
 #'  of the call to [att_it()].
 #'
 #' @return MP object
 #' @export
-MP_i <- function(id, group, t, att, V_analytical, se, c, inffunc, n=NULL, aggite=NULL, alp = 0.05, ipwqual=NULL, attcalc=NULL, DIDparams=NULL) {
+MP_i <- function(id, group, t, att, V_analytical, se, c, inffunc, n=NULL, aggite=NULL, alp = 0.05, ipwqual=NULL, attcalc=NULL, count=NULL, DIDparams=NULL) {
   out <- list(id=id,group=group, t=t, att=att, V_analytical=V_analytical, se=se, c=c,
-  inffunc=inffunc, n=n, aggite=aggite, alp = alp, ipwqual=ipwqual,attcalc=attcalc,
+  inffunc=inffunc, n=n, aggite=aggite, alp = alp, ipwqual=ipwqual,attcalc=attcalc, count=count,
   DIDparams=DIDparams, call=DIDparams$call)
   class(out) <- "MP_i"
   out

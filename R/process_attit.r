@@ -23,6 +23,7 @@ process_attit <- function(attgt.list) {
   id <- c()
   ipwqual <- c()
   attcalc <- c()
+  count <- c()
   i <- 1
 
   # populate result vectors and matrices
@@ -34,9 +35,10 @@ process_attit <- function(attgt.list) {
       att[i] <- attgt.list[[i]]$att
       ipwqual[i] <- attgt.list[[i]]$ipwqual
       attcalc[i] <- attgt.list[[i]]$attcalc
+      count[i] <- attgt.list[[i]]$count
       i <- i+1
     }
   }
 
-  list(group=group, att=att, tt=tt, id=id, ipwqual=ipwqual,attcalc=attcalc)
+  list(group=group, att=att, tt=tt, id=id, ipwqual=ipwqual,attcalc=attcalc,count=count)
 }

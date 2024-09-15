@@ -51,7 +51,7 @@ Run an att_it() object and tabulate it
 ```{r}
 attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", data = simdata)
 attdf = attit_table(attobject)
-head(attdf)
+head(attdf[,1:7])
 ```
 
 We can now aggregate all post-treatment effects to the unit level. 

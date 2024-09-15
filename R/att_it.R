@@ -135,6 +135,7 @@ att_it <- function(yname,
   tt <- attgt.results$tt
   ipwqual <- attgt.results$ipwqual
   attcalc <- attgt.results$attcalc
+  count <- attgt.results$count
 
   # analytical standard errors
   # estimate variance
@@ -202,5 +203,5 @@ att_it <- function(yname,
     }
   }
 
-  return(MP_i(id=id ,group=group, t=tt, att=att, V_analytical=V, se=se, c=cval, inffunc=inffunc, n=n, alp = alp, ipwqual=ipwqual,attcalc=attcalc, DIDparams=dp))
+  return(MP_i(id=id ,group=group, t=tt, att=att, V_analytical=V, se=se, c=cval, inffunc=inffunc, n=n, alp = alp, ipwqual=ipwqual,attcalc=attcalc, count=count, DIDparams=dp))
 }

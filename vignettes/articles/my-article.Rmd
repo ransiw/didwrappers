@@ -91,7 +91,7 @@ I plot these group effects. The dark green line are group effect. The lighter gr
 ```{r}
 plot(group_effects$egt, group_effects$att.egt, col="forestgreen", lwd=5,
      type = "l",
-     ylim = c(-6000,11000),
+     ylim = c(-6000,12000),
      ylab = "Group-level effect on GDP per capita",
      xlab = "Time of democratization",
      main = "Growth effect of democracy by democratizing year",
@@ -191,22 +191,36 @@ What caused these differences?
 Comparison of the group effects show that they produced quite different effects. One of the biggest differences were for the 1970 group. We could look at this group in the years 1969 and 1970. First we look at the treatment group in 1970. There are 5 countries in the treatment group. 
 
 ```{r}
-demgdp[demgdp$YearFirstDemocracy==1970 & demgdp$year %in% c(1969,1970),1:5]
+demgdp[demgdp$YearFirstDemocracy==1970 & demgdp$year %in% c(1969,1970),c(1:5,8)]
 ```
 
 There are 5 countries that enter the analysis in 1970. However, only Ghana is observed pre-democracy. Now consider the countries that might be in the control group.
 
 ```{r}
-demgdp[demgdp$YearFirstDemocracy==0 & demgdp$year %in% c(1969,1970),1:5]
+demgdp[(demgdp$YearFirstDemocracy==0|demgdp$YearFirstDemocracy>1970) & demgdp$year %in% c(1969,1970),c(1:5,8)]
 ```
 
-Swaziland and Cuba are observed only in 1970. Otherwise, all other countries are observed across both years. 
+Swaziland and Cuba are observed only in 1970. Otherwise, all other countries in the control group in 1970 are observed across both years. 
 
-The 1969-1970 difference-in-difference estimates suffer from a severe case of imbalance. The `did` estimates use all 5 countries in the 1970 group. But the `didwrappers` estimates only use Ghana in the group because it is the only country that is observed both in 1960 and 1970. The instantaneous effect for the `did` estimate is calculated by differencing against only the 1969 value in Ghana, resulting in a large positive effect for this group as richer countries such as Germany and Ireland suddenly appear in 1970 without being seen in 1969. 
+Here are the estimates, and counts from the `didwrappers` package for the 1969-1970 and the 1969-1971 differences-in-differences estimate. 
 
-Which type of estimator is more appropriate depends on the level of balanced in the data. With unbalanced data, the `did` algorithm implements a repeated cross-section type of analysis. There, the composition of the treatment group pre- and post-treatment does not have to be equal. This is appropriate in individual-level records because heterogeneity across individuals are likely to be minimal. In the case of countries, such an assumption may be too strong. Ghana and Germany are quite different to each other. In the case of Germany (refers to West Germany), its entry into the sample is not the same as democratization. A more serious analysis of democratization would need to check each of the dates in `YearFirstDemocracy`. This consideration matters for the control group as well. In this particular case, only two countries suddenly appear in 1970, so the effect of imbalance is small.
+```{r}
+attit_table(out_it)[out_it$group==1970 & out_it$t %in% c(1970,1971),c("id","group","t","att","count")]
+```
 
-Ensuring the composition of units pre- and post-treatment are the same results in sample losses. In this case, Germany, Fiji, Ireland, and Malta will all be lost. This is an important trade-off to consider. 
+The `did` package doesn't produce the counts, but the corresponding estimates for the 1969-1970, and 1969-1971 differences-in-differences estimates are
+
+```{r}
+dfit = data.frame(group=out$group,t=out$t,att=out$att)
+dfit[dfit$group==1970 & dfit$t %in% c(1970,1971),]
+```
+
+
+The 1969-1970 difference-in-difference estimates suffer from a severe case of imbalance. The `did` algorithm uses all 5 countries in the 1970 group. But the `didwrappers` estimates only use Ghana in the group because it is the only country that is observed both in 1960 and 1970. The instantaneous effect for the `did` estimate is calculated by differencing against only the 1969 value in Ghana, resulting in a large positive effect for this group as richer countries such as Germany and Ireland suddenly appear in 1970 without being seen in 1969. 
+
+Which type of estimator is more appropriate depends on the balancedness in the data. With unbalanced data, the `did` algorithm implements a repeated cross-section type of analysis. There, the composition of the treatment group pre- and post-treatment does not have to be equal. This is appropriate in individual-level records because heterogeneity across individuals are likely to be minimal. In an application with countries, such an assumption may be too strong. Ghana and Germany are quite different to each other. In the case of Germany (refers to West Germany), its entry into the sample is not the same as democratization. A more serious analysis of democratization would need to check each of the dates in `YearFirstDemocracy`. This consideration matters for the control group as well. In this particular case, only two countries suddenly appear in 1970, so the effect of imbalance is small.
+
+Ensuring the composition of units pre- and post-treatment is equal results in sample losses. In this case, Germany, Fiji, Ireland, and Malta will all be lost due to lack of pre-treatment information. This is an important trade-off to consider. 
 
 
 
