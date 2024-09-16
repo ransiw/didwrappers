@@ -83,3 +83,13 @@ and aggregate them into a smaller number of parameters.  There are
 several possible aggregations including "simple", "dynamic", "unit,
 "group","dosage","calendar, and a custom aggregation name."
 }
+\examples{
+# first run the att_it() function
+simdata = sim_data()
+attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", data = simdata)
+
+# aggregate all post-treatment effects of each unit
+agtobject = aggite(attobject,type="unit")
+
+
+}

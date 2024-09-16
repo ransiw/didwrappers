@@ -22,6 +22,11 @@
 #'
 #' @return an AGGITEobj
 #' @export
+#'
+#' @examples
+#' # A helper function for [aggite()]. See examples in documentation in that function.
+#'
+#'
 AGGITEobj <- function(overall.att = NULL,
                      overall.se = NULL,
                      type = "simple",

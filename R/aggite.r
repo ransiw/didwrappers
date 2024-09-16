@@ -49,13 +49,21 @@
 #'  can be two variables (otherwise will throw an error) and one of these
 #'  must be the same as idname which allows for clustering at the individual
 #'  level. Default is the variables set in the MP object
-
 #'
 #' @return An [`AGGTEobj`] object that holds the results from the
 #'  aggregation
 #'
-
 #' @export
+#'
+#' @examples
+#' # first run the att_it() function
+#' simdata = sim_data()
+#' attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", data = simdata)
+#'
+#' # aggregate all post-treatment effects of each unit
+#' agtobject = aggite(attobject,type="unit")
+#'
+#'
 aggite <- function(MP,
                   type = "group",
                   balance_e = NULL,

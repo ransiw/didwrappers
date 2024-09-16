@@ -74,7 +74,7 @@ can be two variables (otherwise will throw an error) and one of these
 must be the same as idname which allows for clustering at the individual
 level. Default is the variables set in the MP object}
 
-\item{call}{The function call to aggte}
+\item{call}{The function call to aggite}
 }
 \value{
 \code{\link{AGGITEobj}} object
@@ -82,5 +82,10 @@ level. Default is the variables set in the MP object}
 \description{
 Does the heavy lifting on computing aggregated group-time
 average treatment effects
+}
+\examples{
+# This is a helper function for [aggite()]. See that function for examples.
+
+
 }
 \keyword{internal}

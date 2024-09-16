@@ -24,6 +24,11 @@
 #'
 #' @return MP object
 #' @export
+#'
+#' @examples
+#' # Helper function for [att_it()]. See documentation of that function for an example.
+#'
+#'
 MP_i <- function(id, group, t, att, V_analytical, se, c, inffunc, n=NULL, aggite=NULL, alp = 0.05, ipwqual=NULL, attcalc=NULL, count=NULL, DIDparams=NULL) {
   out <- list(id=id,group=group, t=t, att=att, V_analytical=V_analytical, se=se, c=c,
   inffunc=inffunc, n=n, aggite=aggite, alp = alp, ipwqual=ipwqual,attcalc=attcalc, count=count,

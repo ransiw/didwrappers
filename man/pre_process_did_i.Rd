@@ -124,3 +124,8 @@ returns an object DIDparams_i
 \description{
 Pre-processes data within the \code{att_it} function before \code{compute.att_it}
 }
+\examples{
+# A helper function for the [att_it()] function, but is useful for debugging.
+
+
+}

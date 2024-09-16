@@ -12,6 +12,10 @@
 #' @return a DIDparams_i object
 #' @export
 #'
+#' @examples
+#' # Helper function for [pre_process_did_i()]. See documentation of that function for an example.
+#'
+#'
 DIDparams_i <- function(yname,
                        tname,
                        idname,

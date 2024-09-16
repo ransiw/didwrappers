@@ -10,6 +10,10 @@
 #' @return returns an object DIDparams_i
 #' @export
 #'
+#' @examples
+#' # A helper function for the [att_it()] function, but is useful for debugging.
+#'
+#'
 pre_process_did_i <- function(yname,
                              tname,
                              idname,

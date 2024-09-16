@@ -123,3 +123,8 @@ Computes the 2x2 DID estimate at the unit-time level and allows for unit-level c
 The original package by Brantly Callaway and Pedro Santa'Anna (\code{did}) only allows for group-time ATTs
 where units treated in the same period is in a single group. Unlike the related \code{did} package, there is no provision for repeated cross-sections.
 }
+\examples{
+# run the function with the default settings and default data
+attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", data = sim_data())
+
+}

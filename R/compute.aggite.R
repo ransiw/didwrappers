@@ -4,13 +4,18 @@
 #'  average treatment effects
 #'
 #' @inheritParams aggite
-#' @param call The function call to aggte
+#' @param call The function call to aggite
 #'
 #' @return [`AGGITEobj`] object
 #'
 #' @keywords internal
 #'
 #' @export
+#'
+#' @examples
+#' # This is a helper function for [aggite()]. See that function for examples.
+#'
+#'
 compute.aggite <- function(MP,
                           type = "group",
                           balance_e = NULL,

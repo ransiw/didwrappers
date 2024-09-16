@@ -142,3 +142,8 @@ a DIDparams_i object
 \description{
 Title DIDparams_i
 }
+\examples{
+# Helper function for [pre_process_did_i()]. See documentation of that function for an example.
+
+
+}

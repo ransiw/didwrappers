@@ -86,3 +86,13 @@ and aggregate them into sub-effects where there is more than one aggregating typ
 Possible aggregations include pairs of any of the following:
 "group" or a custom aggregation name" with "dynamic"
 }
+\examples{
+# first run the att_it() function
+simdata = sim_data()
+attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", data = simdata)
+
+# aggregate all post-treatment effects of the group and dynamic level
+agtobject = aggite2(attobject,type="group",type2="dynamic")
+
+
+}

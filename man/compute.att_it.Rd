@@ -16,3 +16,8 @@ a list object with the calculated att_it() and corresponding influence functions
 \code{compute.att_it} does the main work for computing
 multiperiod group-time average treatment effects while balancing for the effects at each time period
 }
+\examples{
+# This is a helper function for [att_it()], but useful for debugging if problems occur.
+# See documentation of that function for examples.
+
+}

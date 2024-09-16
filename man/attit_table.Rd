@@ -15,3 +15,10 @@ a dataframe with the id, group, time, att estimates, standard errors and confide
 \description{
 Issues tabulated att_it() results
 }
+\examples{
+simdata = sim_data()
+attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", data = simdata)
+attdf = attit_table(attobject)
+
+
+}

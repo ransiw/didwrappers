@@ -73,6 +73,10 @@
 #' @return An [`MP_i`] object containing all the results for unit-time treatment effects.
 #' @export
 #'
+#' @examples
+#' # run the function with the default settings and default data
+#' attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", data = sim_data())
+#'
 att_it <- function(yname,
                    tname,
                    idname,

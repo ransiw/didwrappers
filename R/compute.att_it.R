@@ -10,6 +10,10 @@
 #' @return a list object with the calculated att_it() and corresponding influence functions
 #' @export
 #'
+#' @examples
+#' # This is a helper function for [att_it()], but useful for debugging if problems occur.
+#' # See documentation of that function for examples.
+#'
 compute.att_it <- function(dp) {
 
   #-----------------------------------------------------------------------------

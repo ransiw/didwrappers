@@ -75,7 +75,7 @@ at least three periods. (the initial period when \code{e=0} as well as the
 next two periods when \code{e=1} and the \code{e=2}).  This ensures that
 the composition of groups does not change when event time changes.}
 
-\item{call}{The function call to aggte}
+\item{call}{The function call to aggite2}
 
 \item{DIDparams}{A DIDparams_i object}
 }
@@ -85,4 +85,9 @@ an AGGITEobj
 \description{
 Objects of this class hold results on aggregated
 unit-time average treatment effects
+}
+\examples{
+# A helper function for [aggite()]. See examples in documentation in that function.
+
+
 }

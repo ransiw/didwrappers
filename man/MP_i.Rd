@@ -63,3 +63,8 @@ MP object
 \description{
 Multi-period objects that hold results for unit-time average treatment effects
 }
+\examples{
+# Helper function for [att_it()]. See documentation of that function for an example.
+
+
+}

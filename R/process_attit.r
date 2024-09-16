@@ -12,6 +12,10 @@
 #'
 #' @export
 #'
+#' @examples
+#' # A helper function of [att_it()], but can be useful for debugging.
+#'
+#'
 process_attit <- function(attgt.list) {
   nG <- length(unique(unlist(BMisc::getListElement(attgt.list, "id"))))
   nT <- length(unique(unlist(BMisc::getListElement(attgt.list, "year"))))

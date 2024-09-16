@@ -21,3 +21,8 @@ list with elements:
 \description{
 Process Results from \code{\link[=compute.att_it]{compute.att_it()}}
 }
+\examples{
+# A helper function of [att_it()], but can be useful for debugging.
+
+
+}

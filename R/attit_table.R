@@ -5,6 +5,12 @@
 #' @return a dataframe with the id, group, time, att estimates, standard errors and confidence intervals.
 #' @export
 #'
+#' @examples
+#' simdata = sim_data()
+#' attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", data = simdata)
+#' attdf = attit_table(attobject)
+#'
+#'
 attit_table <- function(MP){
   #idname = MP$DIDparams$idname
   #gname = MP$DIDparams$gname

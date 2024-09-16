@@ -16,3 +16,14 @@ the corresponding att calculation \code{att.egt}, standard errors \code{se.egt},
 \description{
 Issues tabulated aggite() results
 }
+\examples{
+# first run the att_it() function
+simdata = sim_data()
+attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", data = simdata)
+
+# aggregate all post-treatment effects of each unit
+agtobject = aggite(attobject,type="unit")
+agttable = aggite_table(agtobject)
+
+
+}
