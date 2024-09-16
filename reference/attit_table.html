@@ -61,6 +61,15 @@
     <p>a dataframe with the id, group, time, att estimates, standard errors and confidence intervals.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">simdata</span> <span class="op">=</span> <span class="fu"><a href="sim_data.html">sim_data</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">attobject</span> <span class="op">=</span> <span class="fu"><a href="att_it.html">att_it</a></span><span class="op">(</span>yname <span class="op">=</span> <span class="st">"y"</span>, tname <span class="op">=</span> <span class="st">"time"</span>, gname <span class="op">=</span> <span class="st">"treatg"</span>, idname <span class="op">=</span><span class="st">"unit"</span>, data <span class="op">=</span> <span class="va">simdata</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">attdf</span> <span class="op">=</span> <span class="fu">attit_table</span><span class="op">(</span><span class="va">attobject</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
