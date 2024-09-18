@@ -44,7 +44,7 @@ MP_i <- function(id, group, t, att, V_analytical, se, c, inffunc, n=NULL, aggite
 #' @param object an \code{MP_i} object
 #' @param ... extra arguments
 #'
-#' @export
+# @export
 summary.MP_i <- function(object, ...) {
   mpobj <- object
 
@@ -128,7 +128,7 @@ summary.MP_i <- function(object, ...) {
 #' @param x a \code{MP_i} object
 #' @param ... extra arguments
 #'
-#' @export
+# @export
 print.MP_i <- function(x,...) {
   summary.MP_i(x,...)
 }

@@ -70,7 +70,7 @@ AGGITEobj <- function(overall.att = NULL,
 #' @param object an \code{AGGITEobj} object
 #' @param ... other arguments
 #'
-#' @export
+# @export
 summary.AGGITEobj <- function(object, ...) {
 
   # call
@@ -181,7 +181,7 @@ summary.AGGITEobj <- function(object, ...) {
 #' @param x a \code{AGGITEobj} object
 #' @param ... extra arguments
 #'
-#' @export
+# @export
 print.AGGITEobj <- function(x,...) {
   summary.AGGITEobj(x,...)
 }
