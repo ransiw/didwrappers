@@ -1,6 +1,6 @@
 Package: didwrappers
 Title: Expand functionality of the R 'did' package
-Version: 0.0.0.9000
+Version: 1.0.0
 Authors@R: 
     person("Ransi", "Clark", , "t.ransi.weerasooriya@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0003-5574-3450"))

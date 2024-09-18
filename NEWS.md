@@ -1,8 +1,6 @@
-# didwrappers (development version)
-
-* This is the development version of the package.
-
 # didwrappers 1.0.0
+
+* This is the version of the package to be released to CRAN.
 
 ## Major changes
 
