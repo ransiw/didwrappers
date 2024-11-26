@@ -14,7 +14,8 @@ sim_data(
   pretreat = 5,
   posttreat = 20,
   ttr = 2,
-  sige = 1
+  siget = 1,
+  sigec = 1
 )
 }
 \arguments{
@@ -36,7 +37,9 @@ sim_data(
 
 \item{ttr}{the time trend}
 
-\item{sige}{the standard error of the error term}
+\item{siget}{the standard error of the error term of the treatment group with default 1}
+
+\item{sigec}{the standard error of the error term of the control group with default 1}
 }
 \value{
 a dataframe with identifies for unit, time, treatment time, cohort, dosage, and the outcome
