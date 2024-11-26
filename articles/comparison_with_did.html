@@ -8,8 +8,8 @@
 <title>Comparison between did and didwrappers • didwrappers</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Comparison between did and didwrappers">
 </head>
 <body>
@@ -99,7 +99,7 @@ the run times.</p>
 <span>              <span class="op">)</span></span>
 <span><span class="va">endt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Time elapsed:"</span>,<span class="va">endt</span><span class="op">-</span><span class="va">startt</span>,<span class="st">"seconds"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Time elapsed: 0.844208240509033 seconds"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Time elapsed: 0.730746269226074 seconds"</span></span></code></pre></div>
 <p>The <code>didwrappers</code> package produces a similar object but at
 the more granular unit-time level. This takes longer to run. The syntax
 remains the same, only the function name should need to change.</p>
@@ -115,7 +115,7 @@ remains the same, only the function name should need to change.</p>
 <span>              <span class="op">)</span></span>
 <span><span class="va">endt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Time elapsed:"</span>,<span class="va">endt</span><span class="op">-</span><span class="va">startt</span>,<span class="st">"seconds"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Time elapsed: 8.0568573474884 seconds"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Time elapsed: 6.50244522094727 seconds"</span></span></code></pre></div>
 <p>It takes quite a bit longer to do things at the county-level than at
 the group level, which is the year that minimum wage is raised. There
 are certain advantages to having the more disaggregate county-level
@@ -179,14 +179,14 @@ back to the group-time object,</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">es_it</span> <span class="op">&lt;-</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite.html">aggite</a></span><span class="op">(</span><span class="va">out_it</span>, type <span class="op">=</span> <span class="st">"dynamic"</span><span class="op">)</span></span>
 <span><span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite_table.html">aggite_table</a></span><span class="op">(</span><span class="va">es_it</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   egt       att.egt     se.egt        lowci      highci</span></span>
-<span><span class="co">#&gt; 1  -3  0.0305066556 0.01019785  0.004537753  0.05647556</span></span>
-<span><span class="co">#&gt; 2  -2 -0.0005630846 0.02283701 -0.058717685  0.05759152</span></span>
-<span><span class="co">#&gt; 3  -1 -0.0244587450 0.06819101 -0.198107620  0.14919013</span></span>
-<span><span class="co">#&gt; 4   0 -0.0199318168 0.05078768 -0.149262986  0.10939935</span></span>
-<span><span class="co">#&gt; 5   1 -0.0509573671 0.04813042 -0.173521809  0.07160707</span></span>
-<span><span class="co">#&gt; 6   2 -0.1372587389 0.01463517 -0.174527288 -0.09999019</span></span>
-<span><span class="co">#&gt; 7   3 -0.1008113631 0.01466721 -0.138161520 -0.06346121</span></span></code></pre></div>
+<span><span class="co">#&gt;   egt       att.egt      se.egt       lowci        highci</span></span>
+<span><span class="co">#&gt; 1  -3  0.0305066556 0.010197853  0.00430709  0.0567062214</span></span>
+<span><span class="co">#&gt; 2  -2 -0.0005630846 0.006332945 -0.01683321  0.0157070449</span></span>
+<span><span class="co">#&gt; 3  -1 -0.0244587450 0.009297406 -0.04834495 -0.0005725424</span></span>
+<span><span class="co">#&gt; 4   0 -0.0199318168 0.006185358 -0.03582278 -0.0040408556</span></span>
+<span><span class="co">#&gt; 5   1 -0.0509573671 0.008901690 -0.07382693 -0.0280878066</span></span>
+<span><span class="co">#&gt; 6   2 -0.1372587389 0.014635166 -0.17485832 -0.0996591601</span></span>
+<span><span class="co">#&gt; 7   3 -0.1008113631 0.014667213 -0.13849327 -0.0631294513</span></span></code></pre></div>
 <p>The standard errors for time lag 1 are larger here than with the
 <code>did</code> package. If you are curious, you can go look in the
 object produced by <code>attit</code> to see which unit might be causing
@@ -202,9 +202,9 @@ aggregations give different effects. Starting with the outputs of
 <p>For the outputs of <code>didwrappers</code>,</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Overall effect from group aggregation is"</span>,<span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.att</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Overall effect from group aggregation is -0.031018282228749"</span></span>
+<span><span class="co">#&gt; [1] "Overall effect from group aggregation is -0.0429043588478227"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Overall effect from dynamic aggregation is"</span>,<span class="va">es_it</span><span class="op">$</span><span class="va">overall.att</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Overall effect from dynamic aggregation is -0.0772398214573161"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Overall effect from dynamic aggregation is -0.039951275155177"</span></span></code></pre></div>
 <p>They are the same here. This is not surprising because the mid-level
 aggregations were also the same.</p>
 <p>For 95% confidence intervals, starting with the <code>did</code>
@@ -217,9 +217,9 @@ objects:</p>
 <p>Using the <code>didwrappers</code> object,</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"CI for overall effect from group aggregation is"</span>,<span class="st">"["</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.att</span><span class="op">-</span><span class="fl">1.96</span><span class="op">*</span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.se</span>,<span class="fl">3</span><span class="op">)</span>,<span class="st">","</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.att</span><span class="op">+</span><span class="fl">1.96</span><span class="op">*</span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.se</span>,<span class="fl">3</span><span class="op">)</span>,<span class="st">"]"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "CI for overall effect from group aggregation is [ -0.045 , -0.017 ]"</span></span>
+<span><span class="co">#&gt; [1] "CI for overall effect from group aggregation is [ -0.056 , -0.029 ]"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"CI for overall effect from dynamic aggregation is"</span>,<span class="st">"["</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">es_it</span><span class="op">$</span><span class="va">overall.att</span><span class="op">-</span><span class="fl">1.96</span><span class="op">*</span><span class="va">es_it</span><span class="op">$</span><span class="va">overall.se</span>,<span class="fl">3</span><span class="op">)</span>,<span class="st">","</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">es_it</span><span class="op">$</span><span class="va">overall.att</span><span class="op">+</span><span class="fl">1.96</span><span class="op">*</span><span class="va">es_it</span><span class="op">$</span><span class="va">overall.se</span>,<span class="fl">3</span><span class="op">)</span>,<span class="st">"]"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "CI for overall effect from dynamic aggregation is [ -0.121 , -0.033 ]"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "CI for overall effect from dynamic aggregation is [ -0.053 , -0.027 ]"</span></span></code></pre></div>
 <p>The results presented were for an unconditional
 differences-in-difference. But unconditional results might be
 misleading, because the treatment and control groups are too different.
