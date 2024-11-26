@@ -229,14 +229,14 @@ compute.aggite2 <- function(MP,
   # n x 1 vector of group variable
   G <-  unlist(lapply(dta[,gname], orig2t))
 
-  # since estimates are at the unit-time level, aggregation into simple does not require reweighting to group size
-  pg <- sapply(idlist, function(g) mean(weights.ind*(dta[,idname]==g)))
-
-  # length of this is equal to number of groups
-  pgg <- pg
-
-  # same but length is equal to the number of ATT(g,t)
-  pg <- pg[match(group, glist)]
+  # # since estimates are at the unit-time level, aggregation into simple does not require reweighting to group size
+  # pg <- sapply(idlist, function(g) mean(weights.ind*(dta[,idname]==g)))
+  #
+  # # length of this is equal to number of groups
+  # pgg <- pg
+  #
+  # # same but length is equal to the number of ATT(g,t)
+  # pg <- pg[match(group, glist)]
 
 
   #-----------------------------------------------------------------------------
@@ -244,6 +244,7 @@ compute.aggite2 <- function(MP,
   #-----------------------------------------------------------------------------
 
   if (type2 == "dynamic") {
+
 
     # event times
     # this looks at all available event times
@@ -273,6 +274,17 @@ compute.aggite2 <- function(MP,
     eseq <- eseq[ (eseq >= min_e) & (eseq <= max_e) ]
 
     if (type == "group"){
+
+      # we can work in overall probabilities because conditioning will cancel out
+      # cause it shows up in numerator and denominator
+      pg <- sapply(originalglist, function(g) mean(dta[dta[,gname] %in% g,".w"]))
+
+      # length of this is equal to number of groups
+      pgg <- pg
+
+      # same but length is equal to the number of ATT(g,t)
+      pg <- pg[match(group, glist)]
+
       # compute atts that are specific to each group and event time
       egtlist = lapply(glist, function(g) {
         lapply(eseq, function(e){list(egt=g,egt2=e)
@@ -311,7 +323,7 @@ compute.aggite2 <- function(MP,
                                                       inffunc1=inffunc1,
                                                       whichones=whiche,
                                                       weights.agg=pge,
-                                                      wif=wif.e))
+                                                      wif=NULL))
             se.e <- getSE(inf.func.e, dp)
           }
           list(inf.func=inf.func.e, se=se.e)
@@ -353,11 +365,28 @@ compute.aggite2 <- function(MP,
       # by averaging over positive dynamics
       epos <- (unlist(BMisc::getListElement(egtlist, "egt2")) >= 0 & !is.na(dynamic.att.e))
 
-      dynamic.att <- mean(dynamic.att.e[epos])
+      # recalculate the weights
+      pgg <- sapply(glist, function(g) {
+        sapply(eseq, function(e){
+          # keep att(g,t) for the right g&t as well as ones that
+          # are not trimmed out from balancing the sample
+          whiche <- which( (group == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
+          if (length(whiche)==0){
+            0
+          }
+          else{
+            sum(pg[whiche])
+          }
+        })
+      })
+
+      pgg <- c(pgg)
+
+      dynamic.att <- sum(dynamic.att.e[epos]*pgg[epos])/sum(pgg[epos])
       dynamic.inf.func <- get_agg_inf_func(att=dynamic.att.e[epos],
                                            inffunc1=as.matrix(dynamic.inf.func.e[,epos]),
                                            whichones=(1:sum(epos)),
-                                           weights.agg=(rep(1/sum(epos), sum(epos))),
+                                           weights.agg=pgg[epos]/sum(pgg[epos]),
                                            wif=NULL)
 
       dynamic.inf.func <- as.numeric(dynamic.inf.func)
@@ -387,14 +416,13 @@ compute.aggite2 <- function(MP,
 
     if (type %in% cohortnames){
 
-      # we can work in overall probabilities because conditioning will cancel out
-      # cause it shows up in numerator and denominator
-      pg <- sapply(cohortlist, function(g) mean(weights.ind*(dta[,type]==g)))
+      # weights
+      pg <- sapply(cohortlist, function(g) mean(dta[dta[,type] %in% g,".w"]))
 
-      # length of this is equal to number of groups
+      # length of this is equal to number of treated units or number of units in idlist
       pgg <- pg
 
-      # same but length is equal to the number of ATT(g,t)
+      # same but length is equal to the number of ATT(g,t) shown by group
       pg <- pg[match(cohort, cohortlist)]
 
       # compute atts that are specific to each group and event time
@@ -435,7 +463,7 @@ compute.aggite2 <- function(MP,
                                                       inffunc1=inffunc1,
                                                       whichones=whiche,
                                                       weights.agg=pge,
-                                                      wif=wif.e))
+                                                      wif=NULL))
             se.e <- getSE(inf.func.e, dp)
           }
           list(inf.func=inf.func.e, se=se.e)
@@ -477,11 +505,28 @@ compute.aggite2 <- function(MP,
       # by averaging over positive dynamics
       epos <- (unlist(BMisc::getListElement(egtlist, "egt2")) >= 0 & !is.na(dynamic.att.e))
 
-      dynamic.att <- mean(dynamic.att.e[epos])
+      # recalculate the weights
+      pgg <- sapply(cohortlist, function(g) {
+        sapply(eseq, function(e){
+          # keep att(g,t) for the right g&t as well as ones that
+          # are not trimmed out from balancing the sample
+          whiche <- which( (cohort == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
+          if (length(whiche)==0){
+            0
+          }
+          else{
+            sum(pg[whiche])
+          }
+        })
+      })
+
+      pgg <- c(pgg)
+
+      dynamic.att <- dynamic.att <- sum(dynamic.att.e[epos]*pgg[epos])/sum(pgg[epos])
       dynamic.inf.func <- get_agg_inf_func(att=dynamic.att.e[epos],
                                            inffunc1=as.matrix(dynamic.inf.func.e[,epos]),
                                            whichones=(1:sum(epos)),
-                                           weights.agg=(rep(1/sum(epos), sum(epos))),
+                                           weights.agg=pgg[epos]/sum(pgg[epos]),
                                            wif=NULL)
 
       dynamic.inf.func <- as.numeric(dynamic.inf.func)

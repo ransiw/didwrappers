@@ -36,6 +36,8 @@
 #'  treatment and therefore it can affect their untreated potential outcomes.
 #' @param weightsname the name of the column containing the sampling weights.
 #'  If not set, all observations have same weight.
+#' @param weightfs boolean for whether the att's should be weighted. Default
+#' is FALSE so that only the aggite step is weighted unless specified.
 #' @param alp the significance level, default is 0.05
 #' @param bstrap boolean for whether or not to compute standard errors using
 #'  the multiplier bootstrap.  If standard errors are clustered, then one
@@ -88,6 +90,7 @@ att_it <- function(yname,
                    control_group=c("nevertreated","notyettreated"),
                    anticipation=0,
                    weightsname=NULL,
+                   weightfs=FALSE,
                    alp=0.05,
                    bstrap=TRUE,
                    cband=TRUE,
@@ -111,6 +114,7 @@ att_it <- function(yname,
                          control_group=control_group,
                          anticipation=anticipation,
                          weightsname=weightsname,
+                         weightfs = weightfs,
                          alp=alp,
                          bstrap=bstrap,
                          cband=cband,

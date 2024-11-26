@@ -25,6 +25,7 @@ compute.att_it <- function(dp) {
   idname <- dp$idname
   xformla <- dp$xformla
   weightsname <- dp$weightsname
+  weightfs <- dp$weightfs
   est_method <- dp$est_method
   overlap <- dp$overlap
   base_period <- dp$base_period
@@ -71,6 +72,12 @@ compute.att_it <- function(dp) {
 
   # rename yname to .y
   data$.y <- data[,yname]
+
+  # determining if the weights are turned on or off
+  if (weightfs==FALSE){
+    data$.w <- rep(1, nrow(data))
+  }
+
 
   # Create a dataframe with id and gname
   dataids = data.frame(ids=idlist,

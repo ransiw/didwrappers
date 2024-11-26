@@ -9,7 +9,8 @@
 #' @param pretreat the number of pre-treatment periods for the earliest treated unit
 #' @param posttreat the number of post-treatment periods for the earliest treated unit. If units are treated `posttreat` periods after the earliest treated unit, they will never be treated.
 #' @param ttr the time trend
-#' @param sige the standard error of the error term
+#' @param siget the standard error of the error term of the treatment group with default 1
+#' @param sigec the standard error of the error term of the control group with default 1
 #'
 #' @return a dataframe with identifies for unit, time, treatment time, cohort, dosage, and the outcome
 #' @export
@@ -30,7 +31,8 @@ sim_data <- function(basetreat = seq(10,100,10),
                      pretreat=5,
                      posttreat=20,
                      ttr=2,
-                     sige=1){
+                     siget=1,
+                     sigec=1){
 
   # check for the lengths
   if (length(basetreat)!=length(timetreat)){
@@ -82,7 +84,7 @@ sim_data <- function(basetreat = seq(10,100,10),
   dftreat = merge(dftreat, bstreatdf, by = "unit", all.x = TRUE)
 
   # add an error term with a stated standard error
-  dftreat$error = stats::rnorm(nrow(dftreat),0,sige)
+  dftreat$error = stats::rnorm(nrow(dftreat),0,siget)
 
   # create the timelag variable
   dftreat$timelag = dftreat$time - dftreat$treatg
@@ -115,7 +117,7 @@ sim_data <- function(basetreat = seq(10,100,10),
     dfcont$dosage = rep(0, nrow(dfcont))
 
     # add an error term
-    dfcont$error = stats::rnorm(nrow(dfcont),0,sige)
+    dfcont$error = stats::rnorm(nrow(dfcont),0,sigec)
 
     # add a timelag from minimum treated time
     dfcont$timelag = dfcont$time - min(timetreat)

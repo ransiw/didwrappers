@@ -229,20 +229,29 @@ compute.aggite <- function(MP,
   # n x 1 vector of group variable
   G <-  unlist(lapply(dta[,gname], orig2t))
 
-  # since estimates are at the unit-time level, aggregation into simple does not require reweighting to group size
-  pg <- sapply(idlist, function(g) mean(weights.ind*(dta[,idname]==g)))
-
-  # length of this is equal to number of groups
-  pgg <- pg
-
-  # same but length is equal to the number of ATT(g,t)
-  pg <- pg[match(group, glist)]
+  # # since estimates are at the unit-time level, aggregation into simple does not require reweighting to group size
+  # pg <- sapply(idlist, function(g) mean(weights.ind*(dta[,idname]==g)))
+  #
+  # # length of this is equal to number of groups
+  # pgg <- pg
+  #
+  # # same but length is equal to the number of ATT(g,t)
+  # pg <- pg[match(group, glist)]
 
   #-----------------------------------------------------------------------------
   # Compute the simple ATT summary
   #-----------------------------------------------------------------------------
 
   if (type == "simple") {
+
+    # change the pg to pi to extract the weights for the treated groups
+    pg <- dta[dta[,idname] %in% idlist,".w"]
+
+    # length of this is equal to number of treated units or number of units in idlist
+    pgg <- pg
+
+    # same but length is equal to the number of ATT(g,t)
+    pg <- pg[match(id, idlist)]
 
     # simple att
     # averages all post-treatment ATT(g,t) with weights
@@ -259,7 +268,7 @@ compute.aggite <- function(MP,
                                   inffunc1=inffunc1,
                                   whichones=keepers,
                                   weights.agg=pg[keepers]/sum(pg[keepers]),
-                                  wif=simple.wif)
+                                  wif=NULL)
     # Make it as vector
     simple.if <- as.numeric(simple.if)
 
@@ -282,17 +291,17 @@ compute.aggite <- function(MP,
   # Compute the group (i.e., selective) treatment timing estimators
   #-----------------------------------------------------------------------------
 
-  # we can work in overall probabilities because conditioning will cancel out
-  # cause it shows up in numerator and denominator
-  pg <- sapply(originalglist, function(g) mean(weights.ind*(dta[,gname]==g)))
-
-  # length of this is equal to number of groups
-  pgg <- pg
-
-  # same but length is equal to the number of ATT(g,t)
-  pg <- pg[match(group, glist)]
-
   if (type == "group") {
+
+    # we can work in overall probabilities because conditioning will cancel out
+    # cause it shows up in numerator and denominator
+    pg <- sapply(originalglist, function(g) mean(dta[dta[,gname] %in% g,".w"]))
+
+    # length of this is equal to number of groups
+    pgg <- pg
+
+    # same but length is equal to the number of ATT(g,t)
+    pg <- pg[match(group, glist)]
 
     # get group specific ATTs
     # note: there are no estimated weights here
@@ -367,7 +376,7 @@ compute.aggite <- function(MP,
                                            inffunc1=selective.inf.func.g,
                                            whichones=(1:length(glist)),
                                            weights.agg=pgg/sum(pgg),
-                                           wif=selective.wif)
+                                           wif=NULL)
 
 
     selective.inf.func <- as.numeric(selective.inf.func)
@@ -395,17 +404,16 @@ compute.aggite <- function(MP,
   # Compute the unit level aggregates
   #-----------------------------------------------------------------------------
 
-  # we can work in overall probabilities because conditioning will cancel out
-  # cause it shows up in numerator and denominator
-  pg <- sapply(idlist, function(g) mean(weights.ind*(dta[,idname]==g)))
-
-  # length of this is equal to number of groups
-  pgg <- pg
-
-  # same but length is equal to the number of ATT(g,t)
-  pg <- pg[match(id, idlist)]
-
   if (type == "unit") {
+
+    # change the pg to pi to extract the weights for the treated groups
+    pg <- dta[dta[,idname] %in% idlist,".w"]
+
+    # length of this is equal to number of treated units or number of units in idlist
+    pgg <- pg
+
+    # same but length is equal to the number of ATT(g,t)
+    pg <- pg[match(id, idlist)]
 
     # get group specific ATTs
     # note: there are no estimated weights here
@@ -480,7 +488,7 @@ compute.aggite <- function(MP,
                                            inffunc1=selective.inf.func.g,
                                            whichones=(1:length(glist)),
                                            weights.agg=pgg/sum(pgg),
-                                           wif=selective.wif)
+                                           wif=NULL)
 
 
     selective.inf.func <- as.numeric(selective.inf.func)
@@ -513,7 +521,7 @@ compute.aggite <- function(MP,
 
     # we can work in overall probabilities because conditioning will cancel out
     # cause it shows up in numerator and denominator
-    pg <- sapply(cohortlist, function(g) mean(weights.ind*(dta[,type]==g)))
+    pg <- sapply(cohortlist, function(g) mean(dta[dta[,type] %in% g,".w"]))
 
     # length of this is equal to number of groups
     pgg <- pg
@@ -594,7 +602,7 @@ compute.aggite <- function(MP,
                                            inffunc1=selective.inf.func.g,
                                            whichones=(1:length(cohortlist)),
                                            weights.agg=pgg/sum(pgg),
-                                           wif=selective.wif)
+                                           wif=NULL)
 
 
     selective.inf.func <- as.numeric(selective.inf.func)
@@ -620,14 +628,20 @@ compute.aggite <- function(MP,
 
 
 
-
-
-
   #-----------------------------------------------------------------------------
   # Compute the event-study estimators
   #-----------------------------------------------------------------------------
 
   if (type == "dynamic") {
+
+    # change the pg to pi to extract the weights for the treated groups
+    pg <- dta[dta[,idname] %in% idlist,".w"]
+
+    # length of this is equal to number of treated units or number of units in idlist
+    pgg <- pg
+
+    # same but length is equal to the number of ATT(g,t)
+    pg <- pg[match(id, idlist)]
 
     # event times
     # this looks at all available event times
@@ -675,7 +689,7 @@ compute.aggite <- function(MP,
                                                 inffunc1=inffunc1,
                                                 whichones=whiche,
                                                 weights.agg=pge,
-                                                wif=wif.e))
+                                                wif=NULL))
       se.e <- getSE(inf.func.e, dp)
       list(inf.func=inf.func.e, se=se.e)
     })
@@ -712,11 +726,15 @@ compute.aggite <- function(MP,
     # get overall average treatment effect
     # by averaging over positive dynamics
     epos <- eseq >= 0
-    dynamic.att <- mean(dynamic.att.e[epos])
+
+    # recalculate the weights
+    pgg <- sapply(eseq[eseq>=0], function(e) sum( ((originalt - originalgroup == e) & (include.balanced.gt)) * pg))
+
+    dynamic.att <- sum(pgg*dynamic.att.e[epos])/sum(pgg)
     dynamic.inf.func <- get_agg_inf_func(att=dynamic.att.e[epos],
                                          inffunc1=as.matrix(dynamic.inf.func.e[,epos]),
                                          whichones=(1:sum(epos)),
-                                         weights.agg=(rep(1/sum(epos), sum(epos))),
+                                         weights.agg=pgg/sum(pgg),
                                          wif=NULL)
 
     dynamic.inf.func <- as.numeric(dynamic.inf.func)
@@ -748,6 +766,15 @@ compute.aggite <- function(MP,
 
   if (type == "calendar") {
 
+    # change the pg to pi to extract the weights for the treated groups
+    pg <- dta[dta[,idname] %in% idlist,".w"]
+
+    # length of this is equal to number of treated units or number of units in idlist
+    pgg <- pg
+
+    # same but length is equal to the number of ATT(g,t)
+    pg <- pg[match(id, idlist)]
+
     # drop time periods where no one is treated yet
     # (can't get treatment effects in those periods)
     minG <- min(group)
@@ -776,7 +803,7 @@ compute.aggite <- function(MP,
                                                 inffunc1=inffunc1,
                                                 whichones=whicht,
                                                 weights.agg=pgt,
-                                                wif=wif.t))
+                                                wif=NULL))
       se.t <- getSE(inf.func.t, dp)
       list(inf.func=inf.func.t, se=se.t)
     })
@@ -813,15 +840,17 @@ compute.aggite <- function(MP,
       }
     }
 
+    pgg <- sapply(calendar.tlist, function(t1) sum(((t == t1) & (group <= t)) * pg))
+
     # get overall att under calendar time effects
     # this is just average over all time periods
-    calendar.att <- mean(calendar.att.t)
+    calendar.att <- sum(calendar.att.t*pgg)/sum(pgg)
 
     # get overall influence function
     calendar.inf.func <- get_agg_inf_func(att=calendar.att.t,
                                           inffunc1=calendar.inf.func.t,
                                           whichones=(1:length(calendar.tlist)),
-                                          weights.agg=rep(1/length(calendar.tlist), length(calendar.tlist)),
+                                          weights.agg=pgg/sum(pgg),
                                           wif=NULL)
     calendar.inf.func <- as.numeric(calendar.inf.func)
     # get overall standard error

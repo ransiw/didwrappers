@@ -16,6 +16,7 @@ att_it(
   control_group = c("nevertreated", "notyettreated"),
   anticipation = 0,
   weightsname = NULL,
+  weightfs = FALSE,
   alp = 0.05,
   bstrap = TRUE,
   cband = TRUE,
@@ -70,6 +71,9 @@ treatment and therefore it can affect their untreated potential outcomes.}
 
 \item{weightsname}{the name of the column containing the sampling weights.
 If not set, all observations have same weight.}
+
+\item{weightfs}{boolean for whether the att's should be weighted. Default
+is FALSE so that only the aggite step is weighted unless specified.}
 
 \item{alp}{the significance level, default is 0.05}
 
