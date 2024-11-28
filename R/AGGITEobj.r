@@ -13,7 +13,9 @@
 #'  time effects)
 #' @param egt2 a second aggregation type to hold a secondary object, NULL if no such object
 #' @param att.egt The ATT specific to egt
-#' @param se.egt The standard error specific to egt
+#' @param se.egt The standard error specific to egt from the bootstrap
+#' @param lci.egt The lower confidence interval from the bootstrap
+#' @param uci.egt The upper confidence interval from the bootstrap
 #' @param crit.val.egt A critical value for computing uniform confidence
 #'  bands for dynamic effects, selective treatment timing, or time period
 #'  effects.
@@ -35,11 +37,14 @@ AGGITEobj <- function(overall.att = NULL,
                      egt2 = NULL,
                      att.egt = NULL,
                      se.egt = NULL,
+                     lci.egt = NULL,
+                     uci.egt = NULL,
                      crit.val.egt = NULL,
                      inf.function = NULL,
                      min_e = NULL,
                      max_e = NULL,
                      balance_e = NULL,
+                     min_agg = NULL,
                      call=NULL,
                      DIDparams=NULL) {
 
@@ -51,11 +56,14 @@ AGGITEobj <- function(overall.att = NULL,
               egt2 = egt2,
               att.egt = att.egt,
               se.egt = se.egt,
+              lci.egt = lci.egt,
+              uci.egt = uci.egt,
               crit.val.egt = crit.val.egt,
               inf.function = inf.function,
               min_e = min_e,
               max_e = max_e,
               balance_e = balance_e,
+              min_agg = min_agg,
               call = call,
               DIDparams = DIDparams)
 

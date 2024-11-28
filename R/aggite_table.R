@@ -18,11 +18,9 @@
 #'
 aggite_table <- function(AGGITE){
   results = data.frame(egt=AGGITE$egt,att.egt=AGGITE$att.egt,se.egt=AGGITE$se.egt)
+  # ,lci.egt=AGGITE$lci.egt,uci.egt=AGGITE$uci.egt
   if (!is.null(AGGITE$egt2)){
-    results = data.frame(egt=AGGITE$egt,egt2=AGGITE$egt2,att.egt=AGGITE$att.egt,se.egt=AGGITE$se.egt)
+    results = data.frame(egt=AGGITE$egt,egt2=AGGITE$egt2,att.egt=AGGITE$att.egt,se.egt=AGGITE$se.egt,lci.egt=AGGITE$lci.egt,uci.egt=AGGITE$uci.egt)
   }
-  #colnames(results) = c(idname, gname , tname,"att","se","attcalc","ipwqual")
-  results$lowci = results$att.egt - (AGGITE$crit.val.egt * results$se.egt)
-  results$highci = results$att.egt + (AGGITE$crit.val.egt * results$se.egt)
   return(results)
 }

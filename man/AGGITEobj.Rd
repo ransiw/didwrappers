@@ -13,11 +13,14 @@ AGGITEobj(
   egt2 = NULL,
   att.egt = NULL,
   se.egt = NULL,
+  lci.egt = NULL,
+  uci.egt = NULL,
   crit.val.egt = NULL,
   inf.function = NULL,
   min_e = NULL,
   max_e = NULL,
   balance_e = NULL,
+  min_agg = NULL,
   call = NULL,
   DIDparams = NULL
 )
@@ -29,8 +32,8 @@ AGGITEobj(
 
 \item{type}{Which type of aggregated treatment effect parameter to compute.
 One option is "simple" (this just computes a weighted average of all
-group-time average treatment effects with weights proportional to group
-size).  Other options are "dynamic" (this computes average effects across
+unit-time average treatment effects).
+Other options are "dynamic" (this computes average effects across
 different lengths of exposure to the treatment and is similar to an
 "event study"; here the overall effect averages the effect of the
 treatment across all positive lengths of exposure); "group" (this
@@ -52,7 +55,11 @@ time effects)}
 
 \item{att.egt}{The ATT specific to egt}
 
-\item{se.egt}{The standard error specific to egt}
+\item{se.egt}{The standard error specific to egt from the bootstrap}
+
+\item{lci.egt}{The lower confidence interval from the bootstrap}
+
+\item{uci.egt}{The upper confidence interval from the bootstrap}
 
 \item{crit.val.egt}{A critical value for computing uniform confidence
 bands for dynamic effects, selective treatment timing, or time period
@@ -74,6 +81,8 @@ the sample with respect to event time.  For example, if \code{balance.e=2},
 at least three periods. (the initial period when \code{e=0} as well as the
 next two periods when \code{e=1} and the \code{e=2}).  This ensures that
 the composition of groups does not change when event time changes.}
+
+\item{min_agg}{the minimum number of unit-time effects required for aggregation. Default is 2.}
 
 \item{call}{The function call to aggite2}
 

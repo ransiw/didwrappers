@@ -7,7 +7,7 @@
 process_attit(attgt.list)
 }
 \arguments{
-\item{attgt.list}{list of results from \code{\link[=compute.att_gt]{compute.att_gt()}}}
+\item{attgt.list}{list of results from \code{\link[=compute.att_it]{compute.att_it()}}}
 }
 \value{
 list with elements:
@@ -15,6 +15,9 @@ list with elements:
 \item{group}{which group the id belongs to}
 \item{tt}{which time period a set of results belongs to}
 \item{att}{the unit time average treatment effect (NA if there were propensity score problems)}
+\item{se}{the standard error of the unit time average treatment effect (NA if there were propensity score problems)}
+\item{lci}{the lower confidence interval of the unit time average treatment effect (NA if there were propensity score problems)}
+\item{uci}{the upper confidence interval of the unit time average treatment effect (NA if there were propensity score problems)}
 \item{ipwqual}{the maximum propensity score}
 \item{attcalc}{the unit time average treatment effect (always complete unless NaN)}
 }

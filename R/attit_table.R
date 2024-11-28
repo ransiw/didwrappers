@@ -15,9 +15,7 @@ attit_table <- function(MP){
   #idname = MP$DIDparams$idname
   #gname = MP$DIDparams$gname
   #tname = MP$DIDPparams$tname
-  results = data.frame(id=MP$id,group=MP$group,t=MP$t,att=MP$att,se=MP$se,attcalc=MP$attcalc,ipwqual=MP$ipwqual,count=MP$count)
+  results = data.frame(id=MP$id,group=MP$group,t=MP$t,att=MP$att,se=MP$se,lci=MP$lci,uci=MP$uci,attcalc=MP$attcalc,ipwqual=MP$ipwqual,count=MP$count)
   #colnames(results) = c(idname, gname , tname,"att","se","attcalc","ipwqual")
-  results$lowci = results$att - (MP$c * results$se)
-  results$highci = results$att + (MP$c * results$se)
   return(results)
 }

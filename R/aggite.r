@@ -8,8 +8,8 @@
 #' @param MP an MP_i object (i.e., the results of the [att_it()] method)
 #' @param type Which type of aggregated treatment effect parameter to compute.
 #'   One option is "simple" (this just computes a weighted average of all
-#'   group-time average treatment effects with weights proportional to group
-#'   size).  Other options are "dynamic" (this computes average effects across
+#'   unit-time average treatment effects).
+#'   Other options are "dynamic" (this computes average effects across
 #'   different lengths of exposure to the treatment and is similar to an
 #'   "event study"; here the overall effect averages the effect of the
 #'   treatment across all positive lengths of exposure); "group" (this
@@ -31,24 +31,15 @@
 #' @param max_e For event studies, this is the largest event time to compute
 #'  dynamic effects for.  By default, `max_e = Inf` so that effects at
 #'  all lengths of exposure are computed.
+#' @param min_agg the minimum number of unit-time effects required for aggregation. Default is 2.
 #' @param na.rm Logical value if we are to remove missing Values from analyses. Defaults is FALSE.
-#' @param bstrap Boolean for whether or not to compute standard errors using
-#'  the multiplier bootstrap.  If standard errors are clustered, then one
-#'  must set `bstrap=TRUE`. Default is value set in the MP object.  If bstrap is `FALSE`, then analytical
-#'  standard errors are reported.
-#' @param biters The number of bootstrap iterations to use.  The default is the value set in the MP object,
+#' @param bstrap This is always TRUE. Turning off makes no difference in the second-step.
+#' @param biters The number of bootstrap iterations to use.  The default is the value set in the MP_i object,
 #'  and this is only applicable if `bstrap=TRUE`.
 #'
-#' @param cband Boolean for whether or not to compute a uniform confidence
-#'  band that covers all of the group-time average treatment effects
-#'  with fixed probability `1-alp`.  In order to compute uniform confidence
-#'  bands, `bstrap` must also be set to `TRUE`.  The default is
-#'  the value set in the MP object
+#' @param cband Does not apply. All confidence intervals are bootstrapped confidence intervals in the second-step.
 #' @param alp the significance level, default is value set in the MP object.
-#' @param clustervars A vector of variables to cluster on.  At most, there
-#'  can be two variables (otherwise will throw an error) and one of these
-#'  must be the same as idname which allows for clustering at the individual
-#'  level. Default is the variables set in the MP object
+#' @param clustervars ignored in this function.
 #'
 #' @return An [`AGGTEobj`] object that holds the results from the
 #'  aggregation
@@ -69,6 +60,7 @@ aggite <- function(MP,
                   balance_e = NULL,
                   min_e = -Inf,
                   max_e = Inf,
+                  min_agg = 2,
                   na.rm = FALSE,
                   bstrap = NULL,
                   biters = NULL,
@@ -84,6 +76,7 @@ aggite <- function(MP,
                 balance_e = balance_e,
                 min_e = min_e,
                 max_e = max_e,
+                min_agg = min_agg,
                 na.rm = na.rm,
                 bstrap = bstrap,
                 biters = biters,

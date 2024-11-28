@@ -12,6 +12,8 @@
 #'  approximation.
 #' @param V_analytical Analytical estimator for the asymptotic variance-covariance matrix for unit-time average treatment effects
 #' @param se standard errors for unit-time average treatment effects. If bootstrap is set to TRUE, this provides bootstrap-based se.
+#' @param lci lower confidence interval for att
+#' @param uci upper confidence interval for att
 #' @param inffunc the influence function for estimating group-time average treatment effects
 #' @param n the number of unique cross-sectional units (unique values of idname)
 #' @param aggite an aggregate treatment effects object
@@ -29,8 +31,8 @@
 #' # Helper function for [att_it()]. See documentation of that function for an example.
 #'
 #'
-MP_i <- function(id, group, t, att, V_analytical, se, c, inffunc, n=NULL, aggite=NULL, alp = 0.05, ipwqual=NULL, attcalc=NULL, count=NULL, DIDparams=NULL) {
-  out <- list(id=id,group=group, t=t, att=att, V_analytical=V_analytical, se=se, c=c,
+MP_i <- function(id, group, t, att, V_analytical, se, c, lci, uci, inffunc, n=NULL, aggite=NULL, alp = 0.05, ipwqual=NULL, attcalc=NULL, count=NULL, DIDparams=NULL) {
+  out <- list(id=id,group=group, t=t, att=att, V_analytical=V_analytical, se=se, c=c, lci=lci, uci=uci,
   inffunc=inffunc, n=n, aggite=aggite, alp = alp, ipwqual=ipwqual,attcalc=attcalc, count=count,
   DIDparams=DIDparams, call=DIDparams$call)
   class(out) <- "MP_i"

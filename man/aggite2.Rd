@@ -11,6 +11,7 @@ aggite2(
   balance_e = NULL,
   min_e = -Inf,
   max_e = Inf,
+  min_agg = 2,
   na.rm = FALSE,
   bstrap = NULL,
   biters = NULL,
@@ -24,8 +25,8 @@ aggite2(
 
 \item{type}{Which type of aggregated treatment effect parameter to compute.
 One option is "simple" (this just computes a weighted average of all
-group-time average treatment effects with weights proportional to group
-size).  Other options are "dynamic" (this computes average effects across
+unit-time average treatment effects).
+Other options are "dynamic" (this computes average effects across
 different lengths of exposure to the treatment and is similar to an
 "event study"; here the overall effect averages the effect of the
 treatment across all positive lengths of exposure); "group" (this
@@ -53,28 +54,20 @@ all lengths of exposure are computed.}
 dynamic effects for.  By default, \code{max_e = Inf} so that effects at
 all lengths of exposure are computed.}
 
+\item{min_agg}{the minimum number of unit-time effects required for aggregation. Default is 2.}
+
 \item{na.rm}{Logical value if we are to remove missing Values from analyses. Defaults is FALSE.}
 
-\item{bstrap}{Boolean for whether or not to compute standard errors using
-the multiplier bootstrap.  If standard errors are clustered, then one
-must set \code{bstrap=TRUE}. Default is value set in the MP object.  If bstrap is \code{FALSE}, then analytical
-standard errors are reported.}
+\item{bstrap}{This is always TRUE. Turning off makes no difference in the second-step.}
 
 \item{biters}{The number of bootstrap iterations to use.  The default is the value set in the MP object,
 and this is only applicable if \code{bstrap=TRUE}.}
 
-\item{cband}{Boolean for whether or not to compute a uniform confidence
-band that covers all of the group-time average treatment effects
-with fixed probability \code{1-alp}.  In order to compute uniform confidence
-bands, \code{bstrap} must also be set to \code{TRUE}.  The default is
-the value set in the MP object}
+\item{cband}{Does not apply. All confidence intervals are bootstrapped confidence intervals in the second-step.}
 
 \item{alp}{the significance level, default is value set in the MP object.}
 
-\item{clustervars}{A vector of variables to cluster on.  At most, there
-can be two variables (otherwise will throw an error) and one of these
-must be the same as idname which allows for clustering at the individual
-level. Default is the variables set in the MP object}
+\item{clustervars}{ignored in this function}
 }
 \value{
 An \code{\link{AGGTEobj}} object that holds the results from the

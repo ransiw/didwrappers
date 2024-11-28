@@ -217,7 +217,7 @@ compute.att_it <- function(dp) {
       }
 
       if (skip_this_att_gt) {
-        attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, post=post.treat, attcalc = NA, count=0)
+        attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=post.treat, attcalc = NA, count=0)
         inffunc[,counter] <- NA
         counter <- counter+1
         next
@@ -320,7 +320,7 @@ compute.att_it <- function(dp) {
 
 
         if (reg_problems_likely | (pscore_problems_likely & overlap=="trim")) {
-          attgt.list[[counter]] <- list(att=NA, id=idlist[g], group=glist[g], year=tlist[(t+tfac)],ipwqual=maxpscore, post=post.treat, attcalc=attcalc, count=n1/2)
+          attgt.list[[counter]] <- list(att=NA, id=idlist[g], group=glist[g], year=tlist[(t+tfac)],ipwqual=maxpscore, se=NA, lci=NA, uci=NA, post=post.treat, attcalc=attcalc, count=n1/2)
           inffunc[,counter] <- NA
           counter <- counter+1
           next
@@ -359,20 +359,20 @@ compute.att_it <- function(dp) {
                                     boot=FALSE, inffunc=TRUE)
       }
 
-      # adjust influence function to account for only using
-      # subgroup to estimate att(g,t)
-      attgt$att.inf.func <- (n0/n1)*attgt$att.inf.func
-
       # If ATT is NaN, replace it with NA, and make Influence functions equal to zero
       if(is.nan(attgt$ATT)){
         attgt$ATT <- NA
         attgt$att.inf.func <- 0 * attgt$att.inf.func
       }
 
+      # adjust influence function to account for only using
+      # subgroup to estimate att(g,t)
+      attgt$att.inf.func <- (dp$n/(length(attgt$att.inf.func)-1))*attgt$att.inf.func
+
 
       attgt.list[[counter]] <- list(
-        att = attgt$ATT, id=idlist[g],  group = glist[g], year = tlist[(t+tfac)],ipwqual=maxpscore, post = post.treat,
-        attcalc = attgt$ATT, count=n1/2
+        att = attgt$ATT, id=idlist[g],  group = glist[g], year = tlist[(t+tfac)],ipwqual=maxpscore, se=attgt$se, lci=attgt$lci, uci=attgt$uci, post = post.treat,
+        attcalc = attgt$ATT, count=length(attgt$att.inf.func)
       )
 
 

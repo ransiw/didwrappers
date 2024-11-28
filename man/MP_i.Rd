@@ -12,6 +12,8 @@ MP_i(
   V_analytical,
   se,
   c,
+  lci,
+  uci,
   inffunc,
   n = NULL,
   aggite = NULL,
@@ -39,6 +41,10 @@ period \code{t}}
 \item{c}{simultaneous critical value if one is obtaining simultaneous confidence
 bands. Otherwise it reports the critical value based on pointwise normal
 approximation.}
+
+\item{lci}{lower confidence interval for att}
+
+\item{uci}{upper confidence interval for att}
 
 \item{inffunc}{the influence function for estimating group-time average treatment effects}
 

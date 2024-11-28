@@ -142,6 +142,9 @@ att_it <- function(yname,
   att <- attgt.results$att
   tt <- attgt.results$tt
   ipwqual <- attgt.results$ipwqual
+  se <- attgt.results$se
+  lci <- attgt.results$lci
+  uci <- attgt.results$uci
   attcalc <- attgt.results$attcalc
   count <- attgt.results$count
 
@@ -152,64 +155,64 @@ att_it <- function(yname,
 
   n <- dp$n
   V <- Matrix::t(inffunc)%*%inffunc/n
-  se <- sqrt(Matrix::diag(V)/n)
+  # se <- sqrt(Matrix::diag(V)/n)
 
   # Zero standard error replaced by NA
   se[se <= sqrt(.Machine$double.eps)*10] <- NA
 
-  # if clustering along another dimension...we require using the
-  # bootstrap (in principle, could come up with analytical standard
-  # errors here though)
-  if ( (length(clustervars) > 0) & !bstrap) {
-    warning("clustering the standard errors requires using the bootstrap, resulting standard errors are NOT accounting for clustering")
-  }
-
-  # Identify entries of main diagonal V that are zero or NA
-  zero_na_sd_entry <- unique(which(is.na(se)))
-
-  # bootstrap variance matrix
-  if (bstrap) {
-
-    bout <- did::mboot(inffunc, DIDparams=dp, pl=pl, cores=cores)
-    bres <- bout$bres
-
-    if(length(zero_na_sd_entry)>0) {
-      se[-zero_na_sd_entry] <- bout$se[-zero_na_sd_entry]
-    } else {
-      se <- bout$se
-    }
-  }
-  # Zero standard error replaced by NA
-  se[se <= sqrt(.Machine$double.eps)*10] <- NA
+  # # if clustering along another dimension...we require using the
+  # # bootstrap (in principle, could come up with analytical standard
+  # # errors here though)
+  # if ( (length(clustervars) > 0) & !bstrap) {
+  #   warning("clustering the standard errors requires using the bootstrap, resulting standard errors are NOT accounting for clustering")
+  # }
+  #
+  # # Identify entries of main diagonal V that are zero or NA
+  # zero_na_sd_entry <- unique(which(is.na(se)))
+  #
+  # # bootstrap variance matrix
+  # if (bstrap) {
+  #
+  #   bout <- did::mboot(inffunc, DIDparams=dp, pl=pl, cores=cores)
+  #   bres <- bout$bres
+  #
+  #   if(length(zero_na_sd_entry)>0) {
+  #     se[-zero_na_sd_entry] <- bout$se[-zero_na_sd_entry]
+  #   } else {
+  #     se <- bout$se
+  #   }
+  # }
+  # # Zero standard error replaced by NA
+  # se[se <= sqrt(.Machine$double.eps)*10] <- NA
 
   #-----------------------------------------------------------------------------
   # compute confidence intervals / bands
   #-----------------------------------------------------------------------------
 
-  # critical value from N(0,1), for pointwise
+  # # critical value from N(0,1), for pointwise
   cval <- stats::qnorm(1-alp/2)
+  #
+  # # in order to get uniform confidence bands
+  # # HAVE to use the bootstrap
+  # if (bstrap){
+  #   if (cband) {
+  #     # for uniform confidence band
+  #     # compute new critical value
+  #     # see paper for details
+  #     bSigma <- apply(bres, 2,
+  #                     function(b) (stats::quantile(b, .75, type=1, na.rm = T) -
+  #                                    stats::quantile(b, .25, type=1, na.rm = T))/(stats::qnorm(.75) - stats::qnorm(.25)))
+  #
+  #     bSigma[bSigma <= sqrt(.Machine$double.eps)*10] <- NA
+  #
+  #     # sup-t confidence band
+  #     bT <- apply(bres, 1, function(b) max(abs(b/bSigma), na.rm = TRUE))
+  #     cval <- stats::quantile(bT, 1-alp, type=1, na.rm = T)
+  #     if(cval >= 7){
+  #       warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
+  #     }
+  #   }
+  # }
 
-  # in order to get uniform confidence bands
-  # HAVE to use the bootstrap
-  if (bstrap){
-    if (cband) {
-      # for uniform confidence band
-      # compute new critical value
-      # see paper for details
-      bSigma <- apply(bres, 2,
-                      function(b) (stats::quantile(b, .75, type=1, na.rm = T) -
-                                     stats::quantile(b, .25, type=1, na.rm = T))/(stats::qnorm(.75) - stats::qnorm(.25)))
-
-      bSigma[bSigma <= sqrt(.Machine$double.eps)*10] <- NA
-
-      # sup-t confidence band
-      bT <- apply(bres, 1, function(b) max(abs(b/bSigma), na.rm = TRUE))
-      cval <- stats::quantile(bT, 1-alp, type=1, na.rm = T)
-      if(cval >= 7){
-        warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
-      }
-    }
-  }
-
-  return(MP_i(id=id ,group=group, t=tt, att=att, V_analytical=V, se=se, c=cval, inffunc=inffunc, n=n, alp = alp, ipwqual=ipwqual,attcalc=attcalc, count=count, DIDparams=dp))
+  return(MP_i(id=id ,group=group, t=tt, att=att, V_analytical=V, se=se, lci=lci, uci=uci, c=cval, inffunc=inffunc, n=n, alp = alp, ipwqual=ipwqual,attcalc=attcalc, count=count, DIDparams=dp))
 }

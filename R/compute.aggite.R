@@ -21,6 +21,7 @@ compute.aggite <- function(MP,
                           balance_e = NULL,
                           min_e = -Inf,
                           max_e = Inf,
+                          min_agg = 2,
                           na.rm = FALSE,
                           bstrap = NULL,
                           biters = NULL,
@@ -93,53 +94,53 @@ compute.aggite <- function(MP,
     #tlist <- sort(unique(t))
 
     # If aggte is of the group type, ensure we have non-missing post-treatment ATTs for each group
-    if(type == "group"){
-      glist <- sort(unique(group))
-      # Get the groups that have some non-missing ATT(g,t) in post-treatmemt periods
-      gnotna <- sapply(glist, function(g) {
-        # look at post-treatment periods for group g
-        whichg <- which( (group == g) & (g <= t))
-        attg <- att[whichg]
-        group_select <- !is.na(mean(attg))
-        return(group_select)
-      })
-      gnotna <- glist[gnotna]
-      # indicator for not all post-treatment ATT(g,t) missing
-      not_all_na <- group %in% gnotna
-      # Re-do the na.rm thing to update the groups
-      group <- group[not_all_na]
-      t <- t[not_all_na]
-      id <- id[not_all_na]
-      att <- att[not_all_na]
-      inffunc1 <- inffunc1[, not_all_na]
-      #tlist <- sort(unique(t))
-      glist <- sort(unique(group))
-    }
+    # if(type == "group"){
+    #   glist <- sort(unique(group))
+    #   # Get the groups that have some non-missing ATT(g,t) in post-treatmemt periods
+    #   gnotna <- sapply(glist, function(g) {
+    #     # look at post-treatment periods for group g
+    #     whichg <- which( (group == g) & (g <= t))
+    #     attg <- att[whichg]
+    #     group_select <- !is.na(mean(attg))
+    #     return(group_select)
+    #   })
+    #   gnotna <- glist[gnotna]
+    #   # indicator for not all post-treatment ATT(g,t) missing
+    #   not_all_na <- group %in% gnotna
+    #   # Re-do the na.rm thing to update the groups
+    #   group <- group[not_all_na]
+    #   t <- t[not_all_na]
+    #   id <- id[not_all_na]
+    #   att <- att[not_all_na]
+    #   inffunc1 <- inffunc1[, not_all_na]
+    #   #tlist <- sort(unique(t))
+    #   glist <- sort(unique(group))
+    # }
 
-    if(type %in% c("unit", cohortnames)){
-      idlist <- sort(unique(id))
-      # Get the units that have some non-missing ATT(g,t) in post-treatmemt periods
-      gnotna <- sapply(idlist, function(g) {
-        # look at post-treatment periods for group g
-        whichg <- which( (id == g) & (group <= t))
-        attg <- att[whichg]
-        group_select <- !is.na(mean(attg))
-        return(group_select)
-      })
-      gnotna <- idlist[gnotna]
-      # indicator for not all post-treatment ATT(g,t) missing
-      not_all_na <- id %in% gnotna
-      # Re-do the na.rm thing to update the groups
-      group <- group[not_all_na]
-      t <- t[not_all_na]
-      id <- id[not_all_na]
-      att <- att[not_all_na]
-      inffunc1 <- inffunc1[, not_all_na]
-      #tlist <- sort(unique(t))
-      # redoing the glist here to drop any NA observations
-      glist <- unique(data.frame(id,group))$group
-      idlist <- sort(unique(id))
-    }
+    # if(type %in% c("unit", cohortnames)){
+    #   idlist <- sort(unique(id))
+    #   # Get the units that have some non-missing ATT(g,t) in post-treatmemt periods
+    #   gnotna <- sapply(idlist, function(g) {
+    #     # look at post-treatment periods for group g
+    #     whichg <- which( (id == g) & (group <= t))
+    #     attg <- att[whichg]
+    #     group_select <- !is.na(mean(attg))
+    #     return(group_select)
+    #   })
+    #   gnotna <- idlist[gnotna]
+    #   # indicator for not all post-treatment ATT(g,t) missing
+    #   not_all_na <- id %in% gnotna
+    #   # Re-do the na.rm thing to update the groups
+    #   group <- group[not_all_na]
+    #   t <- t[not_all_na]
+    #   id <- id[not_all_na]
+    #   att <- att[not_all_na]
+    #   inffunc1 <- inffunc1[, not_all_na]
+    #   #tlist <- sort(unique(t))
+    #   # redoing the glist here to drop any NA observations
+    #   glist <- unique(data.frame(id,group))$group
+    #   idlist <- sort(unique(id))
+    # }
   }
 
 
@@ -681,67 +682,67 @@ compute.aggite <- function(MP,
     })
 
     # compute standard errors for dynamic effects
-    dynamic.se.inner <- lapply(eseq, function(e) {
-      whiche <- which( (originalt - originalgroup == e) & (include.balanced.gt) )
-      pge <- pg[whiche]/(sum(pg[whiche]))
-      wif.e <- wif(whiche, pg, weights.ind, G, group)
-      inf.func.e <- as.numeric(get_agg_inf_func(att=att,
-                                                inffunc1=inffunc1,
-                                                whichones=whiche,
-                                                weights.agg=pge,
-                                                wif=NULL))
-      se.e <- getSE(inf.func.e, dp)
-      list(inf.func=inf.func.e, se=se.e)
-    })
-
-    dynamic.se.e <- unlist(BMisc::getListElement(dynamic.se.inner, "se"))
-    dynamic.se.e[dynamic.se.e <= sqrt(.Machine$double.eps)*10] <- NA
-
-    dynamic.inf.func.e <- simplify2array(BMisc::getListElement(dynamic.se.inner, "inf.func"))
-
-    dynamic.crit.val <- stats::qnorm(1 - alp/2)
-    if(dp$cband==TRUE){
-      if(dp$bstrap == FALSE){
-        warning('Used bootstrap procedure to compute simultaneous confidence band')
-      }
-      dynamic.crit.val <- did::mboot(dynamic.inf.func.e, dp)$crit.val
-
-      if(is.na(dynamic.crit.val) | is.infinite(dynamic.crit.val)){
-        warning('Simultaneous critival value is NA. This probably happened because we cannot compute t-statistic (std errors are NA). We then report pointwise conf. intervals.')
-        dynamic.crit.val <- stats::qnorm(1 - alp/2)
-        dp$cband <- FALSE
-      }
-
-      if(dynamic.crit.val < stats::qnorm(1 - alp/2)){
-        warning('Simultaneous conf. band is somehow smaller than pointwise one using normal approximation. Since this is unusual, we are reporting pointwise confidence intervals')
-        dynamic.crit.val <- stats::qnorm(1 - alp/2)
-        dp$cband <- FALSE
-      }
-
-      if(dynamic.crit.val >= 7){
-        warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
-      }
-    }
-
-    # get overall average treatment effect
-    # by averaging over positive dynamics
-    epos <- eseq >= 0
-
-    # recalculate the weights
-    pgg <- sapply(eseq[eseq>=0], function(e) sum( ((originalt - originalgroup == e) & (include.balanced.gt)) * pg))
-
-    dynamic.att <- sum(pgg*dynamic.att.e[epos])/sum(pgg)
-    dynamic.inf.func <- get_agg_inf_func(att=dynamic.att.e[epos],
-                                         inffunc1=as.matrix(dynamic.inf.func.e[,epos]),
-                                         whichones=(1:sum(epos)),
-                                         weights.agg=pgg/sum(pgg),
-                                         wif=NULL)
-
-    dynamic.inf.func <- as.numeric(dynamic.inf.func)
-    dynamic.se <- getSE(dynamic.inf.func, dp)
-    if(!is.na(dynamic.se)){
-      if (dynamic.se <= sqrt(.Machine$double.eps)*10) dynamic.se <- NA
-    }
+    # dynamic.se.inner <- lapply(eseq, function(e) {
+    #   whiche <- which( (originalt - originalgroup == e) & (include.balanced.gt) )
+    #   pge <- pg[whiche]/(sum(pg[whiche]))
+    #   wif.e <- wif(whiche, pg, weights.ind, G, group)
+    #   inf.func.e <- as.numeric(get_agg_inf_func(att=att,
+    #                                             inffunc1=inffunc1,
+    #                                             whichones=whiche,
+    #                                             weights.agg=pge,
+    #                                             wif=NULL))
+    #   se.e <- getSE(inf.func.e, dp)
+    #   list(inf.func=inf.func.e, se=se.e)
+    # })
+    #
+    # dynamic.se.e <- unlist(BMisc::getListElement(dynamic.se.inner, "se"))
+    # dynamic.se.e[dynamic.se.e <= sqrt(.Machine$double.eps)*10] <- NA
+    #
+    # dynamic.inf.func.e <- simplify2array(BMisc::getListElement(dynamic.se.inner, "inf.func"))
+    #
+    # dynamic.crit.val <- stats::qnorm(1 - alp/2)
+    # if(dp$cband==TRUE){
+    #   if(dp$bstrap == FALSE){
+    #     warning('Used bootstrap procedure to compute simultaneous confidence band')
+    #   }
+    #   dynamic.crit.val <- did::mboot(dynamic.inf.func.e, dp)$crit.val
+    #
+    #   if(is.na(dynamic.crit.val) | is.infinite(dynamic.crit.val)){
+    #     warning('Simultaneous critival value is NA. This probably happened because we cannot compute t-statistic (std errors are NA). We then report pointwise conf. intervals.')
+    #     dynamic.crit.val <- stats::qnorm(1 - alp/2)
+    #     dp$cband <- FALSE
+    #   }
+    #
+    #   if(dynamic.crit.val < stats::qnorm(1 - alp/2)){
+    #     warning('Simultaneous conf. band is somehow smaller than pointwise one using normal approximation. Since this is unusual, we are reporting pointwise confidence intervals')
+    #     dynamic.crit.val <- stats::qnorm(1 - alp/2)
+    #     dp$cband <- FALSE
+    #   }
+    #
+    #   if(dynamic.crit.val >= 7){
+    #     warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
+    #   }
+    # }
+    #
+    # # get overall average treatment effect
+    # # by averaging over positive dynamics
+    # epos <- eseq >= 0
+    #
+    # # recalculate the weights
+    # pgg <- sapply(eseq[eseq>=0], function(e) sum( ((originalt - originalgroup == e) & (include.balanced.gt)) * pg))
+    #
+    # dynamic.att <- sum(pgg*dynamic.att.e[epos])/sum(pgg)
+    # dynamic.inf.func <- get_agg_inf_func(att=dynamic.att.e[epos],
+    #                                      inffunc1=as.matrix(dynamic.inf.func.e[,epos]),
+    #                                      whichones=(1:sum(epos)),
+    #                                      weights.agg=pgg/sum(pgg),
+    #                                      wif=NULL)
+    #
+    # dynamic.inf.func <- as.numeric(dynamic.inf.func)
+    # dynamic.se <- getSE(dynamic.inf.func, dp)
+    # if(!is.na(dynamic.se)){
+    #   if (dynamic.se <= sqrt(.Machine$double.eps)*10) dynamic.se <- NA
+    # }
 
     return(AGGITEobj(overall.att=dynamic.att,
                     overall.se=dynamic.se,
@@ -749,13 +750,15 @@ compute.aggite <- function(MP,
                     egt=eseq,
                     att.egt=dynamic.att.e,
                     se.egt=dynamic.se.e,
-                    crit.val.egt=dynamic.crit.val,
-                    inf.function = list(dynamic.inf.func.e = dynamic.inf.func.e,
-                                        dynamic.inf.func = dynamic.inf.func),
+                    lci.egt = NULL,
+                    uci.egt = NULL,
+                    crit.val.egt= NULL,
+                    inf.function = NULL,
                     call=call,
                     min_e=min_e,
                     max_e=max_e,
                     balance_e=balance_e,
+                    min_agg = min_agg,
                     DIDparams=dp
     ))
   }
