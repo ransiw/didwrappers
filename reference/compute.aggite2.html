@@ -55,6 +55,7 @@ average treatment effects</p>
 <span>  balance_e <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  min_e <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>,</span>
 <span>  max_e <span class="op">=</span> <span class="cn">Inf</span>,</span>
+<span>  min_agg <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  na.rm <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  bstrap <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  biters <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -76,8 +77,8 @@ average treatment effects</p>
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
 <dd><p>Which type of aggregated treatment effect parameter to compute.
 One option is "simple" (this just computes a weighted average of all
-group-time average treatment effects with weights proportional to group
-size).  Other options are "dynamic" (this computes average effects across
+unit-time average treatment effects).
+Other options are "dynamic" (this computes average effects across
 different lengths of exposure to the treatment and is similar to an
 "event study"; here the overall effect averages the effect of the
 treatment across all positive lengths of exposure); "group" (this
@@ -110,28 +111,25 @@ dynamic effects for.  By default, <code>max_e = Inf</code> so that effects at
 all lengths of exposure are computed.</p></dd>
 
 
+<dt id="arg-min-agg">min_agg<a class="anchor" aria-label="anchor" href="#arg-min-agg"></a></dt>
+<dd><p>the minimum number of unit-time effects required for aggregation. Default is 2.</p></dd>
+
+
 <dt id="arg-na-rm">na.rm<a class="anchor" aria-label="anchor" href="#arg-na-rm"></a></dt>
 <dd><p>Logical value if we are to remove missing Values from analyses. Defaults is FALSE.</p></dd>
 
 
 <dt id="arg-bstrap">bstrap<a class="anchor" aria-label="anchor" href="#arg-bstrap"></a></dt>
-<dd><p>Boolean for whether or not to compute standard errors using
-the multiplier bootstrap.  If standard errors are clustered, then one
-must set <code>bstrap=TRUE</code>. Default is value set in the MP object.  If bstrap is <code>FALSE</code>, then analytical
-standard errors are reported.</p></dd>
+<dd><p>This is always TRUE. Turning off makes no difference in the second-step.</p></dd>
 
 
 <dt id="arg-biters">biters<a class="anchor" aria-label="anchor" href="#arg-biters"></a></dt>
-<dd><p>The number of bootstrap iterations to use.  The default is the value set in the MP object,
+<dd><p>The number of bootstrap iterations to use.  The default is the value set in the MP_i object,
 and this is only applicable if <code>bstrap=TRUE</code>.</p></dd>
 
 
 <dt id="arg-cband">cband<a class="anchor" aria-label="anchor" href="#arg-cband"></a></dt>
-<dd><p>Boolean for whether or not to compute a uniform confidence
-band that covers all of the group-time average treatment effects
-with fixed probability <code>1-alp</code>.  In order to compute uniform confidence
-bands, <code>bstrap</code> must also be set to <code>TRUE</code>.  The default is
-the value set in the MP object</p></dd>
+<dd><p>Does not apply. All confidence intervals are bootstrapped confidence intervals in the second-step.</p></dd>
 
 
 <dt id="arg-alp">alp<a class="anchor" aria-label="anchor" href="#arg-alp"></a></dt>
@@ -139,10 +137,7 @@ the value set in the MP object</p></dd>
 
 
 <dt id="arg-clustervars">clustervars<a class="anchor" aria-label="anchor" href="#arg-clustervars"></a></dt>
-<dd><p>A vector of variables to cluster on.  At most, there
-can be two variables (otherwise will throw an error) and one of these
-must be the same as idname which allows for clustering at the individual
-level. Default is the variables set in the MP object</p></dd>
+<dd><p>ignored in this function.</p></dd>
 
 
 <dt id="arg-call">call<a class="anchor" aria-label="anchor" href="#arg-call"></a></dt>

@@ -103,7 +103,7 @@ effect. A simple aggregation could be done as follows,</p>
 <span><span class="va">simple</span><span class="op">$</span><span class="va">overall.att</span></span>
 <span><span class="co">#&gt; [1] -0.03995128</span></span>
 <span><span class="va">simple</span><span class="op">$</span><span class="va">overall.se</span></span>
-<span><span class="co">#&gt; [1] 0.006389534</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.006487591</span></span></code></pre></div>
 <p>But there is more that can be done. Perhaps, we want to see the
 effect of raising minimum wage for all counties that raised the minimum
 wage in 2004, or 2007.</p>
@@ -113,10 +113,10 @@ wage in 2004, or 2007.</p>
 data-frame.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite_table.html">aggite_table</a></span><span class="op">(</span><span class="va">group</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    egt     att.egt      se.egt       lowci       highci</span></span>
-<span><span class="co">#&gt; 1 2004 -0.07974913 0.010902835 -0.10604442 -0.053453831</span></span>
-<span><span class="co">#&gt; 2 2006 -0.02290954 0.010659896 -0.04861892  0.002799840</span></span>
-<span><span class="co">#&gt; 3 2007 -0.02605441 0.009223667 -0.04829992 -0.003808906</span></span></code></pre></div>
+<span><span class="co">#&gt;    egt     att.egt      se.egt</span></span>
+<span><span class="co">#&gt; 1 2004 -0.07974913 0.009731558</span></span>
+<span><span class="co">#&gt; 2 2006 -0.02290954 0.011341549</span></span>
+<span><span class="co">#&gt; 3 2007 -0.02605441 0.009535219</span></span></code></pre></div>
 <p>This shows that on average counties that raised minimum wage in 2004,
 and 2007 saw a statistically significant (at 95%) drop in teen
 employment. For 2006, the effect was negative, but not statistically
@@ -130,14 +130,14 @@ at the dynamic level.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dynamic</span> <span class="op">=</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite.html">aggite</a></span><span class="op">(</span><span class="va">out_it</span>, type<span class="op">=</span><span class="st">"dynamic"</span><span class="op">)</span></span>
 <span><span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite_table.html">aggite_table</a></span><span class="op">(</span><span class="va">dynamic</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   egt       att.egt      se.egt        lowci       highci</span></span>
-<span><span class="co">#&gt; 1  -3  0.0305066556 0.009704581  0.006001701  0.055011610</span></span>
-<span><span class="co">#&gt; 2  -2 -0.0005630846 0.006173374 -0.016151419  0.015025250</span></span>
-<span><span class="co">#&gt; 3  -1 -0.0244587450 0.009139429 -0.047536637 -0.001380852</span></span>
-<span><span class="co">#&gt; 4   0 -0.0199318168 0.005941949 -0.034935781 -0.004927853</span></span>
-<span><span class="co">#&gt; 5   1 -0.0509573671 0.008364465 -0.072078405 -0.029836329</span></span>
-<span><span class="co">#&gt; 6   2 -0.1372587389 0.014923562 -0.174942097 -0.099575380</span></span>
-<span><span class="co">#&gt; 7   3 -0.1008113631 0.014527170 -0.137493794 -0.064128932</span></span></code></pre></div>
+<span><span class="co">#&gt;   egt       att.egt      se.egt</span></span>
+<span><span class="co">#&gt; 1  -3  0.0305066556 0.011938606</span></span>
+<span><span class="co">#&gt; 2  -2 -0.0005630846 0.011823534</span></span>
+<span><span class="co">#&gt; 3  -1 -0.0244587450 0.011388379</span></span>
+<span><span class="co">#&gt; 4   0 -0.0199318168 0.009946331</span></span>
+<span><span class="co">#&gt; 5   1 -0.0509573671 0.014922156</span></span>
+<span><span class="co">#&gt; 6   2 -0.1372587389 0.033843440</span></span>
+<span><span class="co">#&gt; 7   3 -0.1008113631 0.033088301</span></span></code></pre></div>
 <p>It also gives us placebo trends.</p>
 <p>We can also retrieve the overall effect and standard error from this
 same object.</p>
@@ -145,7 +145,7 @@ same object.</p>
 <code class="sourceCode R"><span><span class="va">dynamic</span><span class="op">$</span><span class="va">overall.att</span></span>
 <span><span class="co">#&gt; [1] -0.03995128</span></span>
 <span><span class="va">dynamic</span><span class="op">$</span><span class="va">overall.se</span></span>
-<span><span class="co">#&gt; [1] 0.006701225</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.02713151</span></span></code></pre></div>
 <p>Until now we have run unconditional differences-in-differences. But,
 it might not be appropriate to compare counties of very different
 population. There are a variety of reweighting algorithms (same as those
@@ -167,11 +167,11 @@ condition failed.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out_it_lpop_tbl</span> <span class="op">&lt;-</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/attit_table.html">attit_table</a></span><span class="op">(</span><span class="va">out_it_lpop</span><span class="op">)</span></span>
 <span><span class="va">out_it_lpop_tbl</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">out_it_lpop_tbl</span><span class="op">$</span><span class="va">se</span><span class="op">)</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">7</span><span class="op">]</span></span>
-<span><span class="co">#&gt;        id group    t att se     attcalc   ipwqual</span></span>
-<span><span class="co">#&gt; 533 30109  2007 2004  NA NA -0.06896633 0.9999998</span></span>
-<span><span class="co">#&gt; 534 30109  2007 2005  NA NA -0.20352817 0.9999998</span></span>
-<span><span class="co">#&gt; 535 30109  2007 2006  NA NA  0.31351022 0.9999998</span></span>
-<span><span class="co">#&gt; 536 30109  2007 2007  NA NA -0.12816477 0.9999998</span></span></code></pre></div>
+<span><span class="co">#&gt;        id group    t att se lci uci</span></span>
+<span><span class="co">#&gt; 533 30109  2007 2004  NA NA  NA  NA</span></span>
+<span><span class="co">#&gt; 534 30109  2007 2005  NA NA  NA  NA</span></span>
+<span><span class="co">#&gt; 535 30109  2007 2006  NA NA  NA  NA</span></span>
+<span><span class="co">#&gt; 536 30109  2007 2007  NA NA  NA  NA</span></span></code></pre></div>
 <p>For one of the counties, overlap failed. As shown by the
 <code>ipwqual</code> field, which is very close to 1, the maximum
 propensity score being that close to 1 shows that almost all the weight
@@ -186,14 +186,14 @@ these.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dynamic_lpop</span> <span class="op">=</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite.html">aggite</a></span><span class="op">(</span><span class="va">out_it_lpop</span>, type<span class="op">=</span><span class="st">"dynamic"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite_table.html">aggite_table</a></span><span class="op">(</span><span class="va">dynamic_lpop</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   egt      att.egt      se.egt        lowci       highci</span></span>
-<span><span class="co">#&gt; 1  -3  0.032511175 0.010560669  0.007223634  0.057798717</span></span>
-<span><span class="co">#&gt; 2  -2  0.005318137 0.005870087 -0.008737796  0.019374070</span></span>
-<span><span class="co">#&gt; 3  -1 -0.019057937 0.010177310 -0.043427524  0.005311650</span></span>
-<span><span class="co">#&gt; 4   0 -0.021177277 0.008043394 -0.040437198 -0.001917356</span></span>
-<span><span class="co">#&gt; 5   1 -0.049562824 0.008370019 -0.069604850 -0.029520797</span></span>
-<span><span class="co">#&gt; 6   2 -0.129581200 0.017361278 -0.171152814 -0.088009587</span></span>
-<span><span class="co">#&gt; 7   3 -0.095242090 0.015650060 -0.132716188 -0.057767992</span></span></code></pre></div>
+<span><span class="co">#&gt;   egt      att.egt     se.egt</span></span>
+<span><span class="co">#&gt; 1  -3  0.032511175 0.01158543</span></span>
+<span><span class="co">#&gt; 2  -2  0.005318137 0.01134571</span></span>
+<span><span class="co">#&gt; 3  -1 -0.019057937 0.01193243</span></span>
+<span><span class="co">#&gt; 4   0 -0.021177277 0.01105512</span></span>
+<span><span class="co">#&gt; 5   1 -0.049562824 0.01459022</span></span>
+<span><span class="co">#&gt; 6   2 -0.129581200 0.03421712</span></span>
+<span><span class="co">#&gt; 7   3 -0.095242090 0.03210832</span></span></code></pre></div>
 <p>The estimates are a little different from the unconditional version.
 But the substantive conclusions made would remain the same.</p>
 <p>Another option with the <code>didwrappers</code> package is that you
@@ -223,15 +223,15 @@ with the <code>xformla</code> option.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cohort</span> <span class="op">=</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite.html">aggite</a></span><span class="op">(</span><span class="va">out_it_cohort</span>, type<span class="op">=</span><span class="st">"lpop2"</span><span class="op">)</span></span>
 <span><span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite_table.html">aggite_table</a></span><span class="op">(</span><span class="va">cohort</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   egt      att.egt      se.egt        lowci       highci</span></span>
-<span><span class="co">#&gt; 1   0  0.076447182 0.009735988  0.054446542  0.098447822</span></span>
-<span><span class="co">#&gt; 2   1  0.539728790 0.009100836  0.519163417  0.560294163</span></span>
-<span><span class="co">#&gt; 3   2 -0.096677840 0.006506535 -0.111380810 -0.081974870</span></span>
-<span><span class="co">#&gt; 4   3 -0.052241580 0.006573998 -0.067096997 -0.037386162</span></span>
-<span><span class="co">#&gt; 5   4 -0.030810515 0.006645442 -0.045827375 -0.015793654</span></span>
-<span><span class="co">#&gt; 6   5 -0.017876462 0.006462027 -0.032478855 -0.003274069</span></span>
-<span><span class="co">#&gt; 7   6 -0.002419735 0.006906881 -0.018027375  0.013187905</span></span>
-<span><span class="co">#&gt; 8   7  0.021283644 0.006793726  0.005931703  0.036635586</span></span></code></pre></div>
+<span><span class="co">#&gt;   egt      att.egt      se.egt</span></span>
+<span><span class="co">#&gt; 1   0  0.076447182 0.009646433</span></span>
+<span><span class="co">#&gt; 2   1  0.539728790 0.010469455</span></span>
+<span><span class="co">#&gt; 3   2 -0.096677840 0.006458777</span></span>
+<span><span class="co">#&gt; 4   3 -0.052241580 0.006865122</span></span>
+<span><span class="co">#&gt; 5   4 -0.030810515 0.006551150</span></span>
+<span><span class="co">#&gt; 6   5 -0.017876462 0.006716511</span></span>
+<span><span class="co">#&gt; 7   6 -0.002419735 0.006817367</span></span>
+<span><span class="co">#&gt; 8   7  0.021283644 0.007408961</span></span></code></pre></div>
 <p>The effect is positive for the populations in bucket 0, 1, and 7, but
 these are also the same ones that we didn’t have enough treatment units
 of. So, they may not be representative of those population levels.</p>
