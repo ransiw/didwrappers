@@ -39,6 +39,7 @@ compute.aggite2 <- function(MP,
   t <- MP$t
   id <- MP$id
   att <- MP$att
+  se <- MP$se
   dp <- MP$DIDparams
   inffunc1 <- MP$inffunc
   n <- MP$n
@@ -89,62 +90,65 @@ compute.aggite2 <- function(MP,
   }
 
   if(na.rm){
-    notna <- !is.na(att)
+    notna <- !is.na(se)
     group <- group[notna]
     t <- t[notna]
     id <- id[notna]
     att <- att[notna]
+    se <- se[notna]
     inffunc1 <- inffunc1[, notna]
     #tlist <- sort(unique(t))
 
     # If aggte is of the group type, ensure we have non-missing post-treatment ATTs for each group
-    # if(type == "group"){
-    #   glist <- sort(unique(group))
-    #   # Get the groups that have some non-missing ATT(g,t) in post-treatmemt periods
-    #   gnotna <- sapply(glist, function(g) {
-    #     # look at post-treatment periods for group g
-    #     whichg <- which( (group == g) & (g <= t))
-    #     attg <- att[whichg]
-    #     group_select <- !is.na(mean(attg))
-    #     return(group_select)
-    #   })
-    #   gnotna <- glist[gnotna]
-    #   # indicator for not all post-treatment ATT(g,t) missing
-    #   not_all_na <- group %in% gnotna
-    #   # Re-do the na.rm thing to update the groups
-    #   group <- group[not_all_na]
-    #   t <- t[not_all_na]
-    #   id <- id[not_all_na]
-    #   att <- att[not_all_na]
-    #   inffunc1 <- inffunc1[, not_all_na]
-    #   #tlist <- sort(unique(t))
-    #   glist <- sort(unique(group))
-    # }
+    if(type == "group"){
+      glist <- sort(unique(group))
+      # Get the groups that have some non-missing ATT(g,t) in post-treatmemt periods
+      gnotna <- sapply(glist, function(g) {
+        # look at post-treatment periods for group g
+        whichg <- which( (group == g) & (g <= t))
+        attg <- att[whichg]
+        group_select <- !is.na(mean(attg))
+        return(group_select)
+      })
+      gnotna <- glist[gnotna]
+      # indicator for not all post-treatment ATT(g,t) missing
+      not_all_na <- group %in% gnotna
+      # Re-do the na.rm thing to update the groups
+      group <- group[not_all_na]
+      t <- t[not_all_na]
+      id <- id[not_all_na]
+      att <- att[not_all_na]
+      se <- se[not_all_na]
+      inffunc1 <- inffunc1[, not_all_na]
+      #tlist <- sort(unique(t))
+      glist <- sort(unique(group))
+    }
 
-    # if(type %in% c(cohortnames)){
-    #   idlist <- sort(unique(id))
-    #   # Get the units that have some non-missing ATT(g,t) in post-treatmemt periods
-    #   gnotna <- sapply(idlist, function(g) {
-    #     # look at post-treatment periods for group g
-    #     whichg <- which( (id == g) & (group <= t))
-    #     attg <- att[whichg]
-    #     group_select <- !is.na(mean(attg))
-    #     return(group_select)
-    #   })
-    #   gnotna <- idlist[gnotna]
-    #   # indicator for not all post-treatment ATT(g,t) missing
-    #   not_all_na <- id %in% gnotna
-    #   # Re-do the na.rm thing to update the groups
-    #   group <- group[not_all_na]
-    #   t <- t[not_all_na]
-    #   id <- id[not_all_na]
-    #   att <- att[not_all_na]
-    #   inffunc1 <- inffunc1[, not_all_na]
-    #   #tlist <- sort(unique(t))
-    #   # redoing the glist here to drop any NA observations
-    #   glist <- unique(data.frame(id,group))$group
-    #   idlist <- sort(unique(id))
-    # }
+    if(type %in% c(cohortnames)){
+      idlist <- sort(unique(id))
+      # Get the units that have some non-missing ATT(g,t) in post-treatmemt periods
+      gnotna <- sapply(idlist, function(g) {
+        # look at post-treatment periods for group g
+        whichg <- which( (id == g) & (group <= t))
+        attg <- att[whichg]
+        group_select <- !is.na(mean(attg))
+        return(group_select)
+      })
+      gnotna <- idlist[gnotna]
+      # indicator for not all post-treatment ATT(g,t) missing
+      not_all_na <- id %in% gnotna
+      # Re-do the na.rm thing to update the groups
+      group <- group[not_all_na]
+      t <- t[not_all_na]
+      id <- id[not_all_na]
+      att <- att[not_all_na]
+      se <- se[not_all_na]
+      inffunc1 <- inffunc1[, not_all_na]
+      #tlist <- sort(unique(t))
+      # redoing the glist here to drop any NA observations
+      glist <- unique(data.frame(id,group))$group
+      idlist <- sort(unique(id))
+    }
   }
 
 

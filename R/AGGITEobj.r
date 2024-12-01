@@ -7,6 +7,8 @@
 #' @inheritParams compute.aggite2
 #' @param overall.att The estimated overall ATT
 #' @param overall.se Standard error for overall ATT
+#' @param overall.lci The lower confidence interval of the overall ATT
+#' @param overall.uci The upper confidence interval of the overall ATT
 #' @param egt Holds the length of exposure (for dynamic effects), the
 #'  group (for selective treatment timing), the unit (for selective treatment),
 #'  cohort (for cohort level effects), or the time period (for calendar
@@ -19,7 +21,7 @@
 #' @param crit.val.egt A critical value for computing uniform confidence
 #'  bands for dynamic effects, selective treatment timing, or time period
 #'  effects.
-#' @param inf.function The influence function of the chosen aggregated parameters
+#' @param inf.function The bootstrap draws specific to the egt
 #' @param DIDparams A DIDparams_i object
 #'
 #' @return an AGGITEobj
@@ -31,6 +33,8 @@
 #'
 AGGITEobj <- function(overall.att = NULL,
                      overall.se = NULL,
+                     overall.lci = NULL,
+                     overall.uci = NULL,
                      type = "simple",
                      type2 = NULL,
                      egt = NULL,
@@ -50,6 +54,8 @@ AGGITEobj <- function(overall.att = NULL,
 
   out <- list(overall.att = overall.att,
               overall.se = overall.se,
+              overall.lci = overall.lci,
+              overall.uci = overall.uci,
               type = type,
               type2 = type2,
               egt = egt,

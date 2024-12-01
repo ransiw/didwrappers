@@ -7,6 +7,8 @@
 AGGITEobj(
   overall.att = NULL,
   overall.se = NULL,
+  overall.lci = NULL,
+  overall.uci = NULL,
   type = "simple",
   type2 = NULL,
   egt = NULL,
@@ -29,6 +31,10 @@ AGGITEobj(
 \item{overall.att}{The estimated overall ATT}
 
 \item{overall.se}{Standard error for overall ATT}
+
+\item{overall.lci}{The lower confidence interval of the overall ATT}
+
+\item{overall.uci}{The upper confidence interval of the overall ATT}
 
 \item{type}{Which type of aggregated treatment effect parameter to compute.
 One option is "simple" (this just computes a weighted average of all
@@ -65,7 +71,7 @@ time effects)}
 bands for dynamic effects, selective treatment timing, or time period
 effects.}
 
-\item{inf.function}{The influence function of the chosen aggregated parameters}
+\item{inf.function}{The bootstrap draws specific to the egt}
 
 \item{min_e}{For event studies, this is the smallest event time to compute
 dynamic effects for.  By default, \code{min_e = -Inf} so that effects at

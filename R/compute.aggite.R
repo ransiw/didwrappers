@@ -90,57 +90,60 @@ compute.aggite <- function(MP,
     t <- t[notna]
     id <- id[notna]
     att <- att[notna]
+    se <- se[notna]
     inffunc1 <- inffunc1[, notna]
     #tlist <- sort(unique(t))
 
     # If aggte is of the group type, ensure we have non-missing post-treatment ATTs for each group
-    # if(type == "group"){
-    #   glist <- sort(unique(group))
-    #   # Get the groups that have some non-missing ATT(g,t) in post-treatmemt periods
-    #   gnotna <- sapply(glist, function(g) {
-    #     # look at post-treatment periods for group g
-    #     whichg <- which( (group == g) & (g <= t))
-    #     attg <- att[whichg]
-    #     group_select <- !is.na(mean(attg))
-    #     return(group_select)
-    #   })
-    #   gnotna <- glist[gnotna]
-    #   # indicator for not all post-treatment ATT(g,t) missing
-    #   not_all_na <- group %in% gnotna
-    #   # Re-do the na.rm thing to update the groups
-    #   group <- group[not_all_na]
-    #   t <- t[not_all_na]
-    #   id <- id[not_all_na]
-    #   att <- att[not_all_na]
-    #   inffunc1 <- inffunc1[, not_all_na]
-    #   #tlist <- sort(unique(t))
-    #   glist <- sort(unique(group))
-    # }
+    if(type == "group"){
+      glist <- sort(unique(group))
+      # Get the groups that have some non-missing ATT(g,t) in post-treatmemt periods
+      gnotna <- sapply(glist, function(g) {
+        # look at post-treatment periods for group g
+        whichg <- which( (group == g) & (g <= t))
+        attg <- att[whichg]
+        group_select <- !is.na(mean(attg))
+        return(group_select)
+      })
+      gnotna <- glist[gnotna]
+      # indicator for not all post-treatment ATT(g,t) missing
+      not_all_na <- group %in% gnotna
+      # Re-do the na.rm thing to update the groups
+      group <- group[not_all_na]
+      t <- t[not_all_na]
+      id <- id[not_all_na]
+      att <- att[not_all_na]
+      se <- se[not_all_na]
+      inffunc1 <- inffunc1[, not_all_na]
+      #tlist <- sort(unique(t))
+      glist <- sort(unique(group))
+    }
 
-    # if(type %in% c("unit", cohortnames)){
-    #   idlist <- sort(unique(id))
-    #   # Get the units that have some non-missing ATT(g,t) in post-treatmemt periods
-    #   gnotna <- sapply(idlist, function(g) {
-    #     # look at post-treatment periods for group g
-    #     whichg <- which( (id == g) & (group <= t))
-    #     attg <- att[whichg]
-    #     group_select <- !is.na(mean(attg))
-    #     return(group_select)
-    #   })
-    #   gnotna <- idlist[gnotna]
-    #   # indicator for not all post-treatment ATT(g,t) missing
-    #   not_all_na <- id %in% gnotna
-    #   # Re-do the na.rm thing to update the groups
-    #   group <- group[not_all_na]
-    #   t <- t[not_all_na]
-    #   id <- id[not_all_na]
-    #   att <- att[not_all_na]
-    #   inffunc1 <- inffunc1[, not_all_na]
-    #   #tlist <- sort(unique(t))
-    #   # redoing the glist here to drop any NA observations
-    #   glist <- unique(data.frame(id,group))$group
-    #   idlist <- sort(unique(id))
-    # }
+    if(type %in% c("unit", cohortnames)){
+      idlist <- sort(unique(id))
+      # Get the units that have some non-missing ATT(g,t) in post-treatmemt periods
+      gnotna <- sapply(idlist, function(g) {
+        # look at post-treatment periods for group g
+        whichg <- which( (id == g) & (group <= t))
+        attg <- att[whichg]
+        group_select <- !is.na(mean(attg))
+        return(group_select)
+      })
+      gnotna <- idlist[gnotna]
+      # indicator for not all post-treatment ATT(g,t) missing
+      not_all_na <- id %in% gnotna
+      # Re-do the na.rm thing to update the groups
+      group <- group[not_all_na]
+      t <- t[not_all_na]
+      id <- id[not_all_na]
+      att <- att[not_all_na]
+      se <- se[not_all_na]
+      inffunc1 <- inffunc1[, not_all_na]
+      #tlist <- sort(unique(t))
+      # redoing the glist here to drop any NA observations
+      glist <- unique(data.frame(id,group))$group
+      idlist <- sort(unique(id))
+    }
   }
 
 
@@ -673,33 +676,57 @@ compute.aggite <- function(MP,
 
     # compute atts that are specific to each event time
     dynamic.att.e <- sapply(eseq, function(e) {
-      # keep att(g,t) for the right g&t as well as ones that
-      # are not trimmed out from balancing the sample
+      # keep att(i,t) for the right i&t and
+      # ones that are not trimmed out from balancing the sample and
       whiche <- which( (originalt - originalgroup == e) & (include.balanced.gt) )
       atte <- att[whiche]
       pge <- pg[whiche]/(sum(pg[whiche]))
-      sum(atte*pge)
+      # ones that aggregate over fewer than min_agg outcomes should be set to missing
+      if (length(whiche)<min_agg){
+        NA
+      } else{
+        sum(atte*pge)
+      }
     })
 
     # compute standard errors for dynamic effects
-    # dynamic.se.inner <- lapply(eseq, function(e) {
-    #   whiche <- which( (originalt - originalgroup == e) & (include.balanced.gt) )
-    #   pge <- pg[whiche]/(sum(pg[whiche]))
-    #   wif.e <- wif(whiche, pg, weights.ind, G, group)
-    #   inf.func.e <- as.numeric(get_agg_inf_func(att=att,
-    #                                             inffunc1=inffunc1,
-    #                                             whichones=whiche,
-    #                                             weights.agg=pge,
-    #                                             wif=NULL))
-    #   se.e <- getSE(inf.func.e, dp)
-    #   list(inf.func=inf.func.e, se=se.e)
-    # })
-    #
-    # dynamic.se.e <- unlist(BMisc::getListElement(dynamic.se.inner, "se"))
-    # dynamic.se.e[dynamic.se.e <= sqrt(.Machine$double.eps)*10] <- NA
-    #
-    # dynamic.inf.func.e <- simplify2array(BMisc::getListElement(dynamic.se.inner, "inf.func"))
-    #
+    dynamic.se.inner <- lapply(eseq, function(e) {
+      whiche <- which( (originalt - originalgroup == e) & (include.balanced.gt) )
+      pge <- pg[whiche]/(sum(pg[whiche]))
+      # wif.e <- wif(whiche, pg, weights.ind, G, group)
+      # inf.func.e <- as.numeric(get_agg_inf_func(att=att,
+      #                                           inffunc1=inffunc1,
+      #                                           whichones=whiche,
+      #                                           weights.agg=pge,
+      #                                           wif=NULL))
+      if (length(whiche)<min_agg){
+        inf.func.e <- NA
+        se.e <- NA
+        lci.e <- NA
+        uci.e <- NA
+      } else{
+        inf.func.e <- replicate(biters, {
+          random_draws <- sapply(1:length(whiche), function(j) stats::rnorm(1, mean = att[whiche][j], sd = se[whiche][j]))
+          sd.e <- stats::sd(att[whiche])/sqrt(length(att[whiche]))
+          sum(random_draws*pge) + stats::rnorm(1,sd=sd.e)
+        })
+        # se.e <- getSE(inf.func.e, dp)
+        se.e <- stats::sd(inf.func.e)
+        lci.e <- stats::quantile(inf.func.e,alp/2)
+        uci.e <- stats::quantile(inf.func.e,1-alp/2)
+
+      }
+      list(inf.func=inf.func.e, se=se.e, lci=lci.e, uci=uci.e)
+    })
+
+    dynamic.se.e <- unlist(BMisc::getListElement(dynamic.se.inner, "se"))
+    dynamic.se.e[dynamic.se.e <= sqrt(.Machine$double.eps)*10] <- NA
+
+    dynamic.lci.e <- unlist(BMisc::getListElement(dynamic.se.inner, "lci"))
+    dynamic.uci.e <- unlist(BMisc::getListElement(dynamic.se.inner, "uci"))
+
+    dynamic.inf.func.e <- simplify2array(BMisc::getListElement(dynamic.se.inner, "inf.func"))
+
     # dynamic.crit.val <- stats::qnorm(1 - alp/2)
     # if(dp$cband==TRUE){
     #   if(dp$bstrap == FALSE){
@@ -724,14 +751,14 @@ compute.aggite <- function(MP,
     #   }
     # }
     #
-    # # get overall average treatment effect
-    # # by averaging over positive dynamics
-    # epos <- eseq >= 0
-    #
-    # # recalculate the weights
-    # pgg <- sapply(eseq[eseq>=0], function(e) sum( ((originalt - originalgroup == e) & (include.balanced.gt)) * pg))
-    #
-    # dynamic.att <- sum(pgg*dynamic.att.e[epos])/sum(pgg)
+    # get overall average treatment effect
+    # by averaging over positive dynamics
+    epos <- (eseq >= 0 & !is.na(dynamic.att.e))
+
+    # recalculate the weights
+    pgg <- sapply(eseq[which(epos)], function(e) sum( ((originalt - originalgroup == e) & (include.balanced.gt)) * pg))
+
+    dynamic.att <- sum(pgg*dynamic.att.e[which(epos)])/sum(pgg)
     # dynamic.inf.func <- get_agg_inf_func(att=dynamic.att.e[epos],
     #                                      inffunc1=as.matrix(dynamic.inf.func.e[,epos]),
     #                                      whichones=(1:sum(epos)),
@@ -739,6 +766,23 @@ compute.aggite <- function(MP,
     #                                      wif=NULL)
     #
     # dynamic.inf.func <- as.numeric(dynamic.inf.func)
+    if (sum(epos)<2) {
+      dynamic.inf.func <- NA
+      dynamic.se <- NA
+      dynamic.lci <- NA
+      dynamic.uci <- NA
+    } else{
+      dynamic.inf.func <- replicate(biters, {
+        random_draws <- sapply(1:sum(epos), function(j) stats::rnorm(1, mean = dynamic.att.e[which(epos)][j], sd = dynamic.se.e[which(epos)][j]))
+        sd.e <- stats::sd(dynamic.att.e[which(epos)])/sqrt(sum(epos))
+        sum((pgg/sum(pgg))*random_draws) + stats::rnorm(1,sd=sd.e)
+      })
+
+      dynamic.se <- stats::sd(dynamic.inf.func)
+      dynamic.lci <- stats::quantile(dynamic.inf.func,alp/2)
+      dynamic.uci <- stats::quantile(dynamic.inf.func,1-alp/2)
+    }
+
     # dynamic.se <- getSE(dynamic.inf.func, dp)
     # if(!is.na(dynamic.se)){
     #   if (dynamic.se <= sqrt(.Machine$double.eps)*10) dynamic.se <- NA
@@ -746,14 +790,17 @@ compute.aggite <- function(MP,
 
     return(AGGITEobj(overall.att=dynamic.att,
                     overall.se=dynamic.se,
+                    overall.lci = dynamic.lci,
+                    overall.uci = dynamic.uci,
                     type=type,
                     egt=eseq,
                     att.egt=dynamic.att.e,
                     se.egt=dynamic.se.e,
-                    lci.egt = NULL,
-                    uci.egt = NULL,
+                    lci.egt = dynamic.lci.e,
+                    uci.egt = dynamic.uci.e,
                     crit.val.egt= NULL,
-                    inf.function = NULL,
+                    inf.function = list(bootstrap.comp = dynamic.inf.func.e,
+                                        bootstrap = dynamic.inf.func),
                     call=call,
                     min_e=min_e,
                     max_e=max_e,
