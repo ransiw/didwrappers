@@ -220,7 +220,8 @@ The 1969-1970 difference-in-difference estimates suffer from a severe case of im
 
 Which type of estimator is more appropriate depends on the 'balancedness' in the data. With unbalanced data, the `did` algorithm implements a repeated cross-section type of analysis. There, the composition of the treatment group pre- and post-treatment does not have to be equal. This is appropriate in individual-level records because heterogeneity across individuals are likely to be minimal. In an application with countries, such an assumption may be too strong. Ghana and Germany are quite different to each other. In the case of Germany (refers to West Germany), its entry into the sample is not the same as democratization. A more serious analysis of democratization would need to check each of the dates in `YearFirstDemocracy`. This consideration matters for the control group as well. In this particular case, only two countries suddenly appear in 1970, so the effect of imbalance is small.
 
-Ensuring the composition of units pre- and post-treatment is equal results in sample losses. In this case, Germany, Fiji, Ireland, and Malta will all be lost due to lack of pre-treatment information. This is an important trade-off to consider. 
+Ensuring the composition of units pre- and post-treatment is equal results in sample losses. In this case, Germany, Fiji, Ireland, and Malta will all be lost due to lack of pre-treatment information. This is an important trade-off to consider.
+
 
 
 

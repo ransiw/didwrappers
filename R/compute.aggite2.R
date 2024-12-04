@@ -302,7 +302,7 @@ compute.aggite2 <- function(MP,
           # keep att(g,t) for the right g&t as well as ones that
           # are not trimmed out from balancing the sample
           whiche <- which( (group == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
-          if (length(whiche)==0){
+          if (length(whiche)<min_agg){
             NA
           }
           else{
@@ -318,20 +318,32 @@ compute.aggite2 <- function(MP,
       dynamic.se.inner <- lapply(glist, function(g) {
         lapply(eseq, function(e){
           whiche <- which( (group == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
-          if (length(whiche)==0){
-            inf.func.e = rep(0,dim(inffunc1)[1])
-            se.e <- 0
+          if (length(whiche)<min_agg){
+            # inf.func.e = rep(0,dim(inffunc1)[1])
+            inf.func.e <- NA
+            se.e <- NA
+            lci.e <- NA
+            uci.e <- NA
           } else{
             pge <- pg[whiche]/(sum(pg[whiche]))
-            wif.e <- wif(whiche, pg, weights.ind, G, group)
-            inf.func.e <- as.numeric(get_agg_inf_func(att=att,
-                                                      inffunc1=inffunc1,
-                                                      whichones=whiche,
-                                                      weights.agg=pge,
-                                                      wif=NULL))
-            se.e <- getSE(inf.func.e, dp)
+            # wif.e <- wif(whiche, pg, weights.ind, G, group)
+            # inf.func.e <- as.numeric(get_agg_inf_func(att=att,
+            #                                           inffunc1=inffunc1,
+            #                                           whichones=whiche,
+            #                                           weights.agg=pge,
+            #                                           wif=NULL))
+            # se.e <- getSE(inf.func.e, dp)
+            inf.func.e <- replicate(biters, {
+              random_draws <- sapply(1:length(whiche), function(j) stats::rnorm(1, mean = att[whiche][j], sd = se[whiche][j]))
+              sd.e <- stats::sd(att[whiche])/sqrt(length(att[whiche]))
+              sum(random_draws*pge) + stats::rnorm(1,sd=sd.e)
+            })
+            se.e <- stats::sd(inf.func.e)
+            lci.e <- stats::quantile(inf.func.e,alp/2)
+            uci.e <- stats::quantile(inf.func.e,1-alp/2)
           }
-          list(inf.func=inf.func.e, se=se.e)
+          # list(inf.func=inf.func.e, se=se.e)
+          list(inf.func=inf.func.e, se=se.e, lci=lci.e, uci=uci.e)
         })
       })
 
@@ -340,31 +352,34 @@ compute.aggite2 <- function(MP,
       dynamic.se.e <- unlist(BMisc::getListElement(dynamic.se.inner, "se"))
       dynamic.se.e[dynamic.se.e <= sqrt(.Machine$double.eps)*10] <- NA
 
+      dynamic.lci.e <- unlist(BMisc::getListElement(dynamic.se.inner, "lci"))
+      dynamic.uci.e <- unlist(BMisc::getListElement(dynamic.se.inner, "uci"))
+
       dynamic.inf.func.e <- simplify2array(BMisc::getListElement(dynamic.se.inner, "inf.func"))
 
-      dynamic.crit.val <- stats::qnorm(1 - alp/2)
-      if(dp$cband==TRUE){
-        if(dp$bstrap == FALSE){
-          warning('Used bootstrap procedure to compute simultaneous confidence band')
-        }
-        dynamic.crit.val <- did::mboot(dynamic.inf.func.e, dp)$crit.val
-
-        if(is.na(dynamic.crit.val) | is.infinite(dynamic.crit.val)){
-          warning('Simultaneous critival value is NA. This probably happened because we cannot compute t-statistic (std errors are NA). We then report pointwise conf. intervals.')
-          dynamic.crit.val <- stats::qnorm(1 - alp/2)
-          dp$cband <- FALSE
-        }
-
-        if(dynamic.crit.val < stats::qnorm(1 - alp/2)){
-          warning('Simultaneous conf. band is somehow smaller than pointwise one using normal approximation. Since this is unusual, we are reporting pointwise confidence intervals')
-          dynamic.crit.val <- stats::qnorm(1 - alp/2)
-          dp$cband <- FALSE
-        }
-
-        if(dynamic.crit.val >= 7){
-          warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
-        }
-      }
+      # dynamic.crit.val <- stats::qnorm(1 - alp/2)
+      # if(dp$cband==TRUE){
+      #   if(dp$bstrap == FALSE){
+      #     warning('Used bootstrap procedure to compute simultaneous confidence band')
+      #   }
+      #   dynamic.crit.val <- did::mboot(dynamic.inf.func.e, dp)$crit.val
+      #
+      #   if(is.na(dynamic.crit.val) | is.infinite(dynamic.crit.val)){
+      #     warning('Simultaneous critival value is NA. This probably happened because we cannot compute t-statistic (std errors are NA). We then report pointwise conf. intervals.')
+      #     dynamic.crit.val <- stats::qnorm(1 - alp/2)
+      #     dp$cband <- FALSE
+      #   }
+      #
+      #   if(dynamic.crit.val < stats::qnorm(1 - alp/2)){
+      #     warning('Simultaneous conf. band is somehow smaller than pointwise one using normal approximation. Since this is unusual, we are reporting pointwise confidence intervals')
+      #     dynamic.crit.val <- stats::qnorm(1 - alp/2)
+      #     dp$cband <- FALSE
+      #   }
+      #
+      #   if(dynamic.crit.val >= 7){
+      #     warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
+      #   }
+      # }
 
       # get overall average treatment effect
       # by averaging over positive dynamics
@@ -376,7 +391,7 @@ compute.aggite2 <- function(MP,
           # keep att(g,t) for the right g&t as well as ones that
           # are not trimmed out from balancing the sample
           whiche <- which( (group == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
-          if (length(whiche)==0){
+          if (length(whiche)<min_agg){
             0
           }
           else{
@@ -388,27 +403,49 @@ compute.aggite2 <- function(MP,
       pgg <- c(pgg)
 
       dynamic.att <- sum(dynamic.att.e[epos]*pgg[epos])/sum(pgg[epos])
-      dynamic.inf.func <- get_agg_inf_func(att=dynamic.att.e[epos],
-                                           inffunc1=as.matrix(dynamic.inf.func.e[,epos]),
-                                           whichones=(1:sum(epos)),
-                                           weights.agg=pgg[epos]/sum(pgg[epos]),
-                                           wif=NULL)
+      # dynamic.inf.func <- get_agg_inf_func(att=dynamic.att.e[epos],
+      #                                      inffunc1=as.matrix(dynamic.inf.func.e[,epos]),
+      #                                      whichones=(1:sum(epos)),
+      #                                      weights.agg=pgg[epos]/sum(pgg[epos]),
+      #                                      wif=NULL)
+      #
+      # dynamic.inf.func <- as.numeric(dynamic.inf.func)
+      # dynamic.se <- getSE(dynamic.inf.func, dp)
 
-      dynamic.inf.func <- as.numeric(dynamic.inf.func)
-      dynamic.se <- getSE(dynamic.inf.func, dp)
+      if (sum(epos)<2) {
+        dynamic.inf.func <- NA
+        dynamic.se <- NA
+        dynamic.lci <- NA
+        dynamic.uci <- NA
+      } else{
+        dynamic.inf.func <- replicate(biters, {
+          random_draws <- sapply(1:sum(epos), function(j) stats::rnorm(1, mean = dynamic.att.e[which(epos)][j], sd = dynamic.se.e[which(epos)][j]))
+          sd.e <- stats::sd(random_draws)/sqrt(sum(epos))
+          sum((pgg/sum(pgg))*random_draws) + stats::rnorm(1,sd=sd.e)
+        })
+
+        dynamic.se <- stats::sd(dynamic.inf.func)
+        dynamic.lci <- stats::quantile(dynamic.inf.func,alp/2)
+        dynamic.uci <- stats::quantile(dynamic.inf.func,1-alp/2)
+      }
+
       if(!is.na(dynamic.se)){
         if (dynamic.se <= sqrt(.Machine$double.eps)*10) dynamic.se <- NA
       }
 
       return(AGGITEobj(overall.att=dynamic.att,
                        overall.se=dynamic.se,
+                       overall.lci = dynamic.lci,
+                       overall.uci = dynamic.uci,
                        type=type,
                        type2=type2,
                        egt= unlist(BMisc::getListElement(egtlist, "egt")),
                        egt2 = unlist(BMisc::getListElement(egtlist, "egt2")),
                        att.egt=dynamic.att.e,
                        se.egt=dynamic.se.e,
-                       crit.val.egt=dynamic.crit.val,
+                       lci.egt=dynamic.lci.e,
+                       uci.egt=dynamic.uci.e,
+                       crit.val.egt=NULL,
                        inf.function = list(dynamic.inf.func.e = dynamic.inf.func.e,
                                            dynamic.inf.func = dynamic.inf.func),
                        call=call,
@@ -442,7 +479,7 @@ compute.aggite2 <- function(MP,
           # keep att(g,t) for the right g&t as well as ones that
           # are not trimmed out from balancing the sample
           whiche <- which( (cohort == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
-          if (length(whiche)==0){
+          if (length(whiche)<min_agg){
             NA
           }
           else{
@@ -458,20 +495,30 @@ compute.aggite2 <- function(MP,
       dynamic.se.inner <- lapply(cohortlist, function(g) {
         lapply(eseq, function(e){
           whiche <- which( (cohort == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
-          if (length(whiche)==0){
-            inf.func.e = rep(0,dim(inffunc1)[1])
-            se.e <- 0
+          if (length(whiche)<min_agg){
+            # inf.func.e = rep(0,dim(inffunc1)[1])
+            inf.func.e <- NA
+            se.e <- NA
+            lci.e <- NA
+            uci.e <- NA
           } else{
             pge <- pg[whiche]/(sum(pg[whiche]))
-            wif.e <- wif(whiche, pg, weights.ind, G, group)
-            inf.func.e <- as.numeric(get_agg_inf_func(att=att,
-                                                      inffunc1=inffunc1,
-                                                      whichones=whiche,
-                                                      weights.agg=pge,
-                                                      wif=NULL))
-            se.e <- getSE(inf.func.e, dp)
+            # wif.e <- wif(whiche, pg, weights.ind, G, group)
+            # inf.func.e <- as.numeric(get_agg_inf_func(att=att,
+            #                                           inffunc1=inffunc1,
+            #                                           whichones=whiche,
+            #                                           weights.agg=pge,
+            #                                           wif=NULL))
+            # se.e <- getSE(inf.func.e, dp)
+
+            inf.func.e <- replicate(biters, {
+              random_draws <- sapply(1:length(whiche), function(j) stats::rnorm(1, mean = att[whiche][j], sd = se[whiche][j]))
+              sd.e <- stats::sd(att[whiche])/sqrt(length(att[whiche]))
+              sum(random_draws*pge) + stats::rnorm(1,sd=sd.e)
+            })
           }
-          list(inf.func=inf.func.e, se=se.e)
+          #list(inf.func=inf.func.e, se=se.e)
+          list(inf.func=inf.func.e, se=se.e, lci=lci.e, uci=uci.e)
         })
       })
 
@@ -480,31 +527,34 @@ compute.aggite2 <- function(MP,
       dynamic.se.e <- unlist(BMisc::getListElement(dynamic.se.inner, "se"))
       dynamic.se.e[dynamic.se.e <= sqrt(.Machine$double.eps)*10] <- NA
 
+      dynamic.lci.e <- unlist(BMisc::getListElement(dynamic.se.inner, "lci"))
+      dynamic.uci.e <- unlist(BMisc::getListElement(dynamic.se.inner, "uci"))
+
       dynamic.inf.func.e <- simplify2array(BMisc::getListElement(dynamic.se.inner, "inf.func"))
 
-      dynamic.crit.val <- stats::qnorm(1 - alp/2)
-      if(dp$cband==TRUE){
-        if(dp$bstrap == FALSE){
-          warning('Used bootstrap procedure to compute simultaneous confidence band')
-        }
-        dynamic.crit.val <- did::mboot(dynamic.inf.func.e, dp)$crit.val
-
-        if(is.na(dynamic.crit.val) | is.infinite(dynamic.crit.val)){
-          warning('Simultaneous critival value is NA. This probably happened because we cannot compute t-statistic (std errors are NA). We then report pointwise conf. intervals.')
-          dynamic.crit.val <- stats::qnorm(1 - alp/2)
-          dp$cband <- FALSE
-        }
-
-        if(dynamic.crit.val < stats::qnorm(1 - alp/2)){
-          warning('Simultaneous conf. band is somehow smaller than pointwise one using normal approximation. Since this is unusual, we are reporting pointwise confidence intervals')
-          dynamic.crit.val <- stats::qnorm(1 - alp/2)
-          dp$cband <- FALSE
-        }
-
-        if(dynamic.crit.val >= 7){
-          warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
-        }
-      }
+      # dynamic.crit.val <- stats::qnorm(1 - alp/2)
+      # if(dp$cband==TRUE){
+      #   if(dp$bstrap == FALSE){
+      #     warning('Used bootstrap procedure to compute simultaneous confidence band')
+      #   }
+      #   dynamic.crit.val <- did::mboot(dynamic.inf.func.e, dp)$crit.val
+      #
+      #   if(is.na(dynamic.crit.val) | is.infinite(dynamic.crit.val)){
+      #     warning('Simultaneous critival value is NA. This probably happened because we cannot compute t-statistic (std errors are NA). We then report pointwise conf. intervals.')
+      #     dynamic.crit.val <- stats::qnorm(1 - alp/2)
+      #     dp$cband <- FALSE
+      #   }
+      #
+      #   if(dynamic.crit.val < stats::qnorm(1 - alp/2)){
+      #     warning('Simultaneous conf. band is somehow smaller than pointwise one using normal approximation. Since this is unusual, we are reporting pointwise confidence intervals')
+      #     dynamic.crit.val <- stats::qnorm(1 - alp/2)
+      #     dp$cband <- FALSE
+      #   }
+      #
+      #   if(dynamic.crit.val >= 7){
+      #     warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
+      #   }
+      # }
 
       # get overall average treatment effect
       # by averaging over positive dynamics
@@ -516,7 +566,7 @@ compute.aggite2 <- function(MP,
           # keep att(g,t) for the right g&t as well as ones that
           # are not trimmed out from balancing the sample
           whiche <- which( (cohort == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
-          if (length(whiche)==0){
+          if (length(whiche)<min_agg){
             0
           }
           else{
@@ -527,28 +577,51 @@ compute.aggite2 <- function(MP,
 
       pgg <- c(pgg)
 
-      dynamic.att <- dynamic.att <- sum(dynamic.att.e[epos]*pgg[epos])/sum(pgg[epos])
-      dynamic.inf.func <- get_agg_inf_func(att=dynamic.att.e[epos],
-                                           inffunc1=as.matrix(dynamic.inf.func.e[,epos]),
-                                           whichones=(1:sum(epos)),
-                                           weights.agg=pgg[epos]/sum(pgg[epos]),
-                                           wif=NULL)
+      dynamic.att <- sum(dynamic.att.e[which(epos)]*pgg[which(epos)])/sum(pgg[which(epos)])
+      # dynamic.inf.func <- get_agg_inf_func(att=dynamic.att.e[epos],
+      #                                      inffunc1=as.matrix(dynamic.inf.func.e[,epos]),
+      #                                      whichones=(1:sum(epos)),
+      #                                      weights.agg=pgg[epos]/sum(pgg[epos]),
+      #                                      wif=NULL)
+      #
+      # dynamic.inf.func <- as.numeric(dynamic.inf.func)
+      # dynamic.se <- getSE(dynamic.inf.func, dp)
 
-      dynamic.inf.func <- as.numeric(dynamic.inf.func)
-      dynamic.se <- getSE(dynamic.inf.func, dp)
+      if (sum(epos)<2) {
+        dynamic.inf.func <- NA
+        dynamic.se <- NA
+        dynamic.lci <- NA
+        dynamic.uci <- NA
+      } else{
+        dynamic.inf.func <- replicate(biters, {
+          random_draws <- sapply(1:sum(epos), function(j) stats::rnorm(1, mean = dynamic.att.e[which(epos)][j], sd = dynamic.se.e[which(epos)][j]))
+          sd.e <- stats::sd(random_draws)/sqrt(sum(epos))
+          sum((pgg/sum(pgg))*random_draws) + stats::rnorm(1,sd=sd.e)
+        })
+
+        dynamic.se <- stats::sd(dynamic.inf.func)
+        dynamic.lci <- stats::quantile(dynamic.inf.func,alp/2)
+        dynamic.uci <- stats::quantile(dynamic.inf.func,1-alp/2)
+      }
+
+
       if(!is.na(dynamic.se)){
         if (dynamic.se <= sqrt(.Machine$double.eps)*10) dynamic.se <- NA
       }
 
       return(AGGITEobj(overall.att=dynamic.att,
                        overall.se=dynamic.se,
+                       overall.lci=dynamic.lci,
+                       overall.uci=dynamic.uci,
                        type=type,
                        type2=type2,
                        egt= unlist(BMisc::getListElement(egtlist, "egt")),
                        egt2 = unlist(BMisc::getListElement(egtlist, "egt2")),
                        att.egt=dynamic.att.e,
                        se.egt=dynamic.se.e,
-                       crit.val.egt=dynamic.crit.val,
+                       lci.egt=dynamic.lci.e,
+                       uci.egt=dynamic.uci.e,
+                       crit.val.egt=NULL,
                        inf.function = list(dynamic.inf.func.e = dynamic.inf.func.e,
                                            dynamic.inf.func = dynamic.inf.func),
                        call=call,

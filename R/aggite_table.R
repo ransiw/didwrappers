@@ -17,10 +17,20 @@
 #'
 #'
 aggite_table <- function(AGGITE){
-  results = data.frame(egt=AGGITE$egt,att.egt=AGGITE$att.egt,se.egt=AGGITE$se.egt)
-  # ,lci.egt=AGGITE$lci.egt,uci.egt=AGGITE$uci.egt
+  # results = data.frame(egt=AGGITE$egt,att.egt=AGGITE$att.egt,se.egt=AGGITE$se.egt)
+  if (is.null(AGGITE$crit.val.egt)){
+    results = data.frame(egt=AGGITE$egt,att.egt=AGGITE$att.egt,se.egt=AGGITE$se.egt,lci.egt=AGGITE$lci.egt,uci.egt=AGGITE$uci.egt)
+  } else {
+    results = data.frame(egt=AGGITE$egt,att.egt=AGGITE$att.egt,se.egt=AGGITE$se.egt)
+    results$lci.egt = results$att.egt - AGGITE$crit.val.egt * results$se.egt
+    results$uci.egt = results$att.egt + AGGITE$crit.val.egt * results$se.egt
+  }
   if (!is.null(AGGITE$egt2)){
     results = data.frame(egt=AGGITE$egt,egt2=AGGITE$egt2,att.egt=AGGITE$att.egt,se.egt=AGGITE$se.egt,lci.egt=AGGITE$lci.egt,uci.egt=AGGITE$uci.egt)
   }
+  # if (is.null(AGGITE$lci.egt) & !is.null(crit.val.egt)){
+  #   results$lci.egt = results$att.egt - AGGITE$crit.val.egt * results$se.egt
+  #   results$uci.egt = results$att.egt + AGGITE$crit.val.egt * results$se.egt
+  # }
   return(results)
 }

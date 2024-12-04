@@ -16,6 +16,7 @@ A data frame with 6934 rows and 7 columns:
 \item{dem}{the indicator for whether a country is a democracy (1) or not (0)}
 \item{YearFirstDemocracy}{the year that the country first becomes a democracy since 1960. If already a democracy this is 1960, and if not a democracy by 2010, this is missing}
 \item{breakdown}{indicator for if the country has reverted to an autocracy since democratizing in 1960}
+\item{regionnum}{region in numbers: Africa (1), East Asia (2), East. Europe (3), Industrialized (4), Latin America (5), Middle East (6), South Asia (7)}
 ...
 }
 }

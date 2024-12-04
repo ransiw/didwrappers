@@ -44,6 +44,8 @@ Then these could be aggregated to give an overall post-treatment effect. A simpl
 simple = didwrappers::aggite(out_it, type="simple")
 simple$overall.att
 simple$overall.se
+simple$overall.lci
+simple$overall.uci
 ```
 
 But there is more that can be done. Perhaps, we want to see the effect of raising minimum wage for all counties that raised the minimum wage in 2004, or 2007. 
