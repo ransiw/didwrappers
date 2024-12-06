@@ -48,7 +48,8 @@ compute.aggite <- function(MP,
   data <- as.data.frame(dp$data)
   tname <- dp$tname
   idname <- dp$idname
-  cohortnames <- dp$cohortnames
+  cohort <- dp$cohort
+  customnames <- dp$customnames
 
 
   if(is.null(clustervars)){
@@ -80,8 +81,8 @@ compute.aggite <- function(MP,
   MP$DIDparams$cband <- cband
   dp <- MP$DIDparams
 
-  if(!(type %in% c("simple", "dynamic", "group", "unit", "calendar", cohortnames))) {
-    stop('`type` must be one of c("simple", "dynamic", "group", "unit", "calendar", or a custom cohort)')
+  if(!(type %in% c("simple", "dynamic", "group", "unit", "calendar", cohort, customnames))) {
+    stop('`type` must be one of c("simple", "dynamic", "group", "unit", "calendar", cohort, or a custom aggregator)')
   }
 
   if(na.rm){
@@ -119,7 +120,7 @@ compute.aggite <- function(MP,
       glist <- sort(unique(group))
     }
 
-    if(type %in% c("unit", cohortnames)){
+    if(type %in% c("unit", cohort, customnames)){
       idlist <- sort(unique(id))
       # Get the units that have some non-missing ATT(g,t) in post-treatmemt periods
       gnotna <- sapply(idlist, function(g) {
@@ -151,7 +152,7 @@ compute.aggite <- function(MP,
 
 
   # if the type is a cohort, create cohort variable of the size of ATT(g,t) cohortlist and check that each unit is uniquely mapped to a cohort
-  if (type %in% cohortnames){
+  if (type %in% c(cohort,customnames)){
     cohortlist <- unique(data[,c(idname,type)])
     idcohort <- data.frame(id = idlist)
     colnames(idcohort) <- idname
@@ -162,13 +163,13 @@ compute.aggite <- function(MP,
     # find duplicates
     has_multiple_types <- any(duplicated(idcohort$id) | duplicated(idcohort$id, fromLast = TRUE))
     if (has_multiple_types) {
-      stop("Some ids belong to multiple cohorts. Consider dropping duplicates")
+      stop("Some ids belong to multiple cohorts or custom aggregators. Consider dropping duplicates")
     }
     # add this to an att_gt
     idcohortatt <- data.frame(id=id)
     colnames(idcohortatt) <- idname
     idcohortatt = merge(idcohortatt,idcohort, by=idname, sort=FALSE)
-    cohort = idcohortatt[,type]
+    ccohort = idcohortatt[,type]
     cohortlist = sort(unique(idcohort[,type]))
   }
 
@@ -638,7 +639,7 @@ compute.aggite <- function(MP,
   # Compute the cohort level aggregates
   #-----------------------------------------------------------------------------
 
-  if (type %in% cohortnames) {
+  if (type %in% c(cohort,customnames)) {
 
     # we can work in overall probabilities because conditioning will cancel out
     # cause it shows up in numerator and denominator
@@ -648,13 +649,13 @@ compute.aggite <- function(MP,
     pgg <- pg
 
     # same but length is equal to the number of ATT(g,t)
-    pg <- pg[match(cohort, cohortlist)]
+    pg <- pg[match(ccohort, cohortlist)]
 
     # get group specific ATTs
     # note: there are no estimated weights here
     selective.att.c <- sapply(cohortlist, function(g) {
       # look at post-treatment periods for group g
-      whichc <- which( (cohort == g) & (group <= t) & (t<= (group + max_e))) ### added last condition to allow for limit on longest period included in att
+      whichc <- which( (ccohort == g) & (group <= t) & (t<= (group + max_e))) ### added last condition to allow for limit on longest period included in att
       attc <- att[whichc]
       if (length(whichc)<min_agg){
         NA
@@ -667,7 +668,7 @@ compute.aggite <- function(MP,
 
     # get standard errors for each group specific ATT
     selective.se.inner <- lapply(cohortlist, function(g) {
-      whichc <- which( (cohort == g) & (group <= t) & (t<= (group + max_e)))  ### added last condition to allow for limit on longest period included in att
+      whichc <- which( (ccohort == g) & (group <= t) & (t<= (group + max_e)))  ### added last condition to allow for limit on longest period included in att
       # inf.func.g <- as.numeric(get_agg_inf_func(att=att,
       #                                           inffunc1=inffunc1,
       #                                           whichones=whichg,

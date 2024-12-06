@@ -49,7 +49,8 @@ compute.aggite2 <- function(MP,
   data <- as.data.frame(dp$data)
   tname <- dp$tname
   idname <- dp$idname
-  cohortnames <- dp$cohortnames
+  cohort <- dp$cohort
+  customnames <- dp$customnames
 
 
   if(is.null(clustervars)){
@@ -81,8 +82,8 @@ compute.aggite2 <- function(MP,
   MP$DIDparams$cband <- cband
   dp <- MP$DIDparams
 
-  if(!(type %in% c("group", cohortnames))) {
-    stop('`type` must be one of c("group" or a custom cohort)')
+  if(!(type %in% c("group", cohort, customnames))) {
+    stop('`type` must be one of c("group", cohort, or custom aggregators)')
   }
 
   if(!(type2 %in% c("dynamic"))) {
@@ -124,7 +125,7 @@ compute.aggite2 <- function(MP,
       glist <- sort(unique(group))
     }
 
-    if(type %in% c(cohortnames)){
+    if(type %in% c(cohort, customnames)){
       idlist <- sort(unique(id))
       # Get the units that have some non-missing ATT(g,t) in post-treatmemt periods
       gnotna <- sapply(idlist, function(g) {
@@ -156,7 +157,7 @@ compute.aggite2 <- function(MP,
 
 
   # if the type is a cohort, create cohort variable of the size of ATT(g,t) cohortlist and check that each unit is uniquely mapped to a cohort
-  if (type %in% cohortnames){
+  if (type %in% c(customnames,cohort)){
     cohortlist <- unique(data[,c(idname,type)])
     idcohort <- data.frame(id = idlist)
     colnames(idcohort) <- idname
@@ -173,7 +174,7 @@ compute.aggite2 <- function(MP,
     idcohortatt <- data.frame(id=id)
     colnames(idcohortatt) <- idname
     idcohortatt = merge(idcohortatt,idcohort, by=idname, sort=FALSE)
-    cohort = idcohortatt[,type]
+    ccohort = idcohortatt[,type]
     cohortlist = sort(unique(idcohort[,type]))
   }
 
@@ -456,7 +457,7 @@ compute.aggite2 <- function(MP,
       ))
     }
 
-    if (type %in% cohortnames){
+    if (type %in% c(cohort, customnames)){
 
       # weights
       pg <- sapply(cohortlist, function(g) mean(dta[dta[,type] %in% g,".w"]))
@@ -465,7 +466,7 @@ compute.aggite2 <- function(MP,
       pgg <- pg
 
       # same but length is equal to the number of ATT(g,t) shown by group
-      pg <- pg[match(cohort, cohortlist)]
+      pg <- pg[match(ccohort, cohortlist)]
 
       # compute atts that are specific to each group and event time
       egtlist = lapply(cohortlist, function(g) {
@@ -478,7 +479,7 @@ compute.aggite2 <- function(MP,
         sapply(eseq, function(e){
           # keep att(g,t) for the right g&t as well as ones that
           # are not trimmed out from balancing the sample
-          whiche <- which( (cohort == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
+          whiche <- which( (ccohort == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
           if (length(whiche)<min_agg){
             NA
           }
@@ -494,7 +495,7 @@ compute.aggite2 <- function(MP,
 
       dynamic.se.inner <- lapply(cohortlist, function(g) {
         lapply(eseq, function(e){
-          whiche <- which( (cohort == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
+          whiche <- which( (ccohort == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
           if (length(whiche)<min_agg){
             # inf.func.e = rep(0,dim(inffunc1)[1])
             inf.func.e <- NA
@@ -565,7 +566,7 @@ compute.aggite2 <- function(MP,
         sapply(eseq, function(e){
           # keep att(g,t) for the right g&t as well as ones that
           # are not trimmed out from balancing the sample
-          whiche <- which( (cohort == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
+          whiche <- which( (ccohort == g) & (originalt - originalgroup == e) & (include.balanced.gt) )
           if (length(whiche)<min_agg){
             0
           }

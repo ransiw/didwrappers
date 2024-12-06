@@ -115,7 +115,7 @@ The 95\% confidence interval
 
 ```{r}
 # Confidence interval
-paste("[",group_effects$overall.att-1.96*group_effects$overall.se,",", group_effects$overall.att+1.96*group_effects$overall.se,"]")
+paste("[",group_effects$overall.lci,",", group_effects$overall.uci,"]")
 
 ```
 
@@ -179,7 +179,7 @@ The 95\% confidence interval
 
 ```{r}
 # Confidence interval
-paste("[",group_effects_it$overall.att-1.96*group_effects_it$overall.se,",", group_effects_it$overall.att+1.96*group_effects_it$overall.se,"]")
+paste("[",group_effects_it$overall.lci,",", group_effects_it$overall.uci,"]")
 
 ```
 
@@ -222,6 +222,55 @@ Which type of estimator is more appropriate depends on the 'balancedness' in the
 
 Ensuring the composition of units pre- and post-treatment is equal results in sample losses. In this case, Germany, Fiji, Ireland, and Malta will all be lost due to lack of pre-treatment information. This is an important trade-off to consider.
 
+# Cohort level analysis
 
+An additional benefit of the extended package is that it can limit comparisons within cohort. Using the `regionnum` variable in the data to block cohorts, 
+
+```{r, warning=FALSE, message=FALSE}
+out_it <- didwrappers::att_it(yname = "gdppercapitaconstant2000us",
+                              gname = "YearFirstDemocracy",
+                              idname = "wbnum",
+                              tname = "year",
+                              cohort = "regionnum",
+                              xformla = ~1,
+                              data = demgdp,
+                              panel = FALSE,
+                              control_group = "notyettreated",
+                              est_method = "reg"
+)
+
+cohort_effects_it <- didwrappers::aggite(out_it, type = "regionnum", na.rm = TRUE)
+cohort_effects_it_df <- didwrappers::aggite_table(cohort_effects_it)
+```
+
+Include the region names that are encoded in `regionnum`
+
+```{r}
+regions = distinct(demgdp,region,regionnum)
+regions = regions %>% rename(egt=regionnum)
+
+cohort_effects_it_df = cohort_effects_it_df %>% left_join(regions)
+```
+
+Plot these effects
+
+```{r}
+plot(cohort_effects_it_df$egt, cohort_effects_it_df$att.egt, col="forestgreen", pch=19,
+     type = "p",
+     ylim = c(min(cohort_effects_it_df$lci.egt),max(cohort_effects_it_df$uci.egt)),
+     ylab = "Regional effect on GDP per capita",
+     xlab = "Region",
+     main = "Growth effect of democracy by region",
+     xaxt = "n",
+     cex.main = 1,
+     cex.lab = 1)
+axis(1, at = cohort_effects_it_df$egt, labels = cohort_effects_it_df$region)
+arrows(x0 = cohort_effects_it_df$egt, y0 = cohort_effects_it_df$lci.egt, 
+       x1 = cohort_effects_it_df$egt, y1 = cohort_effects_it_df$uci.egt, 
+       angle = 90, code = 3, length = 0.1)
+abline(h=0,lty=3,col="red")
+```
+
+Notice the extensive regional level heterogeneity. Also note that none of the industrialized countries are included, because there is a lack of industrialized non-democracies. This exercise is only demonstrative, and should not be used to draw substantive conclusions about the relationship between democracy and growth.  
 
 

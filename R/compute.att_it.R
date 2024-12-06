@@ -23,6 +23,7 @@ compute.att_it <- function(dp) {
   yname <- dp$yname
   tname <- dp$tname
   idname <- dp$idname
+  cohort <- dp$cohort
   xformla <- dp$xformla
   weightsname <- dp$weightsname
   weightfs <- dp$weightfs
@@ -73,6 +74,7 @@ compute.att_it <- function(dp) {
   # rename yname to .y
   data$.y <- data[,yname]
 
+
   # determining if the weights are turned on or off
   if (weightfs==FALSE){
     data$.w <- rep(1, nrow(data))
@@ -89,6 +91,11 @@ compute.att_it <- function(dp) {
 
     # Set up .G once
     data$.G <- 1*(data[,idname] == idlist[g])
+
+    # Save the cohort as a number
+    if (!is.null(cohort)){
+      cohort0 <- unlist(data[data$.G==1,cohort])[1]
+    }
 
     # loop over time periods
     for (t in 1:tlist.length) {
@@ -162,6 +169,12 @@ compute.att_it <- function(dp) {
 
 
       n0 <- nrow(disdat)
+
+      # if cohort is not NULL keep to the cohort that matters
+
+      if (!is.null(cohort)){
+        disdat <- disdat[disdat[,cohort]==cohort0,]
+      }
 
       # pick up the indices for units that will be used to compute ATT(g,t)
       # these conditions are (1) you are observed in the right period and

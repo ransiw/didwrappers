@@ -9,8 +9,9 @@ DIDparams_i(
   tname,
   idname,
   gname,
-  cohortnames = NULL,
+  cohort = NULL,
   xformla = NULL,
+  customnames = NULL,
   data,
   control_group,
   anticipation = 0,
@@ -50,11 +51,13 @@ This should be a positive number for all observations in treated groups.
 It defines which "treatment-group" a unit belongs to. A zero (0) value is considered to be a unit that is never treated.
 A unit treated after the last period in \code{tname} is also considered never treated.}
 
-\item{cohortnames}{the names of additional aggregation variables in \code{data}.}
+\item{cohort}{the name of blocking variable in \code{data}, specified if comparisons should only be within cohort.}
 
 \item{xformla}{a formula for the covariates to include in the
 model.  It should be of the form \code{~ X1 + X2}. An intercept is automatically included. Default
 is NULL which is equivalent to \code{xformla=~1}.}
+
+\item{customnames}{the names of additional aggregation variables in \code{data}.}
 
 \item{data}{the name of the data.frame that contains the data.}
 

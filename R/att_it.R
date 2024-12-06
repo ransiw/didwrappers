@@ -14,10 +14,11 @@
 #'  This should be a positive number for all observations in treated groups.
 #'  It defines which "treatment-group" a unit belongs to. A zero (0) value is considered to be a unit that is never treated.
 #'  A unit treated after the last period in `tname` is also considered never treated.
-#' @param cohortnames the names of additional aggregation variables in `data`.
+#' @param cohort the name of blocking variable in `data`, specified if comparisons should only be within cohort.
 #' @param xformla a formula for the covariates to include in the
 #'  model.  It should be of the form `~ X1 + X2`. An intercept is automatically included. Default
 #'  is NULL which is equivalent to `xformla=~1`.
+#' @param customnames the names of additional aggregation variables in `data`.
 #' @param data the name of the data.frame that contains the data.
 #' @param panel if panel is TRUE, the data is coerced to a balanced panel on the. Default is TRUE.
 #' @param control_group which units to use the control group.
@@ -83,8 +84,9 @@ att_it <- function(yname,
                    tname,
                    idname,
                    gname,
-                   cohortnames = NULL,
+                   cohort = NULL,
                    xformla = NULL,
+                   customnames = NULL,
                    data,
                    panel=TRUE,
                    control_group=c("nevertreated","notyettreated"),
@@ -107,8 +109,9 @@ att_it <- function(yname,
                          tname=tname,
                          idname=idname,
                          gname=gname,
-                         cohortnames = cohortnames,
+                         cohort = cohort,
                          xformla=xformla,
+                         customnames = customnames,
                          data=data,
                          panel=panel,
                          control_group=control_group,

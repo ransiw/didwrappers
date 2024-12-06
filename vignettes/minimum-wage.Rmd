@@ -118,15 +118,15 @@ mpdta$lpop2 = round(mpdta$lpop)
 table(mpdta[mpdta$first.treat>0,"lpop2"])
 ```
 
-There are 8 population categories in the treatment set, but the category 0, 1, and 7 have 3 or less units. If we want to aggregate to these new population categories, we can go to the `att_it` function's `cohortnames` option. I'll do it as an unconditional difference-in-difference, but you can do a conditional one with the `xformla` option.
+There are 8 population categories in the treatment set, but the category 0, 1, and 7 have 3 or less units. If we want to aggregate to these new population categories, we can go to the `att_it` function's `customnames` option. I'll do it as an unconditional difference-in-difference, but you can do a conditional one with the `xformla` option.
 
 
 ```{r}
-out_it_cohort <- didwrappers::att_it(yname = "lemp",
+out_it_custom <- didwrappers::att_it(yname = "lemp",
               gname = "first.treat",
               idname = "countyreal",
               tname = "year",
-              cohortnames = "lpop2",
+              customnames = "lpop2",
               data = mpdta
               )
 ```
@@ -134,8 +134,8 @@ out_it_cohort <- didwrappers::att_it(yname = "lemp",
 Aggregating by population level,
 
 ```{r}
-cohort = didwrappers::aggite(out_it_cohort, type="lpop2")
-didwrappers::aggite_table(cohort)
+custom = didwrappers::aggite(out_it_custom, type="lpop2")
+didwrappers::aggite_table(custom)
 ```
 
 The effect is positive for the populations in bucket 0, 1, and 7, but these are also the same ones that we didn't have enough treatment units of. So, they may not be representative of those population levels. 

@@ -18,8 +18,9 @@ pre_process_did_i <- function(yname,
                              tname,
                              idname,
                              gname,
-                             cohortnames = NULL,
+                             cohort = NULL,
                              xformla = NULL,
+                             customnames = NULL,
                              data,
                              panel = TRUE,
                              control_group = c("nevertreated","notyettreated"),
@@ -61,6 +62,13 @@ pre_process_did_i <- function(yname,
   #  make sure every time is strictly positive
   if (min(data[,tname]) < 1 ) stop("data[, tname] must be greater than zero")
 
+  # make sure the cohort is numeric
+  if (!is.null(cohort) & !(is.numeric(data[,cohort]))) stop("data[, cohort] must be numeric")
+
+  # cohort or customnames cannot be any of group dynamic, simple, unit, calendar
+  if (sum(c(cohort,customnames) %in% c("group", "dynamic", "simple", "unit", "calendar"))>0) stop("one of cohort or customnames is a forbidden name")
+
+
   # make sure idname is unique in each period observation
   ## # Check if idname is unique by tname
   ## n_id_year = all( table(data[, idname], data[, tname]) <= 1)
@@ -73,7 +81,8 @@ pre_process_did_i <- function(yname,
   }
 
   # drop irrelevant columns from data
-  data <- cbind.data.frame(data[,c(idname, tname, yname, gname, weightsname, clustervars,cohortnames)], stats::model.frame(xformla, data=data, na.action=stats::na.pass))
+  data <- cbind.data.frame(data[,c(idname, tname, yname, gname, weightsname, clustervars,cohort,customnames)], stats::model.frame(xformla, data=data, na.action=stats::na.pass))
+
 
   # check if any covariates were missing
   n_orig <- nrow(data)
@@ -169,31 +178,31 @@ pre_process_did_i <- function(yname,
   }
 
   #-----------------------------------------------------------------------------
-  # if the cohort_names vary within unit issue an error to fix this
+  # if the customnames or cohort vary within unit issue an error to fix this
   #-----------------------------------------------------------------------------
+  customnames0 = c(customnames,cohort)
 
-  if (!is.null(cohortnames)){
-
+  if (!is.null(customnames0)){
 
     data_filtered <- data[data[,tname] == data[,gname]-1, ]
 
-    new_names <- paste0(cohortnames, "_atpre")
+    new_names <- paste0(customnames0, "_atpre")
 
-    names(data_filtered)[names(data_filtered) %in% cohortnames] <- new_names
+    names(data_filtered)[names(data_filtered) %in% customnames0] <- new_names
 
     data_filtered <- data_filtered[,c(idname, gname, new_names)]
 
     df <- merge(data, data_filtered, by=c(idname, gname))
 
     # Create a logical condition for rows where any of the columns differ from their "_atpre" counterparts
-    condition <- Reduce(`|`, lapply(seq_along(cohortnames), function(i) df[[cohortnames[i]]] != df[[new_names[i]]]))
+    condition <- Reduce(`|`, lapply(seq_along(customnames0), function(i) df[[customnames0[i]]] != df[[new_names[i]]]))
 
     # Subset the dataframe based on the condition
     df_different <- df[condition, ]
 
     # Report the error for the first
     if (dim(df_different)[1]>0){
-      stop(paste("the unit",df_different[1,idname],"and possibly others have cohort identifiers that differ across time"))
+      stop(paste("the unit",df_different[1,idname],"and possibly others have cohort or custom aggregators that differ across time"))
     }
 
   }
@@ -341,7 +350,8 @@ pre_process_did_i <- function(yname,
                    tname=tname,
                    idname=idname,
                    gname=gname,
-                   cohortnames = cohortnames,
+                   cohort=cohort,
+                   customnames = customnames,
                    xformla=xformla,
                    data=as.data.frame(data),
                    control_group=control_group,
