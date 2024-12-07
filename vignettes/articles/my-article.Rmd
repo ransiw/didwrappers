@@ -99,7 +99,7 @@ plot(group_effects$egt, group_effects$att.egt, col="forestgreen", lwd=5,
      cex.lab = 0.82)
 points(out$group, out$att, pch=19, col=adjustcolor("olivedrab3",0.4))
 polygon(x=c(group_effects_df$egt, rev(group_effects_df$egt)),
-        y=c(group_effects_df$lowci, rev(group_effects_df$highci)),
+        y=c(group_effects_df$lci.egt, rev(group_effects_df$uci.egt)),
         col=adjustcolor( "forestgreen", alpha.f = 0.3), border = FALSE)
 abline(h=0,lty=3,col="red")
 ```
@@ -115,7 +115,7 @@ The 95\% confidence interval
 
 ```{r}
 # Confidence interval
-paste("[",group_effects$overall.lci,",", group_effects$overall.uci,"]")
+paste("[",group_effects$overall.att-1.96*group_effects$overall.se,",", group_effects$overall.att+1.96*group_effects$overall.se,"]")
 
 ```
 
@@ -145,6 +145,7 @@ Group effects are found by aggregating the individual estimates to the group lev
 ```{r}
 group_effects_it <- didwrappers::aggite(out_it, type = "group", na.rm = TRUE)
 group_effects_it_df <- didwrappers::aggite_table(group_effects_it)
+group_effects_it_df <- group_effects_it_df[!is.na(group_effects_it_df$se.egt),]
 ```
 
 Plotting the group effects: 
@@ -152,7 +153,7 @@ Plotting the group effects:
 ```{r}
 plot(group_effects_it$egt, group_effects_it$att.egt, col="forestgreen", lwd=5,
      type = "l",
-     ylim = c(-4000,5000),
+     ylim = c(-4000,6000),
      ylab = "Group-level effect on GDP per capita",
      xlab = "Time of democratization",
      main = "Growth effect of democracy by democratizing year",
@@ -160,7 +161,7 @@ plot(group_effects_it$egt, group_effects_it$att.egt, col="forestgreen", lwd=5,
      cex.lab = 0.82)
 points(out_it$group, out_it$att, pch=19, col=adjustcolor("olivedrab3",0.4))
 polygon(x=c(group_effects_it_df$egt, rev(group_effects_it_df$egt)),
-        y=c(group_effects_it_df$lowci, rev(group_effects_it_df$highci)),
+        y=c(group_effects_it_df$lci.egt, rev(group_effects_it_df$uci.egt)),
         col=adjustcolor( "forestgreen", alpha.f = 0.3), border = FALSE)
 abline(h=0,lty=3,col="red")
 ```
@@ -247,13 +248,25 @@ Include the region names that are encoded in `regionnum`
 
 ```{r}
 regions = unique(demgdp[,c("region","regionnum")])
-names(regions) <- c("region","regionnum")
+names(regions) <- c("region","egt")
 
 cohort_effects_it_df = merge(cohort_effects_it_df,regions,by="egt")
-
 ```
 
-Plot these effects
+The overall effect
+
+```{r}
+cohort_effects_it$overall.att
+```
+
+and confidence interval
+
+```{r}
+paste0("[",cohort_effects_it$overall.lci,",",cohort_effects_it$overall.uci, "]")
+```
+
+
+Plot the regional effects
 
 ```{r}
 plot(cohort_effects_it_df$egt, cohort_effects_it_df$att.egt, col="forestgreen", pch=19,
@@ -273,6 +286,7 @@ abline(h=0,lty=3,col="red")
 ```
 
 Notice the extensive regional level heterogeneity. Also note that none of the industrialized countries are included, because there is a lack of industrialized non-democracies. This explains the difference between the overall effect of democratization when performed without within-cohort blocking, and performed with cohort blocking. Much of that positive effect is attributable to industralized countries. 
+
 This exercise is only demonstrative, and should not be used to draw substantive conclusions about the relationship between democracy and growth.  
 
 
