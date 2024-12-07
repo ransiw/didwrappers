@@ -247,7 +247,7 @@ Include the region names that are encoded in `regionnum`
 
 ```{r}
 regions = unique(demgdp[,c("region","regionnum")])
-regions = regions %>% rename(egt=regionnum)
+names(regions) <- regions %>% c("region","regionnum")
 
 cohort_effects_it_df = merge(cohort_effects_it_df,regions,by="egt")
 
