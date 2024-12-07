@@ -214,21 +214,21 @@ create such a variable out of the <code>lpop</code> variable.</p>
 <p>There are 8 population categories in the treatment set, but the
 category 0, 1, and 7 have 3 or less units. If we want to aggregate to
 these new population categories, we can go to the <code>att_it</code>
-function’s <code>cohortnames</code> option. I’ll do it as an
+function’s <code>customnames</code> option. I’ll do it as an
 unconditional difference-in-difference, but you can do a conditional one
 with the <code>xformla</code> option.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">out_it_cohort</span> <span class="op">&lt;-</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/att_it.html">att_it</a></span><span class="op">(</span>yname <span class="op">=</span> <span class="st">"lemp"</span>,</span>
+<code class="sourceCode R"><span><span class="va">out_it_custom</span> <span class="op">&lt;-</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/att_it.html">att_it</a></span><span class="op">(</span>yname <span class="op">=</span> <span class="st">"lemp"</span>,</span>
 <span>              gname <span class="op">=</span> <span class="st">"first.treat"</span>,</span>
 <span>              idname <span class="op">=</span> <span class="st">"countyreal"</span>,</span>
 <span>              tname <span class="op">=</span> <span class="st">"year"</span>,</span>
-<span>              cohortnames <span class="op">=</span> <span class="st">"lpop2"</span>,</span>
+<span>              customnames <span class="op">=</span> <span class="st">"lpop2"</span>,</span>
 <span>              data <span class="op">=</span> <span class="va">mpdta</span></span>
 <span>              <span class="op">)</span></span></code></pre></div>
 <p>Aggregating by population level,</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cohort</span> <span class="op">=</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite.html">aggite</a></span><span class="op">(</span><span class="va">out_it_cohort</span>, type<span class="op">=</span><span class="st">"lpop2"</span><span class="op">)</span></span>
-<span><span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite_table.html">aggite_table</a></span><span class="op">(</span><span class="va">cohort</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">custom</span> <span class="op">=</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite.html">aggite</a></span><span class="op">(</span><span class="va">out_it_custom</span>, type<span class="op">=</span><span class="st">"lpop2"</span><span class="op">)</span></span>
+<span><span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite_table.html">aggite_table</a></span><span class="op">(</span><span class="va">custom</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   egt      att.egt      se.egt     lci.egt       uci.egt</span></span>
 <span><span class="co">#&gt; 1   0  0.076447182 0.023511475  0.03077926  0.1219930381</span></span>
 <span><span class="co">#&gt; 2   1  0.539728790 0.491025779 -0.42809092  1.5178941231</span></span>

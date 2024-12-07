@@ -183,7 +183,7 @@ that were aggregated to produce the group-level estimates.</p>
 <span>     cex.lab <span class="op">=</span> <span class="fl">0.82</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">out</span><span class="op">$</span><span class="va">group</span>, <span class="va">out</span><span class="op">$</span><span class="va">att</span>, pch<span class="op">=</span><span class="fl">19</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/adjustcolor.html" class="external-link">adjustcolor</a></span><span class="op">(</span><span class="st">"olivedrab3"</span>,<span class="fl">0.4</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/polygon.html" class="external-link">polygon</a></span><span class="op">(</span>x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">group_effects_df</span><span class="op">$</span><span class="va">egt</span>, <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">group_effects_df</span><span class="op">$</span><span class="va">egt</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>        y<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">group_effects_df</span><span class="op">$</span><span class="va">lowci</span>, <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">group_effects_df</span><span class="op">$</span><span class="va">highci</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>        y<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">group_effects_df</span><span class="op">$</span><span class="va">lci.egt</span>, <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">group_effects_df</span><span class="op">$</span><span class="va">uci.egt</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>        col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/adjustcolor.html" class="external-link">adjustcolor</a></span><span class="op">(</span> <span class="st">"forestgreen"</span>, alpha.f <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span>, border <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>h<span class="op">=</span><span class="fl">0</span>,lty<span class="op">=</span><span class="fl">3</span>,col<span class="op">=</span><span class="st">"red"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="my-article_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
@@ -227,12 +227,13 @@ post-treatment are removed.</p>
 the group level.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">group_effects_it</span> <span class="op">&lt;-</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite.html">aggite</a></span><span class="op">(</span><span class="va">out_it</span>, type <span class="op">=</span> <span class="st">"group"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">group_effects_it_df</span> <span class="op">&lt;-</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite_table.html">aggite_table</a></span><span class="op">(</span><span class="va">group_effects_it</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">group_effects_it_df</span> <span class="op">&lt;-</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite_table.html">aggite_table</a></span><span class="op">(</span><span class="va">group_effects_it</span><span class="op">)</span></span>
+<span><span class="va">group_effects_it_df</span> <span class="op">&lt;-</span> <span class="va">group_effects_it_df</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">group_effects_it_df</span><span class="op">$</span><span class="va">se.egt</span><span class="op">)</span>,<span class="op">]</span></span></code></pre></div>
 <p>Plotting the group effects:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">egt</span>, <span class="va">group_effects_it</span><span class="op">$</span><span class="va">att.egt</span>, col<span class="op">=</span><span class="st">"forestgreen"</span>, lwd<span class="op">=</span><span class="fl">5</span>,</span>
 <span>     type <span class="op">=</span> <span class="st">"l"</span>,</span>
-<span>     ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4000</span>,<span class="fl">5000</span><span class="op">)</span>,</span>
+<span>     ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4000</span>,<span class="fl">6000</span><span class="op">)</span>,</span>
 <span>     ylab <span class="op">=</span> <span class="st">"Group-level effect on GDP per capita"</span>,</span>
 <span>     xlab <span class="op">=</span> <span class="st">"Time of democratization"</span>,</span>
 <span>     main <span class="op">=</span> <span class="st">"Growth effect of democracy by democratizing year"</span>,</span>
@@ -240,7 +241,7 @@ the group level.</p>
 <span>     cex.lab <span class="op">=</span> <span class="fl">0.82</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">out_it</span><span class="op">$</span><span class="va">group</span>, <span class="va">out_it</span><span class="op">$</span><span class="va">att</span>, pch<span class="op">=</span><span class="fl">19</span>, col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/adjustcolor.html" class="external-link">adjustcolor</a></span><span class="op">(</span><span class="st">"olivedrab3"</span>,<span class="fl">0.4</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/polygon.html" class="external-link">polygon</a></span><span class="op">(</span>x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">group_effects_it_df</span><span class="op">$</span><span class="va">egt</span>, <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">group_effects_it_df</span><span class="op">$</span><span class="va">egt</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>        y<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">group_effects_it_df</span><span class="op">$</span><span class="va">lowci</span>, <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">group_effects_it_df</span><span class="op">$</span><span class="va">highci</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>        y<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">group_effects_it_df</span><span class="op">$</span><span class="va">lci.egt</span>, <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">group_effects_it_df</span><span class="op">$</span><span class="va">uci.egt</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>        col<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/grDevices/adjustcolor.html" class="external-link">adjustcolor</a></span><span class="op">(</span> <span class="st">"forestgreen"</span>, alpha.f <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span>, border <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>h<span class="op">=</span><span class="fl">0</span>,lty<span class="op">=</span><span class="fl">3</span>,col<span class="op">=</span><span class="st">"red"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="my-article_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
@@ -255,8 +256,8 @@ effects in addition to postive effects.</p>
 <p>The 95% confidence interval</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Confidence interval</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"["</span>,<span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.att</span><span class="op">-</span><span class="fl">1.96</span><span class="op">*</span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.se</span>,<span class="st">","</span>, <span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.att</span><span class="op">+</span><span class="fl">1.96</span><span class="op">*</span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.se</span>,<span class="st">"]"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "[ -466.251853336299 , 262.669047097389 ]"</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"["</span>,<span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.lci</span>,<span class="st">","</span>, <span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.uci</span>,<span class="st">"]"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "[ -455.190838821287 , 272.411569749994 ]"</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="comparison">Comparison<a class="anchor" aria-label="anchor" href="#comparison"></a>
@@ -352,6 +353,69 @@ imbalance is small.</p>
 results in sample losses. In this case, Germany, Fiji, Ireland, and
 Malta will all be lost due to lack of pre-treatment information. This is
 an important trade-off to consider.</p>
+</div>
+<div class="section level2">
+<h2 id="cohort-level-analysis">Cohort level analysis<a class="anchor" aria-label="anchor" href="#cohort-level-analysis"></a>
+</h2>
+<p>An additional benefit of the extended package is that it can limit
+comparisons within cohort. Using the <code>regionnum</code> variable in
+the data to block cohorts,</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">out_it</span> <span class="op">&lt;-</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/att_it.html">att_it</a></span><span class="op">(</span>yname <span class="op">=</span> <span class="st">"gdppercapitaconstant2000us"</span>,</span>
+<span>                              gname <span class="op">=</span> <span class="st">"YearFirstDemocracy"</span>,</span>
+<span>                              idname <span class="op">=</span> <span class="st">"wbnum"</span>,</span>
+<span>                              tname <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>                              cohort <span class="op">=</span> <span class="st">"regionnum"</span>,</span>
+<span>                              xformla <span class="op">=</span> <span class="op">~</span><span class="fl">1</span>,</span>
+<span>                              data <span class="op">=</span> <span class="va">demgdp</span>,</span>
+<span>                              panel <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                              control_group <span class="op">=</span> <span class="st">"notyettreated"</span>,</span>
+<span>                              est_method <span class="op">=</span> <span class="st">"reg"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">cohort_effects_it</span> <span class="op">&lt;-</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite.html">aggite</a></span><span class="op">(</span><span class="va">out_it</span>, type <span class="op">=</span> <span class="st">"regionnum"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">cohort_effects_it_df</span> <span class="op">&lt;-</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite_table.html">aggite_table</a></span><span class="op">(</span><span class="va">cohort_effects_it</span><span class="op">)</span></span></code></pre></div>
+<p>Include the region names that are encoded in
+<code>regionnum</code></p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">regions</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">demgdp</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"region"</span>,<span class="st">"regionnum"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">regions</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"region"</span>,<span class="st">"egt"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">cohort_effects_it_df</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">cohort_effects_it_df</span>,<span class="va">regions</span>,by<span class="op">=</span><span class="st">"egt"</span><span class="op">)</span></span></code></pre></div>
+<p>The overall effect</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cohort_effects_it</span><span class="op">$</span><span class="va">overall.att</span></span>
+<span><span class="co">#&gt; [1] -399.1826</span></span></code></pre></div>
+<p>and confidence interval</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"["</span>,<span class="va">cohort_effects_it</span><span class="op">$</span><span class="va">overall.lci</span>,<span class="st">","</span>,<span class="va">cohort_effects_it</span><span class="op">$</span><span class="va">overall.uci</span>, <span class="st">"]"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "[-1428.23202640698,488.228649410157]"</span></span></code></pre></div>
+<p>Plot the regional effects</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">cohort_effects_it_df</span><span class="op">$</span><span class="va">egt</span>, <span class="va">cohort_effects_it_df</span><span class="op">$</span><span class="va">att.egt</span>, col<span class="op">=</span><span class="st">"forestgreen"</span>, pch<span class="op">=</span><span class="fl">19</span>,</span>
+<span>     type <span class="op">=</span> <span class="st">"p"</span>,</span>
+<span>     ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">cohort_effects_it_df</span><span class="op">$</span><span class="va">lci.egt</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">cohort_effects_it_df</span><span class="op">$</span><span class="va">uci.egt</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>     ylab <span class="op">=</span> <span class="st">"Regional effect on GDP per capita"</span>,</span>
+<span>     xlab <span class="op">=</span> <span class="st">"Region"</span>,</span>
+<span>     main <span class="op">=</span> <span class="st">"Growth effect of democracy by region"</span>,</span>
+<span>     xaxt <span class="op">=</span> <span class="st">"n"</span>,</span>
+<span>     cex.main <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>     cex.lab <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/axis.html" class="external-link">axis</a></span><span class="op">(</span><span class="fl">1</span>, at <span class="op">=</span> <span class="va">cohort_effects_it_df</span><span class="op">$</span><span class="va">egt</span>, labels <span class="op">=</span> <span class="va">cohort_effects_it_df</span><span class="op">$</span><span class="va">region</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/arrows.html" class="external-link">arrows</a></span><span class="op">(</span>x0 <span class="op">=</span> <span class="va">cohort_effects_it_df</span><span class="op">$</span><span class="va">egt</span>, y0 <span class="op">=</span> <span class="va">cohort_effects_it_df</span><span class="op">$</span><span class="va">lci.egt</span>, </span>
+<span>       x1 <span class="op">=</span> <span class="va">cohort_effects_it_df</span><span class="op">$</span><span class="va">egt</span>, y1 <span class="op">=</span> <span class="va">cohort_effects_it_df</span><span class="op">$</span><span class="va">uci.egt</span>, </span>
+<span>       angle <span class="op">=</span> <span class="fl">90</span>, code <span class="op">=</span> <span class="fl">3</span>, length <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>h<span class="op">=</span><span class="fl">0</span>,lty<span class="op">=</span><span class="fl">3</span>,col<span class="op">=</span><span class="st">"red"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="my-article_files/figure-html/unnamed-chunk-25-1.png" width="700"></p>
+<p>Notice the extensive regional level heterogeneity. Also note that
+none of the industrialized countries are included, because there is a
+lack of industrialized non-democracies. This explains the difference
+between the overall effect of democratization when performed without
+within-cohort blocking, and performed with cohort blocking. Much of that
+positive effect is attributable to industralized countries.</p>
+<p>This exercise is only demonstrative, and should not be used to draw
+substantive conclusions about the relationship between democracy and
+growth.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

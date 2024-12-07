@@ -50,8 +50,9 @@
 <span>  <span class="va">tname</span>,</span>
 <span>  <span class="va">idname</span>,</span>
 <span>  <span class="va">gname</span>,</span>
-<span>  cohortnames <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  cohort <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  xformla <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  customnames <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">data</span>,</span>
 <span>  <span class="va">control_group</span>,</span>
 <span>  anticipation <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -103,14 +104,18 @@ It defines which "treatment-group" a unit belongs to. A zero (0) value is consid
 A unit treated after the last period in <code>tname</code> is also considered never treated.</p></dd>
 
 
-<dt id="arg-cohortnames">cohortnames<a class="anchor" aria-label="anchor" href="#arg-cohortnames"></a></dt>
-<dd><p>the names of additional aggregation variables in <code>data</code>.</p></dd>
+<dt id="arg-cohort">cohort<a class="anchor" aria-label="anchor" href="#arg-cohort"></a></dt>
+<dd><p>the name of blocking variable in <code>data</code>, specified if comparisons should only be within cohort.</p></dd>
 
 
 <dt id="arg-xformla">xformla<a class="anchor" aria-label="anchor" href="#arg-xformla"></a></dt>
 <dd><p>a formula for the covariates to include in the
 model.  It should be of the form <code>~ X1 + X2</code>. An intercept is automatically included. Default
 is NULL which is equivalent to <code>xformla=~1</code>.</p></dd>
+
+
+<dt id="arg-customnames">customnames<a class="anchor" aria-label="anchor" href="#arg-customnames"></a></dt>
+<dd><p>the names of additional aggregation variables in <code>data</code>.</p></dd>
 
 
 <dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
