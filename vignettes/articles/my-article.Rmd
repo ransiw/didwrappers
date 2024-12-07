@@ -246,10 +246,11 @@ cohort_effects_it_df <- didwrappers::aggite_table(cohort_effects_it)
 Include the region names that are encoded in `regionnum`
 
 ```{r}
-regions = distinct(demgdp,region,regionnum)
+regions = unique(demgdp[,c("region","regionnum")])
 regions = regions %>% rename(egt=regionnum)
 
-cohort_effects_it_df = cohort_effects_it_df %>% left_join(regions)
+cohort_effects_it_df = cohort_effects_it_df %>% merge(regions,by="egt")
+
 ```
 
 Plot these effects
@@ -271,6 +272,7 @@ arrows(x0 = cohort_effects_it_df$egt, y0 = cohort_effects_it_df$lci.egt,
 abline(h=0,lty=3,col="red")
 ```
 
-Notice the extensive regional level heterogeneity. Also note that none of the industrialized countries are included, because there is a lack of industrialized non-democracies. This exercise is only demonstrative, and should not be used to draw substantive conclusions about the relationship between democracy and growth.  
+Notice the extensive regional level heterogeneity. Also note that none of the industrialized countries are included, because there is a lack of industrialized non-democracies. This explains the difference between the overall effect of democratization when performed without within-cohort blocking, and performed with cohort blocking. Much of that positive effect is attributable to industralized countries. 
+This exercise is only demonstrative, and should not be used to draw substantive conclusions about the relationship between democracy and growth.  
 
 
