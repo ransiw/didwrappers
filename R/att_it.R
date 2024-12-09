@@ -193,7 +193,7 @@ att_it <- function(yname,
   #-----------------------------------------------------------------------------
 
   # # critical value from N(0,1), for pointwise
-  cval <- stats::qnorm(1-alp/2)
+  cval <- NULL
   #
   # # in order to get uniform confidence bands
   # # HAVE to use the bootstrap
