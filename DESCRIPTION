@@ -19,7 +19,6 @@ Imports:
     did (>= 2.1.1),
     DRDID,
     Matrix,
-    methods,
     stats,
     stringr
 URL: https://github.com/ransiw/didwrappers, https://ransiw.github.io/didwrappers/
