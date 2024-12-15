@@ -18,7 +18,7 @@ Issues tabulated aggite() results
 }
 \examples{
 # first run the att_it() function
-simdata = sim_data()
+simdata = sim_data(posttreat=6, pretreat=2)
 attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", data = simdata)
 
 # aggregate all post-treatment effects of each unit

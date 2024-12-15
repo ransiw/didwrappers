@@ -67,7 +67,7 @@ and this is only applicable if \code{bstrap=TRUE}.}
 \item{clustervars}{ignored in this function.}
 }
 \value{
-An \code{\link{AGGTEobj}} object that holds the results from the
+An \code{\link{AGGITEobj}} object that holds the results from the
 aggregation
 }
 \description{
@@ -78,7 +78,7 @@ several possible aggregations including "simple", "dynamic", "unit,
 }
 \examples{
 # first run the att_it() function
-simdata = sim_data()
+simdata = sim_data(posttreat=6)
 attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", data = simdata)
 
 # aggregate all post-treatment effects of each unit

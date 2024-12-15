@@ -514,10 +514,14 @@ compute.aggite2 <- function(MP,
 
             inf.func.e <- replicate(biters, {
               random_draws <- sapply(1:length(whiche), function(j) stats::rnorm(1, mean = att[whiche][j], sd = se[whiche][j]))
-              sd.e <- stats::sd(att[whiche])/sqrt(length(att[whiche]))
+              sd.e <- stats::sd(random_draws)/sqrt(length(random_draws))
               sum(random_draws*pge) + stats::rnorm(1,sd=sd.e)
             })
           }
+
+          se.e <- stats::sd(inf.func.e)
+          lci.e <- stats::quantile(inf.func.e,alp/2)
+          uci.e <- stats::quantile(inf.func.e,1-alp/2)
           #list(inf.func=inf.func.e, se=se.e)
           list(inf.func=inf.func.e, se=se.e, lci=lci.e, uci=uci.e)
         })
