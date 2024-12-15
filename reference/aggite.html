@@ -146,14 +146,14 @@ and this is only applicable if <code>bstrap=TRUE</code>.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An <code>AGGTEobj</code> object that holds the results from the
+    <p>An <code><a href="AGGITEobj.html">AGGITEobj</a></code> object that holds the results from the
 aggregation</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># first run the att_it() function</span></span></span>
-<span class="r-in"><span><span class="va">simdata</span> <span class="op">=</span> <span class="fu"><a href="sim_data.html">sim_data</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">simdata</span> <span class="op">=</span> <span class="fu"><a href="sim_data.html">sim_data</a></span><span class="op">(</span>posttreat<span class="op">=</span><span class="fl">6</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">attobject</span> <span class="op">=</span> <span class="fu"><a href="att_it.html">att_it</a></span><span class="op">(</span>yname <span class="op">=</span> <span class="st">"y"</span>, tname <span class="op">=</span> <span class="st">"time"</span>, gname <span class="op">=</span> <span class="st">"treatg"</span>, idname <span class="op">=</span><span class="st">"unit"</span>, data <span class="op">=</span> <span class="va">simdata</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># aggregate all post-treatment effects of each unit</span></span></span>
