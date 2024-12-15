@@ -99,7 +99,7 @@ the run times.</p>
 <span>              <span class="op">)</span></span>
 <span><span class="va">endt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Time elapsed:"</span>,<span class="va">endt</span><span class="op">-</span><span class="va">startt</span>,<span class="st">"seconds"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Time elapsed: 0.757091999053955 seconds"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Time elapsed: 0.732414960861206 seconds"</span></span></code></pre></div>
 <p>The <code>didwrappers</code> package produces a similar object but at
 the more granular unit-time level. This takes longer to run. The syntax
 remains the same, only the function name should need to change.</p>
@@ -115,8 +115,8 @@ remains the same, only the function name should need to change.</p>
 <span>              <span class="op">)</span></span>
 <span><span class="va">endt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Time elapsed:"</span>,<span class="va">endt</span><span class="op">-</span><span class="va">startt</span>,<span class="st">"seconds"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Time elapsed: 5.39995765686035 seconds"</span></span></code></pre></div>
-<p>It takes quite a bit longer to do things at the county-level than at
+<span><span class="co">#&gt; [1] "Time elapsed: 5.1958487033844 seconds"</span></span></code></pre></div>
+<p>It takes quite a bit longer to do things at the county level than at
 the group level, which is the year that minimum wage is raised. There
 are certain advantages to having the more disaggregate county-level
 object that <code>didwrappers:att_it</code> produces, particularly, if
@@ -157,11 +157,9 @@ expensive to run, even with a larger object.</p>
 <span><span class="co">#&gt; 2 2006 -0.02290954 0.01139708 -0.04590288 -0.0016980121</span></span>
 <span><span class="co">#&gt; 3 2007 -0.02605441 0.01359484 -0.05213191 -0.0005395492</span></span></code></pre></div>
 <p>The estimates produced by these packages are the same. The
-differences are in the standard errors, even though they both use
-simultaneous confidence intervals. The effect for year 2007 is now
-significant at the 5% level. This isn’t necessarily good or bad. As you
-will see, <code>didwrappers:aggite</code> standard errors are not always
-smaller than the <code><a href="https://bcallaway11.github.io/did/reference/aggte.html" class="external-link">did::aggte</a></code> standard errors.</p>
+differences are in the standard errors. The standard errors are smaller
+under the latter which uses a bootstrap in the second stage. This isn’t
+always the case, however.</p>
 <p>One more aggregation method before the end of this vignette. Going
 back to the group-time object,</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
@@ -187,26 +185,26 @@ back to the group-time object,</p>
 <span><span class="co">#&gt; 5   1 -0.0509573671 0.01476283 -0.078786851 -0.022090233</span></span>
 <span><span class="co">#&gt; 6   2 -0.1372587389 0.03337233 -0.201713222 -0.075013670</span></span>
 <span><span class="co">#&gt; 7   3 -0.1008113631 0.03113320 -0.161084551 -0.039208264</span></span></code></pre></div>
-<p>The standard errors for time lag 1 are larger here than with the
-<code>did</code> package. If you are curious, you can go look in the
-object produced by <code>attit</code> to see which unit might be causing
-this. I do a bit more sleuthing in a different vignette.</p>
+<p>Again the differences are in the standard errors, which are smaller
+under the latter algorithm. But the substantive results are the
+same.</p>
 <p>Let’s now look at the overall post-treatment effect. Different
 aggregations give different effects. Starting with the outputs of
 <code>did</code>,</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Overall effect from group aggregation is"</span>,<span class="va">group_effects</span><span class="op">$</span><span class="va">overall.att</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Overall effect from group aggregation is -0.031018282228749"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Overall effect from dynamic aggregation is"</span>,<span class="va">es</span><span class="op">$</span><span class="va">overall.att</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Overall effect from dynamic aggregation is -0.0772398214573161"</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Overall effect from group aggregation is"</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">group_effects</span><span class="op">$</span><span class="va">overall.att</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Overall effect from group aggregation is -0.031"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Overall effect from dynamic aggregation is"</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">es</span><span class="op">$</span><span class="va">overall.att</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Overall effect from dynamic aggregation is -0.077"</span></span></code></pre></div>
 <p>For the outputs of <code>didwrappers</code>,</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Overall effect from group aggregation is"</span>,<span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.att</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Overall effect from group aggregation is -0.0429043588478227"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Overall effect from dynamic aggregation is"</span>,<span class="va">es_it</span><span class="op">$</span><span class="va">overall.att</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Overall effect from dynamic aggregation is -0.039951275155177"</span></span></code></pre></div>
-<p>They are the same here. This is not surprising because the mid-level
-aggregations were also the same.</p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Overall effect from group aggregation is"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.att</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Overall effect from group aggregation is -0.043"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Overall effect from dynamic aggregation is"</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">es_it</span><span class="op">$</span><span class="va">overall.att</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Overall effect from dynamic aggregation is -0.04"</span></span></code></pre></div>
+<p>They are not the same, but are the same sign. The differences are in
+the weighting, which is slightly different across the two algorithms and
+even across the aggregation schemes.</p>
 <p>For 95% confidence intervals, starting with the <code>did</code>
 objects:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
@@ -216,10 +214,12 @@ objects:</p>
 <span><span class="co">#&gt; [1] "CI for overall effect from dynamic aggregation is [ -0.102 , -0.053 ]"</span></span></code></pre></div>
 <p>Using the <code>didwrappers</code> object,</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"CI for overall effect from group aggregation is"</span>,<span class="st">"["</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.att</span><span class="op">-</span><span class="fl">1.96</span><span class="op">*</span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.se</span>,<span class="fl">3</span><span class="op">)</span>,<span class="st">","</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.att</span><span class="op">+</span><span class="fl">1.96</span><span class="op">*</span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.se</span>,<span class="fl">3</span><span class="op">)</span>,<span class="st">"]"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "CI for overall effect from group aggregation is [ -0.084 , -0.002 ]"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"CI for overall effect from dynamic aggregation is"</span>,<span class="st">"["</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">es_it</span><span class="op">$</span><span class="va">overall.att</span><span class="op">-</span><span class="fl">1.96</span><span class="op">*</span><span class="va">es_it</span><span class="op">$</span><span class="va">overall.se</span>,<span class="fl">3</span><span class="op">)</span>,<span class="st">","</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">es_it</span><span class="op">$</span><span class="va">overall.att</span><span class="op">+</span><span class="fl">1.96</span><span class="op">*</span><span class="va">es_it</span><span class="op">$</span><span class="va">overall.se</span>,<span class="fl">3</span><span class="op">)</span>,<span class="st">"]"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "CI for overall effect from dynamic aggregation is [ -0.098 , 0.018 ]"</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"CI for overall effect from group aggregation is"</span>,<span class="st">"["</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.lci</span>,<span class="fl">3</span><span class="op">)</span>,<span class="st">","</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.uci</span>,<span class="fl">3</span><span class="op">)</span>,<span class="st">"]"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "CI for overall effect from group aggregation is [ -0.087 , 0 ]"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"CI for overall effect from dynamic aggregation is"</span>,<span class="st">"["</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">es_it</span><span class="op">$</span><span class="va">overall.lci</span>,<span class="fl">3</span><span class="op">)</span>,<span class="st">","</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">es_it</span><span class="op">$</span><span class="va">overall.uci</span>,<span class="fl">3</span><span class="op">)</span>,<span class="st">"]"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "CI for overall effect from dynamic aggregation is [ -0.098 , 0.021 ]"</span></span></code></pre></div>
+<p>The overall dynamic effects are not significant under the latter
+algorithm, despite all of the component dynamic effects being so.</p>
 <p>The results presented were for an unconditional
 differences-in-difference. But unconditional results might be
 misleading, because the treatment and control groups are too different.
@@ -255,12 +255,12 @@ population of all the counties in the sample. For such a violation to
 occur at the group level, the counties treated at a time must have a
 lower average population than all the untreated counties.</p>
 <p>Whether aggregation should be at the group-level or the unit-level
-should come down to the nature of the data. If there are many units, and
-there is reason to think there is not much heterogeneity within the
-group, the group level algorithm is ideal. If there are a few units,
-such as with cross-country studies, or the units that get treated at the
-same time are sufficiently different, the unit-level algorithm is
-better.</p>
+should come down to the nature of the data. For example, if there are
+many similar units, a group level algorithm is ideal for its speed and
+statistical properties. If there are a few heterogeneous units, and only
+few will have good comparisons, then a unit-level algorithm may do
+better. Analysts may use the unit-level algorithm as a complement to
+diagnose outliers that are obscured by a group-level algorithm.</p>
   </main>
 </div>
 
