@@ -422,7 +422,7 @@ compute.aggite2 <- function(MP,
         dynamic.inf.func <- replicate(biters, {
           random_draws <- sapply(1:sum(epos), function(j) stats::rnorm(1, mean = dynamic.att.e[which(epos)][j], sd = dynamic.se.e[which(epos)][j]))
           sd.e <- stats::sd(random_draws)/sqrt(sum(epos))
-          sum((pgg/sum(pgg))*random_draws) + stats::rnorm(1,sd=sd.e)
+          sum((pgg[epos]/sum(pgg[epos]))*random_draws) + stats::rnorm(1,sd=sd.e)
         })
 
         dynamic.se <- stats::sd(dynamic.inf.func)
@@ -517,11 +517,11 @@ compute.aggite2 <- function(MP,
               sd.e <- stats::sd(random_draws)/sqrt(length(random_draws))
               sum(random_draws*pge) + stats::rnorm(1,sd=sd.e)
             })
-          }
 
-          se.e <- stats::sd(inf.func.e)
-          lci.e <- stats::quantile(inf.func.e,alp/2)
-          uci.e <- stats::quantile(inf.func.e,1-alp/2)
+            se.e <- stats::sd(inf.func.e)
+            lci.e <- stats::quantile(inf.func.e,alp/2)
+            uci.e <- stats::quantile(inf.func.e,1-alp/2)
+          }
           #list(inf.func=inf.func.e, se=se.e)
           list(inf.func=inf.func.e, se=se.e, lci=lci.e, uci=uci.e)
         })
@@ -601,7 +601,7 @@ compute.aggite2 <- function(MP,
         dynamic.inf.func <- replicate(biters, {
           random_draws <- sapply(1:sum(epos), function(j) stats::rnorm(1, mean = dynamic.att.e[which(epos)][j], sd = dynamic.se.e[which(epos)][j]))
           sd.e <- stats::sd(random_draws)/sqrt(sum(epos))
-          sum((pgg/sum(pgg))*random_draws) + stats::rnorm(1,sd=sd.e)
+          sum((pgg[epos]/sum(pgg[epos]))*random_draws) + stats::rnorm(1,sd=sd.e)
         })
 
         dynamic.se <- stats::sd(dynamic.inf.func)

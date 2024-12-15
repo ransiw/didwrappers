@@ -60,7 +60,7 @@ endt = Sys.time()
 print(paste("Time elapsed:",endt-startt,"seconds"))
 ```
 
-It takes quite a bit longer to do things at the county-level than at the group level, which is the year that minimum wage is raised. There are certain advantages to having the more disaggregate county-level object that `didwrappers:att_it` produces, particularly, if aggregation across other attributes are needed. 
+It takes quite a bit longer to do things at the county level than at the group level, which is the year that minimum wage is raised. There are certain advantages to having the more disaggregate county-level object that `didwrappers:att_it` produces, particularly, if aggregation across other attributes are needed. 
 
 The `didwrappers` package has a function to view this data as a data frame. It is similar to `summary` functionality in `did`, but handier if you wish to export the object as a data-frame than a list. Here are the first 5 records of the table.
 
@@ -87,7 +87,7 @@ group_effects_it <- didwrappers::aggite(out_it, type = "group")
 didwrappers::aggite_table(group_effects_it)
 ```
 
-The estimates produced by these packages are the same. The differences are in the standard errors, even though they both use simultaneous confidence intervals. The effect for year 2007 is now significant at the 5\% level. This isn't necessarily good or bad. As you will see, `didwrappers:aggite` standard errors are not always smaller than the `did::aggte` standard errors. 
+The estimates produced by these packages are the same. The differences are in the standard errors. The standard errors are smaller under the latter which uses a bootstrap in the second stage. This isn't always the case, however. 
 
 One more aggregation method before the end of this vignette. Going back to the group-time object, 
 
@@ -103,23 +103,23 @@ es_it <- didwrappers::aggite(out_it, type = "dynamic")
 didwrappers::aggite_table(es_it)
 ```
 
-The standard errors for time lag 1 are larger here than with the `did` package. If you are curious, you can go look in the object produced by `attit` to see which unit might be causing this. I do a bit more sleuthing in a different vignette. 
+Again the differences are in the standard errors, which are smaller under the latter algorithm. But the substantive results are the same. 
 
 Let's now look at the overall post-treatment effect. Different aggregations give different effects. Starting with the outputs of `did`,
 
 ```{r}
-paste("Overall effect from group aggregation is",group_effects$overall.att)
-paste("Overall effect from dynamic aggregation is",es$overall.att)
+paste("Overall effect from group aggregation is",round(group_effects$overall.att,3))
+paste("Overall effect from dynamic aggregation is",round(es$overall.att,3))
 ```
 
 For the outputs of `didwrappers`,
 
 ```{r}
-paste("Overall effect from group aggregation is",group_effects_it$overall.att)
-paste("Overall effect from dynamic aggregation is",es_it$overall.att)
+paste("Overall effect from group aggregation is", round(group_effects_it$overall.att,3))
+paste("Overall effect from dynamic aggregation is",round(es_it$overall.att,3))
 ```
 
-They are the same here. This is not surprising because the mid-level aggregations were also the same. 
+They are not the same, but are the same sign. The differences are in the weighting, which is slightly different across the two algorithms and even across the aggregation schemes.  
 
 For 95\% confidence intervals, starting with the `did` objects:
 
@@ -131,9 +131,12 @@ paste("CI for overall effect from dynamic aggregation is","[",round(es$overall.a
 Using the `didwrappers` object,
 
 ```{r}
-paste("CI for overall effect from group aggregation is","[",round(group_effects_it$overall.att-1.96*group_effects_it$overall.se,3),",",round(group_effects_it$overall.att+1.96*group_effects_it$overall.se,3),"]")
-paste("CI for overall effect from dynamic aggregation is","[",round(es_it$overall.att-1.96*es_it$overall.se,3),",",round(es_it$overall.att+1.96*es_it$overall.se,3),"]")
+paste("CI for overall effect from group aggregation is","[",round(group_effects_it$overall.lci,3),",",round(group_effects_it$overall.uci,3),"]")
+paste("CI for overall effect from dynamic aggregation is","[",round(es_it$overall.lci,3),",",round(es_it$overall.uci,3),"]")
 ```
+
+The overall dynamic effects are not significant under the latter algorithm, despite all of the component dynamic effects being so. 
+
 
 The results presented were for an unconditional differences-in-difference. But unconditional results might be misleading, because the treatment and control groups are too different. In such cases, re-weighting the control units so that they look similar is one way to proceed. This is the snippet that would implement a weighting algorithm in the `did` package.
 
@@ -163,4 +166,6 @@ out_it_lpop <- didwrappers::att_it(yname = "lemp",
 
 Even when the group-level algorithm doesn't have overlap violations, the unit-level algorithm does. The default setting is to remove the violating units, but this can be changed by setting `overlap = "retain"` in the initial `att_it` call. The unit that the overlap violation occurred at has the lowest population of all the counties in the sample. For such a violation to occur at the group level, the counties treated at a time must have a lower average population than all the untreated counties. 
 
-Whether aggregation should be at the group-level or the unit-level should come down to the nature of the data. If there are many units, and there is reason to think there is not much heterogeneity within the group, the group level algorithm is ideal. If there are a few units, such as with cross-country studies, or the units that get treated at the same time are sufficiently different, the unit-level algorithm is better. 
+Whether aggregation should be at the group-level or the unit-level should come down to the nature of the data. For example, if there are many similar units, a group level algorithm is ideal for its speed and statistical properties. If there are a few heterogeneous units, and only few will have good comparisons, then a unit-level algorithm may do better. Analysts may use the unit-level algorithm as a complement to diagnose outliers that are obscured by a group-level algorithm. 
+
+

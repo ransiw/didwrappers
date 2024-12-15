@@ -70,13 +70,29 @@ dynamic = didwrappers::aggite(out_it, type="dynamic")
 didwrappers::aggite_table(dynamic)
 ```
 
-It also gives us placebo trends. 
+It also gives us placebo trends. All the post-treatment effects are negative. But, the immediate placebo effect is also negative, which says that the counties that raised their minimum wage was already seeing a drop in teen employment. This does not necessarily imply that we should discard the post-treatment effects as reflecting a negative teen employment trend that began before the minimum wage law. Yet, it requires caution and further investigation. 
 
-We can also retrieve the overall effect and standard error from this same object.
+We may consider weighting the estimates by population of the county,
+
+```{r}
+out_it_weight <- didwrappers::att_it(yname = "lemp",
+              gname = "first.treat",
+              idname = "countyreal",
+              tname = "year",
+              data = mpdta,
+              weightsname = "lpop",
+              weightfs = TRUE
+              )
+dynamic_weight = didwrappers::aggite(out_it_weight, type="dynamic")
+didwrappers::aggite_table(dynamic_weight)
+```
+When weighted by population, all placebo tests are insignificant, but so is the immediate post-treatment effect. All other post-treatment effects are significantly different from zero. 
+
+We can also retrieve the overall effect from these same objects.
 
 ```{r}
 dynamic$overall.att
-dynamic$overall.se
+dynamic_weight$overall.att
 ```
 
 
@@ -109,7 +125,7 @@ dynamic_lpop = didwrappers::aggite(out_it_lpop, type="dynamic", na.rm = TRUE)
 didwrappers::aggite_table(dynamic_lpop)
 ```
 
-The estimates are a little different from the unconditional version. But the substantive conclusions made would remain the same. 
+The estimates are a little different from the unconditional version. But the substantive conclusions made would remain the same. The placebo tests are all insignificant.
 
 Another option with the `didwrappers` package is that you can also choose an aggregation level based on a different variable. I'll create such a variable out of the `lpop` variable. 
 
@@ -118,15 +134,17 @@ mpdta$lpop2 = round(mpdta$lpop)
 table(mpdta[mpdta$first.treat>0,"lpop2"])
 ```
 
-There are 8 population categories in the treatment set, but the category 0, 1, and 7 have 3 or less units. If we want to aggregate to these new population categories, we can go to the `att_it` function's `customnames` option. I'll do it as an unconditional difference-in-difference, but you can do a conditional one with the `xformla` option.
+There are 8 population categories in the treatment set, but the category 0, 1, and 7 have 3 or less units. 
+
+We may want to compare counties of similar population to each other. Weighting was one way to do that, but another is to do compared within the population category of population size. The `cohort` feature is the one to do that. 
 
 
 ```{r}
-out_it_custom <- didwrappers::att_it(yname = "lemp",
+out_it_cohort <- didwrappers::att_it(yname = "lemp",
               gname = "first.treat",
               idname = "countyreal",
               tname = "year",
-              customnames = "lpop2",
+              cohort = "lpop2",
               data = mpdta
               )
 ```
@@ -134,8 +152,8 @@ out_it_custom <- didwrappers::att_it(yname = "lemp",
 Aggregating by population level,
 
 ```{r}
-custom = didwrappers::aggite(out_it_custom, type="lpop2")
-didwrappers::aggite_table(custom)
+cohort = didwrappers::aggite(out_it_cohort, type="lpop2")
+didwrappers::aggite_table(cohort)
 ```
 
 The effect is positive for the populations in bucket 0, 1, and 7, but these are also the same ones that we didn't have enough treatment units of. So, they may not be representative of those population levels. 
