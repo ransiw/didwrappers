@@ -7,7 +7,7 @@
 aggite_table(AGGITE)
 }
 \arguments{
-\item{AGGITE}{an object of class AGGITEobj that collects the results from a \code{aggite()} call}
+\item{AGGITE}{an object of class AGGITEobj that collects the results from a \code{aggite()} or \code{aggite2()} call}
 }
 \value{
 a data-frame with the aggregation type \code{egt},

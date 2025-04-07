@@ -31,6 +31,8 @@ compute.att_it <- function(dp) {
   overlap <- dp$overlap
   base_period <- dp$base_period
   panel <- dp$panel
+  fixedbase <- dp$fixedbase
+  nobase <- dp$nobase
   print_details <- dp$print_details
   control_group <- dp$control_group
   anticipation <- dp$anticipation
@@ -56,7 +58,7 @@ compute.att_it <- function(dp) {
   tlist.length <- length(tlist)
   tfac <- 0
 
-  if (base_period != "universal") {
+  if (base_period == "varying") {
     tlist.length <- tlist.length - 1
     tfac <- 1
   }
@@ -112,6 +114,12 @@ compute.att_it <- function(dp) {
         pret <- utils::tail(which( (tlist+anticipation) < glist[g]),1)
       }
 
+      # fixed base period
+      if (!is.null(fixedbase)){
+        # fix the base period to the value in fixedbase
+        pret <- 1
+      }
+
       # use "not yet treated as control"
       # that is, never treated + units that are eventually treated,
       # but not treated by the current period (+ anticipation)
@@ -145,7 +153,17 @@ compute.att_it <- function(dp) {
       # and break without computing anything
       if (base_period == "universal") {
         if (tlist[pret] == tlist[(t+tfac)]) {
-          attgt.list[[counter]] <- list(att=0, id=idlist[g], group=glist[g], year=tlist[(t+tfac)],ipwqual=NA,attcalc=NA, post=0, count=0)
+          attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=0, attcalc = NA, count=0)
+          inffunc[,counter] <- rep(0,n)
+          counter <- counter+1
+          next
+        }
+      }
+
+      # similarly for a fixedbase
+      if (!is.null(fixedbase)) {
+        if (tlist[pret] == tlist[(t+tfac)]) {
+          attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=0, attcalc = NA, count=0)
           inffunc[,counter] <- rep(0,n)
           counter <- counter+1
           next
@@ -167,13 +185,18 @@ compute.att_it <- function(dp) {
       # total number of units (not just included in G or C)
       disdat <- data[data[,tname] == tlist[t+tfac] | data[,tname] == tlist[pret],]
 
+      # label the pre- and the post-
+      disdat$.pre <- as.numeric(disdat[,tname] == tlist[pret])
+
 
       n0 <- nrow(disdat)
 
       # if cohort is not NULL keep to the cohort that matters
 
       if (!is.null(cohort)){
-        disdat <- disdat[disdat[,cohort]==cohort0,]
+        precohort_ids = disdat[,idname][disdat[,cohort]==cohort0 & disdat$.pre==1]
+        disdat <- disdat[disdat[,idname] %in% precohort_ids,]
+        n0 <- nrow(disdat)
       }
 
       # pick up the indices for units that will be used to compute ATT(g,t)
@@ -183,18 +206,15 @@ compute.att_it <- function(dp) {
       # group in that period here
       rightids <- disdat[,idname][ disdat$.G==1 | disdat$.C==1]
 
-      # rightids should be observed pre-treatment
+      # rightids should be observed pre-treatment (imposing same composition on both sides)
       table_rightids <- table(rightids)
 
       rightids <- rightids[rightids %in% names(table_rightids[table_rightids==2])]
 
-
-      # this is the fix for unbalanced panels; 2nd criteria shouldn't do anything
-      # with true repeated cross sections, but should pick up the right time periods
-      # only with unbalanced panel
+      # pick up the relevant ids
       disidx <- (data[,idname] %in% rightids) & ( (data[,tname] == tlist[t+tfac]) | (data[,tname]==tlist[pret]))
 
-      # pick up the data that will be used to compute ATT(g,t)
+      # pick up the data that will be used to compute ATT(i,t)
       disdat <- data[disidx,]
 
       # drop missing factors
@@ -205,7 +225,7 @@ compute.att_it <- function(dp) {
       C <- disdat$.C
       Y <- disdat[,yname]
       post <- 1*(disdat[,tname] == tlist[t+tfac])
-      # num obs. for computing ATT(g,t), have to be careful here
+      # num obs. for computing ATT(i,t)
       n1 <- sum(G+C)
       w <- disdat$.w
 
@@ -262,6 +282,10 @@ compute.att_it <- function(dp) {
       # in .y1, but if we are in a pre-treatment period with a universal
       # base period, then the "base period" is actually the later period
       Ypre <- if(tlist[(t+tfac)] > tlist[pret]) disdat$.y0 else disdat$.y1
+      if (nobase){
+        Ypre <- 0*Ypre
+      }
+
       Ypost <- if(tlist[(t+tfac)] > tlist[pret]) disdat$.y1 else disdat$.y0
       w <- disdat$.w
 
@@ -342,7 +366,7 @@ compute.att_it <- function(dp) {
 
 
       #-----------------------------------------------------------------------------
-      # code for actually computing att(g,t)
+      # code for actually computing ATT(i,t)
       #-----------------------------------------------------------------------------
 
       if (inherits(est_method,"function")) {
@@ -403,7 +427,7 @@ compute.att_it <- function(dp) {
 
 
       # save it in influence function matrix
-      # inffunc[g,t,] <- inf.func
+      # inffunc[i,t,] <- inf.func
       inffunc[,counter] <- inf.func
 
       # update counter

@@ -23,6 +23,8 @@ pre_process_did_i <- function(yname,
                              customnames = NULL,
                              data,
                              panel = TRUE,
+                             fixedbase = NULL,
+                             nobase = FALSE,
                              control_group = c("nevertreated","notyettreated"),
                              anticipation = 0,
                              weightsname = NULL,
@@ -68,13 +70,6 @@ pre_process_did_i <- function(yname,
   # cohort or customnames cannot be any of group dynamic, simple, unit, calendar
   if (sum(c(cohort,customnames) %in% c("group", "dynamic", "simple", "unit", "calendar"))>0) stop("one of cohort or customnames is a forbidden name")
 
-
-  # make sure idname is unique in each period observation
-  ## # Check if idname is unique by tname
-  ## n_id_year = all( table(data[, idname], data[, tname]) <= 1)
-  ## if (! n_id_year) stop("The value of idname must be the unique (by tname)")
-
-
   # put in blank xformla if no covariates
   if (is.null(xformla)) {
     xformla <- ~1
@@ -84,7 +79,7 @@ pre_process_did_i <- function(yname,
   data <- cbind.data.frame(data[,c(idname, tname, yname, gname, weightsname, clustervars,cohort,customnames)], stats::model.frame(xformla, data=data, na.action=stats::na.pass))
 
 
-  # check if any covariates were missing
+  # check if any rows have missing values
   n_orig <- nrow(data)
   data <- data[stats::complete.cases(data),]
   n_diff <- n_orig - nrow(data)
@@ -92,17 +87,23 @@ pre_process_did_i <- function(yname,
     warning(paste0("dropped ", n_diff, " rows from original data due to missing data"))
   }
 
+  # if fixedbase is not NULL remove all observations that precede fixedbase
+  if (!is.null(fixedbase)) {
+    n_orig <- nrow(data)
+    data <- data[data[,tname] >= fixedbase, ]
+    n_diff <- n_orig - nrow(data)
+    if (n_diff != 0) {
+      warning(paste0("dropped ", n_diff, " rows that preceded the fixedbase"))
+    }
+  }
 
   # weights if null
   ifelse(is.null(weightsname), w <- rep(1, nrow(data)), w <- data[,weightsname])
 
-  if (".w" %in% colnames(data)) stop("`did` tried to use column named \".w\" internally, but there was already a column with this name")
+  if (".w" %in% colnames(data)) stop("tried to use column named \".w\" internally, but there was already a column with this name")
   data$.w <- w
 
-  # Outcome variable will be denoted by y
-  # data$.y <- data[, yname]
 
-  # figure out the dates
   # list of dates from smallest to largest
   tlist <- unique(data[,tname])[order(unique(data[,tname]))]
 
@@ -127,9 +128,6 @@ pre_process_did_i <- function(yname,
     } else {
       # Drop all time periods with time periods >= latest treated
       data <- subset(data,(data[,tname] < (max(glist)-anticipation)))
-      # Replace last treated time with zero
-      # lines.gmax <- data[,gname]==max(glist, na.rm = TRUE)
-      # data[lines.gmax,gname] <- 0
 
       idtog <- data[, c(idname, gname)]
       idtog <- unique(idtog)
@@ -145,18 +143,14 @@ pre_process_did_i <- function(yname,
     }
   }
 
-  # Only the treated groups
   idtog <- idtog[idtog[,gname] > 0, ]
-  # glist <- glist[glist>0]
 
   # drop groups treated in the first period or before
   first.period <- tlist[1]
   idtog <- idtog[idtog[,gname] > first.period + anticipation, ]
   glist <- idtog[,gname]
-  # glist <- glist[glist > first.period + anticipation]
 
   # check for groups treated in the first period and drop these
-  # nfirstperiod <- length(unique(data[ !((data[,gname] > first.period) | (data[,gname]==0)), ] )[,idname])
   treated_first_period <- ( data[,gname] <= first.period ) & ( !(data[,gname]==0) )
   treated_first_period[is.na(treated_first_period)] <- FALSE
   nfirstperiod <- ifelse(panel, length(unique(data[treated_first_period,][,idname])), nrow(data[treated_first_period,]))
@@ -180,7 +174,7 @@ pre_process_did_i <- function(yname,
   #-----------------------------------------------------------------------------
   # if the customnames or cohort vary within unit issue an error to fix this
   #-----------------------------------------------------------------------------
-  customnames0 = c(customnames,cohort)
+  customnames0 = c(customnames)
 
   if (!is.null(customnames0)){
 
@@ -239,18 +233,11 @@ pre_process_did_i <- function(yname,
 
     n0 <- nrow(data[ data[,tname]==tlist[1], ])
 
-    # slow, repeated check here...
-    ## # check that first.treat doesn't change across periods for particular individuals
-    ## if (!all(sapply( split(data, data[,idname]), function(df) {
-    ##   length(unique(df[,gname]))==1
-    ## }))) {
-    ##   stop("The value of gname must be the same across all periods for each particular individual.")
-    ## }
 
   }
 
   #-----------------------------------------------------------------------------
-  # code for setting up unbalanced panel: I do not consider repeated cross-sections
+  # code for setting up unbalanced panel: No repeated cross-sections
   #-----------------------------------------------------------------------------
   if (!panel) {
 
@@ -269,34 +256,13 @@ pre_process_did_i <- function(yname,
     # n-row data.frame to hold the influence function
     data$.rowid <- data[, idname]
     rowname <- ".rowid"
-    # if (true_repeated_cross_sections) {
-    #   data$.rowid <- seq(1:nrow(data))
-    #   rowname <- ".rowid"
-    # } else {
-    #   # set rowid to idname for repeated cross section/unbalanced
-    #   data$.rowid <- data[, idname]
-    #   rowname <- ".rowid"
-    # }
 
     # n0 is unique number of cross section observations
     n0 <- length(unique(data[,rowname]))
   }
 
-  ## # Update tlist and glist because of data handling
-  ## # figure out the dates
-  ## # list of dates from smallest to largest
-  ## tlist <- unique(data[,tname])[order(unique(data[,tname]))]
-  ## # list of treated groups (by time) from smallest to largest
-  ## glist <- unique(data[,gname])[order(unique(data[,gname]))]
 
-  ## # Only the treated groups
-  ## glist <- glist[glist>0]
-
-  ## # drop groups treated in the first period or before
-  ## first.period <- tlist[1]
-  ## glist <- glist[glist > first.period + anticipation]
-
-  # Check if groups is empty (usually a problem with the way people defined groups)
+  # Check if groups is empty (usually a problem with defined groups)
   if(length(glist)==0){
     stop("No valid groups. The variable in 'gname' should be expressed as the time a unit is first treated (0 if never-treated).")
   }
@@ -370,6 +336,8 @@ pre_process_did_i <- function(yname,
                    overlap=overlap,
                    base_period=base_period,
                    panel=panel,
+                   fixedbase = fixedbase,
+                   nobase = nobase,
                    n=n0,
                    nG=nG,
                    nT=nT,

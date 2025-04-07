@@ -14,6 +14,8 @@ pre_process_did_i(
   customnames = NULL,
   data,
   panel = TRUE,
+  fixedbase = NULL,
+  nobase = FALSE,
   control_group = c("nevertreated", "notyettreated"),
   anticipation = 0,
   weightsname = NULL,
@@ -45,7 +47,8 @@ This should be a positive number for all observations in treated groups.
 It defines which "treatment-group" a unit belongs to. A zero (0) value is considered to be a unit that is never treated.
 A unit treated after the last period in \code{tname} is also considered never treated.}
 
-\item{cohort}{the name of blocking variable in \code{data}, specified if comparisons should only be within cohort.}
+\item{cohort}{the name of blocking variable in \code{data}, specified if comparisons should only be within pre-treatment cohort.
+If blocking is required across the entire trajectory, this must be imposed on the input to \code{data} prior to running this function.}
 
 \item{xformla}{a formula for the covariates to include in the
 model.  It should be of the form \code{~ X1 + X2}. An intercept is automatically included. Default
@@ -55,7 +58,11 @@ is NULL which is equivalent to \code{xformla=~1}.}
 
 \item{data}{the name of the data.frame that contains the data.}
 
-\item{panel}{if panel is TRUE, the data is coerced to a balanced panel on the. Default is TRUE.}
+\item{panel}{if TRUE, the data is coerced to a balanced panel on the. Default is TRUE.}
+
+\item{fixedbase}{if the user needs to fix a base period to be a particular period, use this option. Must be numeric. Default is NULL.}
+
+\item{nobase}{if TRUE, the baseline vectors are set to zero. Estimates are not differences-in-differences. Default is FALSE.}
 
 \item{control_group}{which units to use the control group.
 The default is "nevertreated" which sets the control group
@@ -81,26 +88,13 @@ is FALSE so that only the aggite step is weighted unless specified.}
 
 \item{alp}{the significance level, default is 0.05}
 
-\item{bstrap}{boolean for whether or not to compute standard errors using
-the multiplier bootstrap.  If standard errors are clustered, then one
-must set \code{bstrap=TRUE}. Default is \code{TRUE} (in addition, cband
-is also by default \code{TRUE} indicating that uniform confidence bands
-will be returned.  If bstrap is \code{FALSE}, then analytical
-standard errors are reported.}
+\item{bstrap}{a deprecated option. Only analytical standard errors are reported.}
 
-\item{cband}{boolean for whether or not to compute a uniform confidence
-band that covers all of the group-time average treatment effects
-with fixed probability \code{1-alp}.  In order to compute uniform confidence
-bands, \code{bstrap} must also be set to \code{TRUE}.  The default is
-\code{TRUE}.}
+\item{cband}{a deprecated option. Does not produce uniform confidence bands.}
 
-\item{biters}{the number of bootstrap iterations to use.  The default is 1000,
-and this is only applicable if \code{bstrap=TRUE}.}
+\item{biters}{a deprecated option, also see \code{bstrap}.}
 
-\item{clustervars}{a vector of variables names to cluster on.  At most, there
-can be two variables (otherwise will throw an error) and one of these
-must be the same as idname which allows for clustering at the individual
-level. By default, we cluster at individual level (when \code{bstrap=TRUE})}
+\item{clustervars}{a deprecated option, also see \code{bstrap}.}
 
 \item{est_method}{the method to compute group-time average treatment effects.  The default is "dr" which uses the doubly robust
 approach in the \code{DRDID} package.  Other built-in methods
@@ -114,7 +108,7 @@ The other option, "retain" retains these units for inference.}
 \item{base_period}{whether to use a "varying" base period or a
 "universal" base period for placebo tests. A varying base period calculates a pseudo-ATT for every two consecutive pre-treatment periods.
 A universal base period fixes the base period to always be (g-anticipation-1).  Either choice results in the same
-post-treatment estimates of ATT(g,t)'s.}
+post-treatment estimates of ATT(i,t)'s.}
 
 \item{print_details}{whether or not to show details/progress of computations.
 Default is \code{FALSE}.}

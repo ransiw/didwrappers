@@ -59,12 +59,11 @@ all lengths of exposure are computed.}
 
 \item{bstrap}{This is always TRUE. Turning off makes no difference in the second-step.}
 
-\item{biters}{The number of bootstrap iterations to use.  The default is the value set in the MP_i object,
-and this is only applicable if \code{bstrap=TRUE}.}
+\item{biters}{The number of bootstrap iterations to use.  The default is the value set in the MP_i object.}
 
 \item{cband}{Does not apply. All confidence intervals are bootstrapped confidence intervals in the second-step.}
 
-\item{alp}{the significance level, default is value set in the MP object.}
+\item{alp}{the significance level, default is value set in the MP_i object.}
 
 \item{clustervars}{ignored in this function.}
 

@@ -53,8 +53,8 @@ time period).}
 \item{type2}{the second type of aggregator}
 
 \item{egt}{Holds the length of exposure (for dynamic effects), the
-group (for selective treatment timing), the unit (for selective treatment),
-cohort (for cohort level effects), or the time period (for calendar
+group, the unit,
+cohort, custom aggregator, or the time period (for calendar
 time effects)}
 
 \item{egt2}{a second aggregation type to hold a secondary object, NULL if no such object}
@@ -67,11 +67,9 @@ time effects)}
 
 \item{uci.egt}{The upper confidence interval from the bootstrap}
 
-\item{crit.val.egt}{A critical value for computing uniform confidence
-bands for dynamic effects, selective treatment timing, or time period
-effects.}
+\item{crit.val.egt}{Always NULL because simultaneous option is turned off.}
 
-\item{inf.function}{The bootstrap draws specific to the egt}
+\item{inf.function}{The bootstrap draws specific to the egt. Name is carried over from the did package.}
 
 \item{min_e}{For event studies, this is the smallest event time to compute
 dynamic effects for.  By default, \code{min_e = -Inf} so that effects at

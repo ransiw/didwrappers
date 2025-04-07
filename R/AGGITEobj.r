@@ -10,18 +10,16 @@
 #' @param overall.lci The lower confidence interval of the overall ATT
 #' @param overall.uci The upper confidence interval of the overall ATT
 #' @param egt Holds the length of exposure (for dynamic effects), the
-#'  group (for selective treatment timing), the unit (for selective treatment),
-#'  cohort (for cohort level effects), or the time period (for calendar
+#'  group, the unit,
+#'  cohort, custom aggregator, or the time period (for calendar
 #'  time effects)
 #' @param egt2 a second aggregation type to hold a secondary object, NULL if no such object
 #' @param att.egt The ATT specific to egt
 #' @param se.egt The standard error specific to egt from the bootstrap
 #' @param lci.egt The lower confidence interval from the bootstrap
 #' @param uci.egt The upper confidence interval from the bootstrap
-#' @param crit.val.egt A critical value for computing uniform confidence
-#'  bands for dynamic effects, selective treatment timing, or time period
-#'  effects.
-#' @param inf.function The bootstrap draws specific to the egt
+#' @param crit.val.egt Always NULL because simultaneous option is turned off.
+#' @param inf.function The bootstrap draws specific to the egt. Name is carried over from the did package.
 #' @param DIDparams A DIDparams_i object
 #'
 #' @return an AGGITEobj
@@ -77,28 +75,3 @@ AGGITEobj <- function(overall.att = NULL,
   out
 }
 
-#' @title Summary Aggregate Treatment Effect Parameter Objects
-#'
-#' @description A function to summarize aggregated treatment effect parameters.
-#'
-#' @param object an \code{AGGITEobj} object
-#' @param ... other arguments
-#'
-# @export
-summary.AGGITEobj <- function(object, ...) {
-  print(paste0("Overall effects is", object$overall.att))
-  print(paste0("The confidence region corresponding to the specified level of significance is", object$overall.lci,"-", object$overall.uci))
-  print("Please use the function aggite_table() for intermediate results")
-}
-
-#' @title print.AGGITEobj
-#'
-#' @description prints value of a \code{AGGITEobj} object
-#'
-#' @param x a \code{AGGITEobj} object
-#' @param ... extra arguments
-#'
-# @export
-print.AGGITEobj <- function(x,...) {
-  summary.AGGITEobj(x,...)
-}

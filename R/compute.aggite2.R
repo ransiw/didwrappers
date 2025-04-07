@@ -82,8 +82,8 @@ compute.aggite2 <- function(MP,
   MP$DIDparams$cband <- cband
   dp <- MP$DIDparams
 
-  if(!(type %in% c("group", cohort, customnames))) {
-    stop('`type` must be one of c("group", cohort, or custom aggregators)')
+  if(!(type %in% c("group",customnames))) {
+    stop('`type` must be one of c("group", or custom aggregators)')
   }
 
   if(!(type2 %in% c("dynamic"))) {
@@ -125,7 +125,7 @@ compute.aggite2 <- function(MP,
       glist <- sort(unique(group))
     }
 
-    if(type %in% c(cohort, customnames)){
+    if(type %in% c(customnames)){
       idlist <- sort(unique(id))
       # Get the units that have some non-missing ATT(g,t) in post-treatmemt periods
       gnotna <- sapply(idlist, function(g) {
@@ -157,7 +157,7 @@ compute.aggite2 <- function(MP,
 
 
   # if the type is a cohort, create cohort variable of the size of ATT(g,t) cohortlist and check that each unit is uniquely mapped to a cohort
-  if (type %in% c(customnames,cohort)){
+  if (type %in% c(customnames)){
     cohortlist <- unique(data[,c(idname,type)])
     idcohort <- data.frame(id = idlist)
     colnames(idcohort) <- idname
@@ -235,15 +235,6 @@ compute.aggite2 <- function(MP,
   # n x 1 vector of group variable
   G <-  unlist(lapply(dta[,gname], orig2t))
 
-  # # since estimates are at the unit-time level, aggregation into simple does not require reweighting to group size
-  # pg <- sapply(idlist, function(g) mean(weights.ind*(dta[,idname]==g)))
-  #
-  # # length of this is equal to number of groups
-  # pgg <- pg
-  #
-  # # same but length is equal to the number of ATT(g,t)
-  # pg <- pg[match(group, glist)]
-
 
   #-----------------------------------------------------------------------------
   # Compute the event-study estimators
@@ -281,15 +272,14 @@ compute.aggite2 <- function(MP,
 
     if (type == "group"){
 
-      # we can work in overall probabilities because conditioning will cancel out
-      # cause it shows up in numerator and denominator
-      pg <- sapply(originalglist, function(g) mean(dta[dta[,gname] %in% g,".w"]))
+      # change the pg to pi to extract the weights for the treated groups
+      pg <- dta[dta[,idname] %in% idlist,".w"]
 
-      # length of this is equal to number of groups
+      # length of this is equal to number of treated units or number of units in idlist
       pgg <- pg
 
       # same but length is equal to the number of ATT(g,t)
-      pg <- pg[match(group, glist)]
+      pg <- pg[match(id, idlist)]
 
       # compute atts that are specific to each group and event time
       egtlist = lapply(glist, function(g) {
@@ -327,13 +317,7 @@ compute.aggite2 <- function(MP,
             uci.e <- NA
           } else{
             pge <- pg[whiche]/(sum(pg[whiche]))
-            # wif.e <- wif(whiche, pg, weights.ind, G, group)
-            # inf.func.e <- as.numeric(get_agg_inf_func(att=att,
-            #                                           inffunc1=inffunc1,
-            #                                           whichones=whiche,
-            #                                           weights.agg=pge,
-            #                                           wif=NULL))
-            # se.e <- getSE(inf.func.e, dp)
+
             inf.func.e <- replicate(biters, {
               random_draws <- sapply(1:length(whiche), function(j) stats::rnorm(1, mean = att[whiche][j], sd = se[whiche][j]))
               sd.e <- stats::sd(att[whiche])/sqrt(length(att[whiche]))
@@ -343,7 +327,7 @@ compute.aggite2 <- function(MP,
             lci.e <- stats::quantile(inf.func.e,alp/2)
             uci.e <- stats::quantile(inf.func.e,1-alp/2)
           }
-          # list(inf.func=inf.func.e, se=se.e)
+
           list(inf.func=inf.func.e, se=se.e, lci=lci.e, uci=uci.e)
         })
       })
@@ -358,29 +342,6 @@ compute.aggite2 <- function(MP,
 
       dynamic.inf.func.e <- simplify2array(BMisc::getListElement(dynamic.se.inner, "inf.func"))
 
-      # dynamic.crit.val <- stats::qnorm(1 - alp/2)
-      # if(dp$cband==TRUE){
-      #   if(dp$bstrap == FALSE){
-      #     warning('Used bootstrap procedure to compute simultaneous confidence band')
-      #   }
-      #   dynamic.crit.val <- did::mboot(dynamic.inf.func.e, dp)$crit.val
-      #
-      #   if(is.na(dynamic.crit.val) | is.infinite(dynamic.crit.val)){
-      #     warning('Simultaneous critival value is NA. This probably happened because we cannot compute t-statistic (std errors are NA). We then report pointwise conf. intervals.')
-      #     dynamic.crit.val <- stats::qnorm(1 - alp/2)
-      #     dp$cband <- FALSE
-      #   }
-      #
-      #   if(dynamic.crit.val < stats::qnorm(1 - alp/2)){
-      #     warning('Simultaneous conf. band is somehow smaller than pointwise one using normal approximation. Since this is unusual, we are reporting pointwise confidence intervals')
-      #     dynamic.crit.val <- stats::qnorm(1 - alp/2)
-      #     dp$cband <- FALSE
-      #   }
-      #
-      #   if(dynamic.crit.val >= 7){
-      #     warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
-      #   }
-      # }
 
       # get overall average treatment effect
       # by averaging over positive dynamics
@@ -404,14 +365,6 @@ compute.aggite2 <- function(MP,
       pgg <- c(pgg)
 
       dynamic.att <- sum(dynamic.att.e[epos]*pgg[epos])/sum(pgg[epos])
-      # dynamic.inf.func <- get_agg_inf_func(att=dynamic.att.e[epos],
-      #                                      inffunc1=as.matrix(dynamic.inf.func.e[,epos]),
-      #                                      whichones=(1:sum(epos)),
-      #                                      weights.agg=pgg[epos]/sum(pgg[epos]),
-      #                                      wif=NULL)
-      #
-      # dynamic.inf.func <- as.numeric(dynamic.inf.func)
-      # dynamic.se <- getSE(dynamic.inf.func, dp)
 
       if (sum(epos)<2) {
         dynamic.inf.func <- NA
@@ -440,7 +393,7 @@ compute.aggite2 <- function(MP,
                        overall.uci = dynamic.uci,
                        type=type,
                        type2=type2,
-                       egt= unlist(BMisc::getListElement(egtlist, "egt")),
+                       egt= sapply(unlist(BMisc::getListElement(egtlist, "egt")),t2orig),
                        egt2 = unlist(BMisc::getListElement(egtlist, "egt2")),
                        att.egt=dynamic.att.e,
                        se.egt=dynamic.se.e,
@@ -457,16 +410,16 @@ compute.aggite2 <- function(MP,
       ))
     }
 
-    if (type %in% c(cohort, customnames)){
+    if (type %in% c(customnames)){
 
-      # weights
-      pg <- sapply(cohortlist, function(g) mean(dta[dta[,type] %in% g,".w"]))
+      # change the pg to pi to extract the weights for the treated groups
+      pg <- dta[dta[,idname] %in% idlist,".w"]
 
       # length of this is equal to number of treated units or number of units in idlist
       pgg <- pg
 
-      # same but length is equal to the number of ATT(g,t) shown by group
-      pg <- pg[match(ccohort, cohortlist)]
+      # same but length is equal to the number of ATT(g,t)
+      pg <- pg[match(id, idlist)]
 
       # compute atts that are specific to each group and event time
       egtlist = lapply(cohortlist, function(g) {
@@ -504,13 +457,6 @@ compute.aggite2 <- function(MP,
             uci.e <- NA
           } else{
             pge <- pg[whiche]/(sum(pg[whiche]))
-            # wif.e <- wif(whiche, pg, weights.ind, G, group)
-            # inf.func.e <- as.numeric(get_agg_inf_func(att=att,
-            #                                           inffunc1=inffunc1,
-            #                                           whichones=whiche,
-            #                                           weights.agg=pge,
-            #                                           wif=NULL))
-            # se.e <- getSE(inf.func.e, dp)
 
             inf.func.e <- replicate(biters, {
               random_draws <- sapply(1:length(whiche), function(j) stats::rnorm(1, mean = att[whiche][j], sd = se[whiche][j]))
@@ -537,30 +483,6 @@ compute.aggite2 <- function(MP,
 
       dynamic.inf.func.e <- simplify2array(BMisc::getListElement(dynamic.se.inner, "inf.func"))
 
-      # dynamic.crit.val <- stats::qnorm(1 - alp/2)
-      # if(dp$cband==TRUE){
-      #   if(dp$bstrap == FALSE){
-      #     warning('Used bootstrap procedure to compute simultaneous confidence band')
-      #   }
-      #   dynamic.crit.val <- did::mboot(dynamic.inf.func.e, dp)$crit.val
-      #
-      #   if(is.na(dynamic.crit.val) | is.infinite(dynamic.crit.val)){
-      #     warning('Simultaneous critival value is NA. This probably happened because we cannot compute t-statistic (std errors are NA). We then report pointwise conf. intervals.')
-      #     dynamic.crit.val <- stats::qnorm(1 - alp/2)
-      #     dp$cband <- FALSE
-      #   }
-      #
-      #   if(dynamic.crit.val < stats::qnorm(1 - alp/2)){
-      #     warning('Simultaneous conf. band is somehow smaller than pointwise one using normal approximation. Since this is unusual, we are reporting pointwise confidence intervals')
-      #     dynamic.crit.val <- stats::qnorm(1 - alp/2)
-      #     dp$cband <- FALSE
-      #   }
-      #
-      #   if(dynamic.crit.val >= 7){
-      #     warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
-      #   }
-      # }
-
       # get overall average treatment effect
       # by averaging over positive dynamics
       epos <- (unlist(BMisc::getListElement(egtlist, "egt2")) >= 0 & !is.na(dynamic.att.e))
@@ -583,14 +505,6 @@ compute.aggite2 <- function(MP,
       pgg <- c(pgg)
 
       dynamic.att <- sum(dynamic.att.e[which(epos)]*pgg[which(epos)])/sum(pgg[which(epos)])
-      # dynamic.inf.func <- get_agg_inf_func(att=dynamic.att.e[epos],
-      #                                      inffunc1=as.matrix(dynamic.inf.func.e[,epos]),
-      #                                      whichones=(1:sum(epos)),
-      #                                      weights.agg=pgg[epos]/sum(pgg[epos]),
-      #                                      wif=NULL)
-      #
-      # dynamic.inf.func <- as.numeric(dynamic.inf.func)
-      # dynamic.se <- getSE(dynamic.inf.func, dp)
 
       if (sum(epos)<2) {
         dynamic.inf.func <- NA
@@ -639,111 +553,5 @@ compute.aggite2 <- function(MP,
     }
 
 
-  }
-}
-
-#-----------------------------------------------------------------------------
-# Internal functions for getting standard errors
-#-----------------------------------------------------------------------------
-
-#' @title Compute extra term in influence function due to estimating weights
-#'
-#' @description A function to compute the extra term that shows up in the
-#'  influence function for aggregated treatment effect parameters
-#'  due to estimating the weights
-#'
-#' @param keepers a vector of indices for which group-time average
-#'  treatment effects are used to compute a particular aggregated parameter
-#' @param pg a vector with same length as total number of group-time average
-#'  treatment effects that contains the probability of being in particular group
-#' @param weights.ind additional sampling weights (nx1)
-#' @param G vector containing which group a unit belongs to (nx1)
-#' @param group vector of groups
-#'
-#' @return nxk influence function matrix
-#'
-#' @keywords internal
-wif <- function(keepers, pg, weights.ind, G, group) {
-  # note: weights are all of the form P(G=g|cond)/sum_cond(P(G=g|cond))
-  # this is equal to P(G=g)/sum_cond(P(G=g)) which simplifies things here
-
-  # effect of estimating weights in the numerator
-  if1 <- sapply(keepers, function(k) {
-    (weights.ind * 1*BMisc::TorF(G==group[k]) - pg[k]) /
-      sum(pg[keepers])
-  })
-  # effect of estimating weights in the denominator
-  if2 <- base::rowSums( sapply( keepers, function(k) {
-    weights.ind*1*BMisc::TorF(G==group[k]) - pg[k]
-  })) %*%
-    t(pg[keepers]/(sum(pg[keepers])^2))
-
-  # return the influence function for the weights
-  if1 - if2
-}
-
-
-#' @title Get an influence function for particular aggregate parameters
-#'
-#' @title This is a generic internal function for combining influence
-#'  functions across ATT(g,t)'s to return an influence function for
-#'  various aggregated treatment effect parameters.
-#'
-#' @param att vector of group-time average treatment effects
-#' @param inffunc1 influence function for all group-time average treatment effects
-#'  (matrix)
-#' @param whichones which elements of att will be used to compute the aggregated
-#'  treatment effect parameter
-#' @param weights.agg the weights to apply to each element of att(whichones);
-#'  should have the same dimension as att(whichones)
-#' @param wif extra influence function term coming from estimating the weights;
-#'  should be n x k matrix where k is dimension of whichones
-#'
-#' @return nx1 influence function
-#'
-#' @keywords internal
-get_agg_inf_func <- function(att, inffunc1, whichones, weights.agg, wif=NULL) {
-  # enforce weights are in matrix form
-  weights.agg <- as.matrix(weights.agg)
-
-  # multiplies influence function times weights and sums to get vector of weighted IF (of length n)
-  thisinffunc <- inffunc1[,whichones]%*%weights.agg
-
-  # Incorporate influence function of the weights
-  if (!is.null(wif)) {
-    thisinffunc <- thisinffunc + wif%*%as.matrix(att[whichones])
-  }
-
-  # return influence function
-  return(thisinffunc)
-}
-
-
-#' @title Take influence function and return standard errors
-#'
-#' @description Function to take an nx1 influence function and return
-#'  a standard error
-#'
-#' @param thisinffunc An influence function
-#' @inheritParams compute.aggite
-#'
-#' @return scalar standard error
-#'
-#' @keywords internal
-getSE <- function(thisinffunc, DIDparams=NULL) {
-  alp <- .05
-  bstrap <- FALSE
-  if (!is.null(DIDparams)) {
-    bstrap <- DIDparams$bstrap
-    alp <- DIDparams$alp
-    cband <- DIDparams$cband
-    n <- length(thisinffunc)
-  }
-
-  if (bstrap) {
-    bout <- did::mboot(thisinffunc, DIDparams)
-    return(bout$se)
-  } else {
-    return(sqrt( mean((thisinffunc)^2)/n ))
   }
 }

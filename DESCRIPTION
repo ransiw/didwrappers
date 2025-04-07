@@ -1,11 +1,11 @@
 Package: didwrappers
-Title: Expand Functionality of the R 'did' Package
+Title: Expands Functionality of the R 'did' Package
 Version: 1.1.0
 Authors@R: 
     person("Ransi", "Clark", , "t.ransi.weerasooriya@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0003-5574-3450"))
-Description: Calculates differences-in-differences estimates at the unit-level instead of the group-level, and allows for an expanded suite of aggregation methods, including on custom time-invariant variables.
-License: GPL-2 | file LICENSE
+Description: Differences-in-differences estimates are calculated at the unit-level instead of the group-level, allowing for an expanded suite of aggregation methods, including on custom time-invariant variables. This builds on the work by Callaway and Sant'Anna (2021, <doi:10.1016/j.jeconom.2020.12.001>).
+License: GPL-2
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2

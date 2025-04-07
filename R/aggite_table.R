@@ -1,6 +1,6 @@
 #' Issues tabulated aggite() results
 #'
-#' @param AGGITE an object of class AGGITEobj that collects the results from a `aggite()` call
+#' @param AGGITE an object of class AGGITEobj that collects the results from a `aggite()` or `aggite2()` call
 #'
 #' @return a data-frame with the aggregation type `egt`,
 #' the corresponding att calculation `att.egt`, standard errors `se.egt`, and confidence intervals.

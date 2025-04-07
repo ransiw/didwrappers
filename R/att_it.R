@@ -14,13 +14,16 @@
 #'  This should be a positive number for all observations in treated groups.
 #'  It defines which "treatment-group" a unit belongs to. A zero (0) value is considered to be a unit that is never treated.
 #'  A unit treated after the last period in `tname` is also considered never treated.
-#' @param cohort the name of blocking variable in `data`, specified if comparisons should only be within cohort.
+#' @param cohort the name of blocking variable in `data`, specified if comparisons should only be within pre-treatment cohort.
+#'  If blocking is required across the entire trajectory, this must be imposed on the input to `data` prior to running this function.
 #' @param xformla a formula for the covariates to include in the
 #'  model.  It should be of the form `~ X1 + X2`. An intercept is automatically included. Default
 #'  is NULL which is equivalent to `xformla=~1`.
 #' @param customnames the names of additional aggregation variables in `data`.
 #' @param data the name of the data.frame that contains the data.
-#' @param panel if panel is TRUE, the data is coerced to a balanced panel on the. Default is TRUE.
+#' @param panel if TRUE, the data is coerced to a balanced panel on the. Default is TRUE.
+#' @param fixedbase if the user needs to fix a base period to be a particular period, use this option. Must be numeric. Default is NULL.
+#' @param nobase if TRUE, the baseline vectors are set to zero. Estimates are not differences-in-differences. Default is FALSE.
 #' @param control_group which units to use the control group.
 #'  The default is "nevertreated" which sets the control group
 #'  to be the group of units that never participate in the
@@ -40,23 +43,10 @@
 #' @param weightfs boolean for whether the att's should be weighted. Default
 #' is FALSE so that only the aggite step is weighted unless specified.
 #' @param alp the significance level, default is 0.05
-#' @param bstrap boolean for whether or not to compute standard errors using
-#'  the multiplier bootstrap.  If standard errors are clustered, then one
-#'  must set `bstrap=TRUE`. Default is `TRUE` (in addition, cband
-#'  is also by default `TRUE` indicating that uniform confidence bands
-#'  will be returned.  If bstrap is `FALSE`, then analytical
-#'  standard errors are reported.
-#' @param cband boolean for whether or not to compute a uniform confidence
-#'  band that covers all of the group-time average treatment effects
-#'  with fixed probability `1-alp`.  In order to compute uniform confidence
-#'  bands, `bstrap` must also be set to `TRUE`.  The default is
-#' `TRUE`.
-#' @param biters the number of bootstrap iterations to use.  The default is 1000,
-#'  and this is only applicable if `bstrap=TRUE`.
-#' @param clustervars a vector of variables names to cluster on.  At most, there
-#'  can be two variables (otherwise will throw an error) and one of these
-#'  must be the same as idname which allows for clustering at the individual
-#'  level. By default, we cluster at individual level (when `bstrap=TRUE`)
+#' @param bstrap a deprecated option. Only analytical standard errors are reported.
+#' @param cband a deprecated option. Does not produce uniform confidence bands.
+#' @param biters a deprecated option, also see `bstrap`.
+#' @param clustervars a deprecated option, also see `bstrap`.
 #' @param est_method the method to compute group-time average treatment effects.  The default is "dr" which uses the doubly robust
 #' approach in the `DRDID` package.  Other built-in methods
 #' include "ipw" for inverse probability weighting (Hajek type) and "reg" for
@@ -67,7 +57,7 @@
 #' @param base_period whether to use a "varying" base period or a
 #'  "universal" base period for placebo tests. A varying base period calculates a pseudo-ATT for every two consecutive pre-treatment periods.
 #'  A universal base period fixes the base period to always be (g-anticipation-1).  Either choice results in the same
-#'  post-treatment estimates of ATT(g,t)'s.
+#'  post-treatment estimates of ATT(i,t)'s.
 #' @param print_details whether or not to show details/progress of computations.
 #'   Default is `FALSE`.
 #' @param pl whether or not to use parallel processing
@@ -77,8 +67,7 @@
 #' @export
 #'
 #' @examples
-#' # run the function with the default settings and default data
-#' attobject = att_it(yname = "y", tname = "time", gname = "treatg", idname ="unit", data = sim_data())
+#' attobject <- att_it(yname = "y", tname = "time", gname="treatg", idname="unit", data=sim_data())
 #'
 att_it <- function(yname,
                    tname,
@@ -89,6 +78,8 @@ att_it <- function(yname,
                    customnames = NULL,
                    data,
                    panel=TRUE,
+                   fixedbase=NULL,
+                   nobase=FALSE,
                    control_group=c("nevertreated","notyettreated"),
                    anticipation=0,
                    weightsname=NULL,
@@ -114,6 +105,8 @@ att_it <- function(yname,
                          customnames = customnames,
                          data=data,
                          panel=panel,
+                         fixedbase=fixedbase,
+                         nobase=nobase,
                          control_group=control_group,
                          anticipation=anticipation,
                          weightsname=weightsname,
@@ -151,71 +144,18 @@ att_it <- function(yname,
   attcalc <- attgt.results$attcalc
   count <- attgt.results$count
 
-  # analytical standard errors
-  # estimate variance
-  # this is analogous to cluster robust standard errors that
-  # are clustered at the unit level
+  # analytical covariance matrix
 
   n <- dp$n
   V <- Matrix::t(inffunc)%*%inffunc/n
-  # se <- sqrt(Matrix::diag(V)/n)
 
   # Zero standard error replaced by NA
   se[se <= sqrt(.Machine$double.eps)*10] <- NA
 
-  # # if clustering along another dimension...we require using the
-  # # bootstrap (in principle, could come up with analytical standard
-  # # errors here though)
-  # if ( (length(clustervars) > 0) & !bstrap) {
-  #   warning("clustering the standard errors requires using the bootstrap, resulting standard errors are NOT accounting for clustering")
-  # }
-  #
-  # # Identify entries of main diagonal V that are zero or NA
-  # zero_na_sd_entry <- unique(which(is.na(se)))
-  #
-  # # bootstrap variance matrix
-  # if (bstrap) {
-  #
-  #   bout <- did::mboot(inffunc, DIDparams=dp, pl=pl, cores=cores)
-  #   bres <- bout$bres
-  #
-  #   if(length(zero_na_sd_entry)>0) {
-  #     se[-zero_na_sd_entry] <- bout$se[-zero_na_sd_entry]
-  #   } else {
-  #     se <- bout$se
-  #   }
-  # }
-  # # Zero standard error replaced by NA
-  # se[se <= sqrt(.Machine$double.eps)*10] <- NA
+  ignore <- did::indicator(matrix(c(1,1,1,1),nrow=2),c(1,1))
 
-  #-----------------------------------------------------------------------------
-  # compute confidence intervals / bands
-  #-----------------------------------------------------------------------------
-
-  # # critical value from N(0,1), for pointwise
+  # set the critical value to NULL
   cval <- NULL
-  #
-  # # in order to get uniform confidence bands
-  # # HAVE to use the bootstrap
-  # if (bstrap){
-  #   if (cband) {
-  #     # for uniform confidence band
-  #     # compute new critical value
-  #     # see paper for details
-  #     bSigma <- apply(bres, 2,
-  #                     function(b) (stats::quantile(b, .75, type=1, na.rm = T) -
-  #                                    stats::quantile(b, .25, type=1, na.rm = T))/(stats::qnorm(.75) - stats::qnorm(.25)))
-  #
-  #     bSigma[bSigma <= sqrt(.Machine$double.eps)*10] <- NA
-  #
-  #     # sup-t confidence band
-  #     bT <- apply(bres, 1, function(b) max(abs(b/bSigma), na.rm = TRUE))
-  #     cval <- stats::quantile(bT, 1-alp, type=1, na.rm = T)
-  #     if(cval >= 7){
-  #       warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
-  #     }
-  #   }
-  # }
 
   return(MP_i(id=id ,group=group, t=tt, att=att, V_analytical=V, se=se, lci=lci, uci=uci, c=cval, inffunc=inffunc, n=n, alp = alp, ipwqual=ipwqual,attcalc=attcalc, count=count, DIDparams=dp))
 }

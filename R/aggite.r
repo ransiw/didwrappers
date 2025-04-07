@@ -34,11 +34,10 @@
 #' @param min_agg the minimum number of unit-time effects required for aggregation. Default is 2.
 #' @param na.rm Logical value if we are to remove missing Values from analyses. Defaults is FALSE.
 #' @param bstrap This is always TRUE. Turning off makes no difference in the second-step.
-#' @param biters The number of bootstrap iterations to use.  The default is the value set in the MP_i object,
-#'  and this is only applicable if `bstrap=TRUE`.
+#' @param biters The number of bootstrap iterations to use.  The default is the value set in the MP_i object.
 #'
 #' @param cband Does not apply. All confidence intervals are bootstrapped confidence intervals in the second-step.
-#' @param alp the significance level, default is value set in the MP object.
+#' @param alp the significance level, default is value set in the MP_i object.
 #' @param clustervars ignored in this function.
 #'
 #' @return An [`AGGITEobj`] object that holds the results from the

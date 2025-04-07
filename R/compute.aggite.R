@@ -81,8 +81,8 @@ compute.aggite <- function(MP,
   MP$DIDparams$cband <- cband
   dp <- MP$DIDparams
 
-  if(!(type %in% c("simple", "dynamic", "group", "unit", "calendar", cohort, customnames))) {
-    stop('`type` must be one of c("simple", "dynamic", "group", "unit", "calendar", cohort, or a custom aggregator)')
+  if(!(type %in% c("simple", "dynamic", "group", "unit", "calendar", customnames))) {
+    stop('`type` must be one of c("simple", "dynamic", "group", "unit", "calendar", or a custom aggregator)')
   }
 
   if(na.rm){
@@ -120,7 +120,7 @@ compute.aggite <- function(MP,
       glist <- sort(unique(group))
     }
 
-    if(type %in% c("unit", cohort, customnames)){
+    if(type %in% c("unit", customnames)){
       idlist <- sort(unique(id))
       # Get the units that have some non-missing ATT(g,t) in post-treatmemt periods
       gnotna <- sapply(idlist, function(g) {
@@ -152,7 +152,7 @@ compute.aggite <- function(MP,
 
 
   # if the type is a cohort, create cohort variable of the size of ATT(g,t) cohortlist and check that each unit is uniquely mapped to a cohort
-  if (type %in% c(cohort,customnames)){
+  if (type %in% c(customnames)){
     cohortlist <- unique(data[,c(idname,type)])
     idcohort <- data.frame(id = idlist)
     colnames(idcohort) <- idname
@@ -234,15 +234,6 @@ compute.aggite <- function(MP,
   # n x 1 vector of group variable
   G <-  unlist(lapply(dta[,gname], orig2t))
 
-  # # since estimates are at the unit-time level, aggregation into simple does not require reweighting to group size
-  # pg <- sapply(idlist, function(g) mean(weights.ind*(dta[,idname]==g)))
-  #
-  # # length of this is equal to number of groups
-  # pgg <- pg
-  #
-  # # same but length is equal to the number of ATT(g,t)
-  # pg <- pg[match(group, glist)]
-
   #-----------------------------------------------------------------------------
   # Compute the simple ATT summary
   #-----------------------------------------------------------------------------
@@ -267,18 +258,6 @@ compute.aggite <- function(MP,
 
     pgkeepers <- pg[keepers]/(sum(pg[keepers]))
 
-    # get the part of the influence function coming from estimated weights
-    # simple.wif <- wif(keepers, pg, weights.ind, G, group)
-
-    # get the overall influence function
-    # simple.if <- get_agg_inf_func(att=att,
-    #                               inffunc1=inffunc1,
-    #                               whichones=keepers,
-    #                               weights.agg=pg[keepers]/sum(pg[keepers]),
-    #                               wif=NULL)
-    # Make it as vector
-    # simple.if <- as.numeric(simple.if)
-
     if (length(keepers)<2){
       simple.if <- NA
       simple.se <- NA
@@ -295,15 +274,6 @@ compute.aggite <- function(MP,
       simple.lci <- stats::quantile(simple.if,alp/2)
       simple.uci <- stats::quantile(simple.if,1-alp/2)
     }
-
-    # get standard errors from overall influence function
-    # simple.se <- getSE(simple.if, dp)
-    # if(!is.na(simple.se)){
-    #   if(simple.se <= sqrt(.Machine$double.eps)*10) simple.se <- NA
-    # }
-    #
-    # simple.lci <- simple.att - stats::qnorm(1 - alp/2)*simple.se
-    # simple.uci <- simple.att + stats::qnorm(1 - alp/2)*simple.se
 
 
     return(AGGITEobj(overall.att = simple.att,
@@ -322,15 +292,14 @@ compute.aggite <- function(MP,
 
   if (type == "group") {
 
-    # we can work in overall probabilities because conditioning will cancel out
-    # cause it shows up in numerator and denominator
-    pg <- sapply(originalglist, function(g) mean(dta[dta[,gname] %in% g,".w"]))
+    # change the pg to pi to extract the weights for the treated groups
+    pg <- dta[dta[,idname] %in% idlist,".w"]
 
-    # length of this is equal to number of groups
+    # length of this is equal to number of treated units or number of units in idlist
     pgg <- pg
 
-    # same but length is equal to the number of ATT(i,t)
-    pg <- pg[match(group, glist)]
+    # same but length is equal to the number of ATT(g,t)
+    pg <- pg[match(id, idlist)]
 
     # get group specific ATTs
     # note: there are no estimated weights here
@@ -380,32 +349,6 @@ compute.aggite <- function(MP,
     # recover influence function separately by group
     selective.inf.func.g <- simplify2array(BMisc::getListElement(selective.se.inner, "inf.func"))
 
-    # use multiplier bootstrap (across groups) to get critical value
-    # for constructing uniform confidence bands
-    # selective.crit.val <- stats::qnorm(1 - alp/2)
-    # if(dp$cband==TRUE){
-    #   if(dp$bstrap == FALSE){
-    #     warning('Used bootstrap procedure to compute simultaneous confidence band')
-    #   }
-    #   selective.crit.val <- did::mboot(selective.inf.func.g, dp)$crit.val
-    #
-    #   if(is.na(selective.crit.val) | is.infinite(selective.crit.val)){
-    #     warning('Simultaneous critival value is NA. This probably happened because we cannot compute t-statistic (std errors are NA). We then report pointwise conf. intervals.')
-    #     selective.crit.val <- stats::qnorm(1 - alp/2)
-    #     dp$cband <- FALSE
-    #   }
-    #
-    #   if(selective.crit.val < stats::qnorm(1 - alp/2)){
-    #     warning('Simultaneous conf. band is somehow smaller than pointwise one using normal approximation. Since this is unusual, we are reporting pointwise confidence intervals')
-    #     selective.crit.val <- stats::qnorm(1 - alp/2)
-    #     dp$cband <- FALSE
-    #   }
-    #
-    #   if(selective.crit.val >= 7){
-    #     warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
-    #   }
-    #
-    # }
 
     # add a positional argument to notate the missings
     epos <- !is.na(selective.att.g)
@@ -414,19 +357,6 @@ compute.aggite <- function(MP,
     # (here use pgg instead of pg because we can just look at each group)
     selective.att <- sum(selective.att.g[which(epos)] * (pgg[which(epos)]/sum(pgg[which(epos)])))
 
-    # account for having to estimate pgg in the influence function
-    # selective.wif <- wif(keepers=1:length(glist),
-    #                      pg=pgg,
-    #                      weights.ind=weights.ind,
-    #                      G=G,
-    #                      group=group)
-
-    # get overall influence function
-    # selective.inf.func <- get_agg_inf_func(att=selective.att.g,
-    #                                        inffunc1=selective.inf.func.g,
-    #                                        whichones=(1:length(glist)),
-    #                                        weights.agg=pgg/sum(pgg),
-    #                                        wif=NULL)
 
     if (sum(epos)<2) {
       selective.inf.func <- NA
@@ -445,13 +375,6 @@ compute.aggite <- function(MP,
       selective.uci <- stats::quantile(selective.inf.func,1-alp/2)
     }
 
-
-    # selective.inf.func <- as.numeric(selective.inf.func)
-    # # get overall standard error
-    # selective.se <- getSE(selective.inf.func, dp)
-    # if(!is.na(selective.se)){
-    #   if((selective.se <= sqrt(.Machine$double.eps)*10)) selective.se <- NA
-    # }
 
     return(AGGITEobj(overall.att=selective.att,
                     overall.se=selective.se,
@@ -504,14 +427,6 @@ compute.aggite <- function(MP,
     # get standard errors for each group specific ATT
     selective.se.inner <- lapply(idlist, function(g) {
       whichi <- which( (id == g) & (group <= t) & (t<= (group + max_e)))  ### added last condition to allow for limit on longest period included in att
-      # inf.func.g <- as.numeric(get_agg_inf_func(att=att,
-      #                                           inffunc1=inffunc1,
-      #                                           whichones=whichg,
-      #                                           weights.agg=pg[whichg]/sum(pg[whichg]),
-      #                                           wif=NULL))
-
-      # se.g <- getSE(inf.func.g, dp)
-      # list(inf.func=inf.func.g, se=se.g)
 
       if (length(whichi)<min_agg){
         inf.func.i <- NA
@@ -543,33 +458,6 @@ compute.aggite <- function(MP,
     # recover influence function separately by group
     selective.inf.func.i <- simplify2array(BMisc::getListElement(selective.se.inner, "inf.func"))
 
-    # use multiplier bootstrap (across groups) to get critical value
-    # for constructing uniform confidence bands
-    # selective.crit.val <- stats::qnorm(1 - alp/2)
-    # if(dp$cband==TRUE){
-    #   if(dp$bstrap == FALSE){
-    #     warning('Used bootstrap procedure to compute simultaneous confidence band')
-    #   }
-    #   selective.crit.val <- did::mboot(selective.inf.func.g, dp)$crit.val
-    #
-    #   if(is.na(selective.crit.val) | is.infinite(selective.crit.val)){
-    #     warning('Simultaneous critival value is NA. This probably happened because we cannot compute t-statistic (std errors are NA). We then report pointwise conf. intervals.')
-    #     selective.crit.val <- stats::qnorm(1 - alp/2)
-    #     dp$cband <- FALSE
-    #   }
-    #
-    #   if(selective.crit.val < stats::qnorm(1 - alp/2)){
-    #     warning('Simultaneous conf. band is somehow smaller than pointwise one using normal approximation. Since this is unusual, we are reporting pointwise confidence intervals')
-    #     selective.crit.val <- stats::qnorm(1 - alp/2)
-    #     dp$cband <- FALSE
-    #   }
-    #
-    #   if(selective.crit.val >= 7){
-    #     warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
-    #   }
-    #
-    # }
-
     # add a positional argument to notate the missings
     epos <- !is.na(selective.att.i)
 
@@ -577,19 +465,6 @@ compute.aggite <- function(MP,
     # (here use pgg instead of pg because we can just look at each group)
     selective.att <- sum(selective.att.i[which(epos)] * pgg[which(epos)])/sum(pgg[which(epos)])
 
-    # account for having to estimate pgg in the influence function
-    # selective.wif <- wif(keepers=1:length(idlist),
-    #                      pg=pgg,
-    #                      weights.ind=weights.ind,
-    #                      G=G,
-    #                      group=group)
-
-    # get overall influence function
-    # selective.inf.func <- get_agg_inf_func(att=selective.att.g,
-    #                                        inffunc1=selective.inf.func.g,
-    #                                        whichones=(1:length(glist)),
-    #                                        weights.agg=pgg/sum(pgg),
-    #                                        wif=NULL)
 
     if (sum(epos)<2) {
       selective.inf.func <- NA
@@ -609,9 +484,6 @@ compute.aggite <- function(MP,
     }
 
 
-    # selective.inf.func <- as.numeric(selective.inf.func)
-    # get overall standard error
-    # selective.se <- getSE(selective.inf.func, dp)
     if(!is.na(selective.se)){
       if((selective.se <= sqrt(.Machine$double.eps)*10)) selective.se <- NA
     }
@@ -639,17 +511,16 @@ compute.aggite <- function(MP,
   # Compute the cohort level aggregates
   #-----------------------------------------------------------------------------
 
-  if (type %in% c(cohort,customnames)) {
+  if (type %in% c(customnames)) {
 
-    # we can work in overall probabilities because conditioning will cancel out
-    # cause it shows up in numerator and denominator
-    pg <- sapply(cohortlist, function(g) mean(dta[dta[,type] %in% g,".w"]))
+    # change the pg to pi to extract the weights for the treated groups
+    pg <- dta[dta[,idname] %in% idlist,".w"]
 
-    # length of this is equal to number of groups
+    # length of this is equal to number of treated units or number of units in idlist
     pgg <- pg
 
     # same but length is equal to the number of ATT(g,t)
-    pg <- pg[match(ccohort, cohortlist)]
+    pg <- pg[match(id, idlist)]
 
     # get group specific ATTs
     # note: there are no estimated weights here
@@ -669,13 +540,6 @@ compute.aggite <- function(MP,
     # get standard errors for each group specific ATT
     selective.se.inner <- lapply(cohortlist, function(g) {
       whichc <- which( (ccohort == g) & (group <= t) & (t<= (group + max_e)))  ### added last condition to allow for limit on longest period included in att
-      # inf.func.g <- as.numeric(get_agg_inf_func(att=att,
-      #                                           inffunc1=inffunc1,
-      #                                           whichones=whichg,
-      #                                           weights.agg=pg[whichg]/sum(pg[whichg]),
-      #                                           wif=NULL))
-      # se.g <- getSE(inf.func.g, dp)
-      # list(inf.func=inf.func.g, se=se.g)
 
       if (length(whichc)<min_agg){
         inf.func.c <- NA
@@ -707,32 +571,6 @@ compute.aggite <- function(MP,
     # recover influence function separately by group
     selective.inf.func.c <- simplify2array(BMisc::getListElement(selective.se.inner, "inf.func"))
 
-    # use multiplier bootstrap (across groups) to get critical value
-    # for constructing uniform confidence bands
-    # selective.crit.val <- stats::qnorm(1 - alp/2)
-    # if(dp$cband==TRUE){
-    #   if(dp$bstrap == FALSE){
-    #     warning('Used bootstrap procedure to compute simultaneous confidence band')
-    #   }
-    #   selective.crit.val <- did::mboot(selective.inf.func.g, dp)$crit.val
-    #
-    #   if(is.na(selective.crit.val) | is.infinite(selective.crit.val)){
-    #     warning('Simultaneous critival value is NA. This probably happened because we cannot compute t-statistic (std errors are NA). We then report pointwise conf. intervals.')
-    #     selective.crit.val <- stats::qnorm(1 - alp/2)
-    #     dp$cband <- FALSE
-    #   }
-    #
-    #   if(selective.crit.val < stats::qnorm(1 - alp/2)){
-    #     warning('Simultaneous conf. band is somehow smaller than pointwise one using normal approximation. Since this is unusual, we are reporting pointwise confidence intervals')
-    #     selective.crit.val <- stats::qnorm(1 - alp/2)
-    #     dp$cband <- FALSE
-    #   }
-    #
-    #   if(selective.crit.val >= 7){
-    #     warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
-    #   }
-    #
-    # }
 
     # positional argument to denote missings
     epos <- !is.na(selective.att.c)
@@ -741,19 +579,6 @@ compute.aggite <- function(MP,
     # (here use pgg instead of pg because we can just look at each group)
     selective.att <- sum(selective.att.c[which(epos)] * pgg[which(epos)])/sum(pgg[which(epos)])
 
-    # # account for having to estimate pgg in the influence function
-    # selective.wif <- wif(keepers=1:length(cohortlist),
-    #                      pg=pgg,
-    #                      weights.ind=weights.ind,
-    #                      G=G,
-    #                      group=group)
-    #
-    # # get overall influence function
-    # selective.inf.func <- get_agg_inf_func(att=selective.att.g,
-    #                                        inffunc1=selective.inf.func.g,
-    #                                        whichones=(1:length(cohortlist)),
-    #                                        weights.agg=pgg/sum(pgg),
-    #                                        wif=NULL)
 
     if (sum(epos)<2) {
       selective.inf.func <- NA
@@ -773,9 +598,6 @@ compute.aggite <- function(MP,
     }
 
 
-    # selective.inf.func <- as.numeric(selective.inf.func)
-    # get overall standard error
-    # selective.se <- getSE(selective.inf.func, dp)
     if(!is.na(selective.se)){
       if((selective.se <= sqrt(.Machine$double.eps)*10)) selective.se <- NA
     }
@@ -797,7 +619,6 @@ compute.aggite <- function(MP,
                      DIDparams=dp))
 
   }
-
 
 
   #-----------------------------------------------------------------------------
@@ -861,16 +682,7 @@ compute.aggite <- function(MP,
     dynamic.se.inner <- lapply(eseq, function(e) {
       whiche <- which( (originalt - originalgroup == e) & (include.balanced.gt) )
       pge <- pg[whiche]/(sum(pg[whiche]))
-      # wif.e <- wif(whiche, pg, weights.ind, G, group)
-      # inf.func.e <- as.numeric(get_agg_inf_func(att=att,
-      #                                           inffunc1=inffunc1,
-      #                                           whichones=whiche,
-      #                                           weights.agg=pge,
-      #                                           wif=NULL))
 
-      # se.e <- getSE(inf.func.e, dp)
-
-      # list(inf.func=inf.func.e, se=se.e)
       if (length(whiche)<min_agg){
         inf.func.e <- NA
         se.e <- NA
@@ -899,30 +711,6 @@ compute.aggite <- function(MP,
 
     dynamic.inf.func.e <- simplify2array(BMisc::getListElement(dynamic.se.inner, "inf.func"))
 
-    # dynamic.crit.val <- stats::qnorm(1 - alp/2)
-    # if(dp$cband==TRUE){
-    #   if(dp$bstrap == FALSE){
-    #     warning('Used bootstrap procedure to compute simultaneous confidence band')
-    #   }
-    #   dynamic.crit.val <- did::mboot(dynamic.inf.func.e, dp)$crit.val
-    #
-    #   if(is.na(dynamic.crit.val) | is.infinite(dynamic.crit.val)){
-    #     warning('Simultaneous critival value is NA. This probably happened because we cannot compute t-statistic (std errors are NA). We then report pointwise conf. intervals.')
-    #     dynamic.crit.val <- stats::qnorm(1 - alp/2)
-    #     dp$cband <- FALSE
-    #   }
-    #
-    #   if(dynamic.crit.val < stats::qnorm(1 - alp/2)){
-    #     warning('Simultaneous conf. band is somehow smaller than pointwise one using normal approximation. Since this is unusual, we are reporting pointwise confidence intervals')
-    #     dynamic.crit.val <- stats::qnorm(1 - alp/2)
-    #     dp$cband <- FALSE
-    #   }
-    #
-    #   if(dynamic.crit.val >= 7){
-    #     warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
-    #   }
-    # }
-    #
     # get overall average treatment effect
     # by averaging over positive dynamics
     epos <- (eseq >= 0 & !is.na(dynamic.att.e))
@@ -931,13 +719,7 @@ compute.aggite <- function(MP,
     pgg <- sapply(eseq[which(epos)], function(e) sum( ((originalt - originalgroup == e) & (include.balanced.gt)) * pg))
 
     dynamic.att <- sum(pgg*dynamic.att.e[which(epos)])/sum(pgg)
-    # dynamic.inf.func <- get_agg_inf_func(att=dynamic.att.e[epos],
-    #                                      inffunc1=as.matrix(dynamic.inf.func.e[,epos]),
-    #                                      whichones=(1:sum(epos)),
-    #                                      weights.agg=pgg/sum(pgg),
-    #                                      wif=NULL)
-    #
-    # dynamic.inf.func <- as.numeric(dynamic.inf.func)
+
     if (sum(epos)<2) {
       dynamic.inf.func <- NA
       dynamic.se <- NA
@@ -955,10 +737,6 @@ compute.aggite <- function(MP,
       dynamic.uci <- stats::quantile(dynamic.inf.func,1-alp/2)
     }
 
-    # dynamic.se <- getSE(dynamic.inf.func, dp)
-    # if(!is.na(dynamic.se)){
-    #   if (dynamic.se <= sqrt(.Machine$double.eps)*10) dynamic.se <- NA
-    # }
 
     return(AGGITEobj(overall.att=dynamic.att,
                     overall.se=dynamic.se,
@@ -1021,18 +799,7 @@ compute.aggite <- function(MP,
     calendar.se.inner <- lapply(calendar.tlist, function(t1) {
       whicht <- which( (t == t1) & (group <= t))
       pgt <- pg[whicht]/(sum(pg[whicht]))
-      # wif.t <- wif(keepers=whicht,
-      #              pg=pg,
-      #              weights.ind=weights.ind,
-      #              G=G,
-      #              group=group)
-      # inf.func.t <- as.numeric(get_agg_inf_func(att=att,
-      #                                           inffunc1=inffunc1,
-      #                                           whichones=whicht,
-      #                                           weights.agg=pgt,
-      #                                           wif=NULL))
-      # se.t <- getSE(inf.func.t, dp)
-      # list(inf.func=inf.func.t, se=se.t)
+
 
       if (length(whicht)<min_agg){
         inf.func.t <- NA
@@ -1068,32 +835,6 @@ compute.aggite <- function(MP,
     # recover influence function separately by time
     calendar.inf.func.t <- simplify2array(BMisc::getListElement(calendar.se.inner, "inf.func"))
 
-    # use multiplier boostrap (across groups) to get critical value
-    # for constructing uniform confidence bands
-    # calendar.crit.val <-  stats::qnorm(1-alp/2)
-    # if(dp$cband==TRUE){
-    #   if(dp$bstrap == FALSE){
-    #     warning('Used bootstrap procedure to compute simultaneous confidence band')
-    #   }
-    #   calendar.crit.val <- did::mboot(calendar.inf.func.t, dp)$crit.val
-    #
-    #   if(is.na(calendar.crit.val) | is.infinite(calendar.crit.val)){
-    #     warning('Simultaneous critival value is NA. This probably happened because we cannot compute t-statistic (std errors are NA). We then report pointwise conf. intervals.')
-    #     calendar.crit.val <- stats::qnorm(1 - alp/2)
-    #     dp$cband <- FALSE
-    #   }
-    #
-    #   if(calendar.crit.val < stats::qnorm(1 - alp/2)){
-    #     warning('Simultaneous conf. band is somehow smaller than pointwise one using normal approximation. Since this is unusual, we are reporting pointwise confidence intervals')
-    #     calendar.crit.val <- stats::qnorm(1 - alp/2)
-    #     dp$cband <- FALSE
-    #   }
-    #
-    #   if(calendar.crit.val >= 7){
-    #     warning("Simultaneous critical value is arguably `too large' to be realible. This usually happens when number of observations per group is small and/or there is no much variation in outcomes.")
-    #   }
-    # }
-
     # index for non-missing
     epos <- !is.na(calendar.att.t)
 
@@ -1120,18 +861,8 @@ compute.aggite <- function(MP,
       calendar.uci <- stats::quantile(calendar.inf.func,1-alp/2)
     }
 
-    # get overall influence function
-    # calendar.inf.func <- get_agg_inf_func(att=calendar.att.t,
-    #                                       inffunc1=calendar.inf.func.t,
-    #                                       whichones=(1:length(calendar.tlist)),
-    #                                       weights.agg=pgg/sum(pgg),
-    #                                       wif=NULL)
-    # calendar.inf.func <- as.numeric(calendar.inf.func)
-
-
 
     # get overall standard error
-    # calendar.se <- getSE(calendar.inf.func, dp)
     if(!is.na(calendar.se)){
       if (calendar.se <= sqrt(.Machine$double.eps)*10) calendar.se <- NA
     }
@@ -1155,111 +886,5 @@ compute.aggite <- function(MP,
   }
 
 
-}
-
-#-----------------------------------------------------------------------------
-# Internal functions for getting standard errors
-#-----------------------------------------------------------------------------
-
-#' @title Compute extra term in influence function due to estimating weights
-#'
-#' @description A function to compute the extra term that shows up in the
-#'  influence function for aggregated treatment effect parameters
-#'  due to estimating the weights
-#'
-#' @param keepers a vector of indices for which group-time average
-#'  treatment effects are used to compute a particular aggregated parameter
-#' @param pg a vector with same length as total number of group-time average
-#'  treatment effects that contains the probability of being in particular group
-#' @param weights.ind additional sampling weights (nx1)
-#' @param G vector containing which group a unit belongs to (nx1)
-#' @param group vector of groups
-#'
-#' @return nxk influence function matrix
-#'
-#' @keywords internal
-wif <- function(keepers, pg, weights.ind, G, group) {
-  # note: weights are all of the form P(G=g|cond)/sum_cond(P(G=g|cond))
-  # this is equal to P(G=g)/sum_cond(P(G=g)) which simplifies things here
-
-  # effect of estimating weights in the numerator
-  if1 <- sapply(keepers, function(k) {
-    (weights.ind * 1*BMisc::TorF(G==group[k]) - pg[k]) /
-      sum(pg[keepers])
-  })
-  # effect of estimating weights in the denominator
-  if2 <- base::rowSums( sapply( keepers, function(k) {
-    weights.ind*1*BMisc::TorF(G==group[k]) - pg[k]
-  })) %*%
-    t(pg[keepers]/(sum(pg[keepers])^2))
-
-  # return the influence function for the weights
-  if1 - if2
-}
-
-
-#' @title Get an influence function for particular aggregate parameters
-#'
-#' @title This is a generic internal function for combining influence
-#'  functions across ATT(g,t)'s to return an influence function for
-#'  various aggregated treatment effect parameters.
-#'
-#' @param att vector of group-time average treatment effects
-#' @param inffunc1 influence function for all group-time average treatment effects
-#'  (matrix)
-#' @param whichones which elements of att will be used to compute the aggregated
-#'  treatment effect parameter
-#' @param weights.agg the weights to apply to each element of att(whichones);
-#'  should have the same dimension as att(whichones)
-#' @param wif extra influence function term coming from estimating the weights;
-#'  should be n x k matrix where k is dimension of whichones
-#'
-#' @return nx1 influence function
-#'
-#' @keywords internal
-get_agg_inf_func <- function(att, inffunc1, whichones, weights.agg, wif=NULL) {
-  # enforce weights are in matrix form
-  weights.agg <- as.matrix(weights.agg)
-
-  # multiplies influence function times weights and sums to get vector of weighted IF (of length n)
-  thisinffunc <- inffunc1[,whichones]%*%weights.agg
-
-  # Incorporate influence function of the weights
-  if (!is.null(wif)) {
-    thisinffunc <- thisinffunc + wif%*%as.matrix(att[whichones])
-  }
-
-  # return influence function
-  return(thisinffunc)
-}
-
-
-#' @title Take influence function and return standard errors
-#'
-#' @description Function to take an nx1 influence function and return
-#'  a standard error
-#'
-#' @param thisinffunc An influence function
-#' @inheritParams compute.aggite
-#'
-#' @return scalar standard error
-#'
-#' @keywords internal
-getSE <- function(thisinffunc, DIDparams=NULL) {
-  alp <- .05
-  bstrap <- FALSE
-  if (!is.null(DIDparams)) {
-    bstrap <- DIDparams$bstrap
-    alp <- DIDparams$alp
-    cband <- DIDparams$cband
-    n <- length(thisinffunc)
-  }
-
-  if (bstrap) {
-    bout <- did::mboot(thisinffunc, DIDparams)
-    return(bout$se)
-  } else {
-    return(sqrt( mean((thisinffunc)^2)/n ))
-  }
 }
 

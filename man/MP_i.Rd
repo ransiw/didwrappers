@@ -31,16 +31,14 @@ MP_i(
 
 \item{t}{which time period a group-time average treatment effect is for}
 
-\item{att}{the group-average treatment effect for group \code{group} and time
+\item{att}{the estimate for unit \code{id} and time
 period \code{t}}
 
 \item{V_analytical}{Analytical estimator for the asymptotic variance-covariance matrix for unit-time average treatment effects}
 
 \item{se}{standard errors for unit-time average treatment effects. If bootstrap is set to TRUE, this provides bootstrap-based se.}
 
-\item{c}{simultaneous critical value if one is obtaining simultaneous confidence
-bands. Otherwise it reports the critical value based on pointwise normal
-approximation.}
+\item{c}{always NULL}
 
 \item{lci}{lower confidence interval for att}
 

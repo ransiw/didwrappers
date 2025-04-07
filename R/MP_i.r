@@ -5,11 +5,9 @@
 #' @param id which unit the unit-time treatment effects are for
 #' @param group which group (defined by period first treated) an unit-time average treatment effect is for
 #' @param t which time period a group-time average treatment effect is for
-#' @param att the group-average treatment effect for group \code{group} and time
+#' @param att the estimate for unit \code{id} and time
 #'  period \code{t}
-#' @param c simultaneous critical value if one is obtaining simultaneous confidence
-#'  bands. Otherwise it reports the critical value based on pointwise normal
-#'  approximation.
+#' @param c always NULL
 #' @param V_analytical Analytical estimator for the asymptotic variance-covariance matrix for unit-time average treatment effects
 #' @param se standard errors for unit-time average treatment effects. If bootstrap is set to TRUE, this provides bootstrap-based se.
 #' @param lci lower confidence interval for att
@@ -39,26 +37,3 @@ MP_i <- function(id, group, t, att, V_analytical, se, c, lci, uci, inffunc, n=NU
   out
 }
 
-#' @title summarizes an MP_i object
-#'
-#' @description prints a summary of a \code{MP_i} object
-#'
-#' @param object an \code{MP_i} object
-#' @param ... extra arguments
-#'
-# @export
-summary.MP_i <- function(object, ...) {
-  print("Please use the attit_table() function for the unit-level ATT[i,t] effects")
-}
-
-#' @title print.MP_i
-#'
-#' @description prints value of a \code{MP_i} object
-#'
-#' @param x a \code{MP_i} object
-#' @param ... extra arguments
-#'
-# @export
-print.MP_i <- function(x,...) {
-  summary.MP_i(x,...)
-}

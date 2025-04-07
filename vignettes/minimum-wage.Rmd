@@ -60,7 +60,7 @@ A further function can be useful to unravel the list object into a data-frame.
 didwrappers::aggite_table(group)
 ```
 
-This shows that on average counties that raised minimum wage in 2004, and 2007 saw a statistically significant (at 95\%) drop in teen employment. For 2006, the effect was negative, but not statistically significant. 
+This shows that on average counties that raised minimum wage in 2004, and 2006 saw a statistically significant (at 95\%) drop in teen employment. For 2007, the effect was negative, but not statistically significant. 
 
 One concern with this type of aggregation is that the counties that raised minimum wage in 2004 have more post-treatment observations than counties that raise minimum wage later. If raising the minimum wage has different dynamic effects, we want to be able to see that. To do that, we could cut the unit-time object `out_it` a different way: at the dynamic level. 
 
@@ -70,7 +70,7 @@ dynamic = didwrappers::aggite(out_it, type="dynamic")
 didwrappers::aggite_table(dynamic)
 ```
 
-It also gives us placebo trends. All the post-treatment effects are negative. But, the immediate placebo effect is also negative, which says that the counties that raised their minimum wage was already seeing a drop in teen employment. This does not necessarily imply that we should discard the post-treatment effects as reflecting a negative teen employment trend that began before the minimum wage law. Yet, it requires caution and further investigation. 
+It also gives us placebo trends. All post-treatment effects are negative. But, the immediate placebo effect is also negative, which says that the counties that raised their minimum wage was already seeing a drop in teen employment. This does not necessarily imply that we should discard the post-treatment effects as reflecting a negative teen employment trend that began before the minimum wage law. Yet, it requires caution and further investigation. 
 
 We may consider weighting the estimates by population of the county,
 
@@ -113,10 +113,10 @@ Save this into a table, and look at the units for which the overlap condition fa
 
 ```{r}
 out_it_lpop_tbl <- didwrappers::attit_table(out_it_lpop)
-out_it_lpop_tbl[is.na(out_it_lpop_tbl$se),1:7]
+out_it_lpop_tbl[is.na(out_it_lpop_tbl$se),c(1:6,8,9)]
 ```
 
-For one of the counties, overlap failed. As shown by the `ipwqual` field, which is very close to 1, the maximum propensity score being that close to 1 shows that almost all the weight lands on just one control unit. This can make standard errors inflate. If you want to see what would happen anyway set the option `overlap="retain"` in the initial `att_it` call. 
+For one of the counties, overlap failed. As shown by the `ipwqual` field, the maximum propensity score being that close to 1 shows that almost all the weight lands on just one control unit. This can make standard errors inflate. If you want to see what would happen anyway set the option `overlap="retain"` in the initial `att_it` call. 
 
 The rest of the steps can continue as above. For a quick comparison to the dynamic effects, run the following snippet. Because the overlap problems create issues for the standard errors, we should drop these. 
 
@@ -139,12 +139,13 @@ There are 8 population categories in the treatment set, but the category 0, 1, a
 We may want to compare counties of similar population to each other. Weighting was one way to do that, but another is to do compared within the population category of population size. The `cohort` feature is the one to do that. 
 
 
-```{r}
+```{r, message=FALSE}
 out_it_cohort <- didwrappers::att_it(yname = "lemp",
               gname = "first.treat",
               idname = "countyreal",
               tname = "year",
               cohort = "lpop2",
+              customnames = "lpop2",
               data = mpdta
               )
 ```
@@ -152,7 +153,7 @@ out_it_cohort <- didwrappers::att_it(yname = "lemp",
 Aggregating by population level,
 
 ```{r}
-cohort = didwrappers::aggite(out_it_cohort, type="lpop2")
+cohort = didwrappers::aggite(out_it_cohort, type="group", na.rm = TRUE)
 didwrappers::aggite_table(cohort)
 ```
 

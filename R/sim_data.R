@@ -11,6 +11,7 @@
 #' @param ttr the time trend
 #' @param siget the standard error of the error term of the treatment group with default 1
 #' @param sigec the standard error of the error term of the control group with default 1
+#' @param fixedbase baseline observation is known and therefore is not perturbed.
 #'
 #' @return a dataframe with identifies for unit, time, treatment time, cohort, dosage, and the outcome
 #' @export
@@ -32,7 +33,8 @@ sim_data <- function(basetreat = seq(10,100,10),
                      posttreat=20,
                      ttr=2,
                      siget=1,
-                     sigec=1){
+                     sigec=1,
+                     fixedbase=FALSE){
 
   # check for the lengths
   if (length(basetreat)!=length(timetreat)){
@@ -80,6 +82,9 @@ sim_data <- function(basetreat = seq(10,100,10),
   # define the post-treatment period
   dftreat$posttreat <- as.numeric(dftreat$time >= dftreat$treatg)
 
+  # define the base period
+  dftreat$base <- as.numeric(dftreat$time == dftreat$treatg-1)
+
   # merge the treatment effect and cohort information into the dftreat dataframe
   dftreat = merge(dftreat, bstreatdf, by = "unit", all.x = TRUE)
 
@@ -90,10 +95,15 @@ sim_data <- function(basetreat = seq(10,100,10),
   dftreat$timelag = dftreat$time - dftreat$treatg
 
   # create the outcome variable y
-  dftreat$y = dftreat$baselevel+dftreat$timelag*ttr+dftreat$posttreat*dftreat$tef*dftreat$dosage+dftreat$error
+
+  if (fixedbase){
+    dftreat$y = dftreat$baselevel+dftreat$timelag*ttr+dftreat$posttreat*dftreat$tef*dftreat$dosage+(1-dftreat$base)*dftreat$error
+  } else {
+    dftreat$y = dftreat$baselevel+dftreat$timelag*ttr+dftreat$posttreat*dftreat$tef*dftreat$dosage+dftreat$error
+  }
 
   ## create the control dataframe which also works if there are no control units
-  dfcont = data.frame(unit=NA, treatg = NA,time=NA,baselevel=NA,tef=NA,cohort=NA,dosage=NA,posttreat=NA,error=NA,timelag=NA,y=NA)
+  dfcont = data.frame(unit=NA, treatg = NA,time=NA,baselevel=NA,tef=NA,cohort=NA,dosage=NA,posttreat=NA,base=NA,error=NA,timelag=NA,y=NA)
 
   # the case where the control group is not NULL
   if (!is.null(basecontrol)){
@@ -115,6 +125,7 @@ sim_data <- function(basetreat = seq(10,100,10),
     # add a missing treatment effect and dosage
     dfcont$tef = rep(NA, nrow(dfcont))
     dfcont$dosage = rep(0, nrow(dfcont))
+    dfcont$base = rep(0, nrow(dfcont))
 
     # add an error term
     dfcont$error = stats::rnorm(nrow(dfcont),0,sigec)
