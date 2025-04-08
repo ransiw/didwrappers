@@ -378,7 +378,11 @@ compute.att_it <- function(dp) {
                             inffunc=TRUE)
       } else if (est_method == "ipw") {
         # inverse-probability weights
-        attgt <- DRDID::std_ipw_did_panel(Ypost, Ypre, G,
+        # attgt <- DRDID::std_ipw_did_panel(Ypost, Ypre, G,
+        #                                   covariates=covariates,
+        #                                   i.weights=w,
+        #                                   boot=FALSE, inffunc=TRUE)
+        attgt <- std_ipw_did_panel_archive(Ypost, Ypre, G,
                                           covariates=covariates,
                                           i.weights=w,
                                           boot=FALSE, inffunc=TRUE)
