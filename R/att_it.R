@@ -143,6 +143,7 @@ att_it <- function(yname,
   uci <- attgt.results$uci
   attcalc <- attgt.results$attcalc
   count <- attgt.results$count
+  baseline <- attgt.results$baseline
 
   # analytical covariance matrix
 
@@ -157,5 +158,5 @@ att_it <- function(yname,
   # set the critical value to NULL
   cval <- NULL
 
-  return(MP_i(id=id ,group=group, t=tt, att=att, V_analytical=V, se=se, lci=lci, uci=uci, c=cval, inffunc=inffunc, n=n, alp = alp, ipwqual=ipwqual,attcalc=attcalc, count=count, DIDparams=dp))
+  return(MP_i(id=id ,group=group, t=tt, att=att, V_analytical=V, se=se, lci=lci, uci=uci, c=cval, inffunc=inffunc, n=n, alp = alp, ipwqual=ipwqual,attcalc=attcalc,baseline=baseline, count=count, DIDparams=dp))
 }

@@ -19,6 +19,7 @@ list with elements:
 \item{lci}{the lower confidence interval of the unit time average treatment effect (NA if there were propensity score problems)}
 \item{uci}{the upper confidence interval of the unit time average treatment effect (NA if there were propensity score problems)}
 \item{ipwqual}{the maximum propensity score}
+\item{baseline}{the pre-treatement outcome value}
 \item{attcalc}{the unit time average treatment effect (always complete unless NaN)}
 }
 \description{

@@ -94,10 +94,6 @@ compute.att_it <- function(dp) {
     # Set up .G once
     data$.G <- 1*(data[,idname] == idlist[g])
 
-    # Save the cohort as a number
-    if (!is.null(cohort)){
-      cohort0 <- unlist(data[data$.G==1,cohort])[1]
-    }
 
     # loop over time periods
     for (t in 1:tlist.length) {
@@ -153,7 +149,7 @@ compute.att_it <- function(dp) {
       # and break without computing anything
       if (base_period == "universal") {
         if (tlist[pret] == tlist[(t+tfac)]) {
-          attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=0, attcalc = NA, count=0)
+          attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=0, baseline=NA, attcalc = NA, count=0)
           inffunc[,counter] <- rep(0,n)
           counter <- counter+1
           next
@@ -163,7 +159,7 @@ compute.att_it <- function(dp) {
       # similarly for a fixedbase
       if (!is.null(fixedbase)) {
         if (tlist[pret] == tlist[(t+tfac)]) {
-          attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=0, attcalc = NA, count=0)
+          attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=0, baseline=NA, attcalc = NA, count=0)
           inffunc[,counter] <- rep(0,n)
           counter <- counter+1
           next
@@ -192,6 +188,11 @@ compute.att_it <- function(dp) {
       n0 <- nrow(disdat)
 
       # if cohort is not NULL keep to the cohort that matters
+
+      # Save the cohort as a number
+      if (!is.null(cohort)){
+        cohort0 <- unlist(disdat[disdat$.G==1 & disdat$.pre==1 ,cohort])[1]
+      }
 
       if (!is.null(cohort)){
         precohort_ids = disdat[,idname][disdat[,cohort]==cohort0 & disdat$.pre==1]
@@ -250,7 +251,7 @@ compute.att_it <- function(dp) {
       }
 
       if (skip_this_att_gt) {
-        attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=post.treat, attcalc = NA, count=0)
+        attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=post.treat, baseline=NA, attcalc = NA, count=0)
         inffunc[,counter] <- NA
         counter <- counter+1
         next
@@ -357,7 +358,7 @@ compute.att_it <- function(dp) {
 
 
         if (reg_problems_likely | (pscore_problems_likely & overlap=="trim")) {
-          attgt.list[[counter]] <- list(att=NA, id=idlist[g], group=glist[g], year=tlist[(t+tfac)],ipwqual=maxpscore, se=NA, lci=NA, uci=NA, post=post.treat, attcalc=attcalc, count=n1/2)
+          attgt.list[[counter]] <- list(att=NA, id=idlist[g], group=glist[g], year=tlist[(t+tfac)],ipwqual=maxpscore, se=NA, lci=NA, uci=NA, post=post.treat, baseline=Ypre[G==1], attcalc=attcalc, count=n1/2)
           inffunc[,counter] <- NA
           counter <- counter+1
           next
@@ -412,7 +413,7 @@ compute.att_it <- function(dp) {
 
 
       attgt.list[[counter]] <- list(
-        att = attgt$ATT, id=idlist[g],  group = glist[g], year = tlist[(t+tfac)],ipwqual=maxpscore, se=attgt$se, lci=attgt$lci, uci=attgt$uci, post = post.treat,
+        att = attgt$ATT, id=idlist[g],  group = glist[g], year = tlist[(t+tfac)],ipwqual=maxpscore, se=attgt$se, lci=attgt$lci, uci=attgt$uci, post = post.treat, baseline=Ypre[G==1],
         attcalc = attgt$ATT, count=length(attgt$att.inf.func)
       )
 

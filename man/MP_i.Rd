@@ -20,6 +20,7 @@ MP_i(
   alp = 0.05,
   ipwqual = NULL,
   attcalc = NULL,
+  baseline = NULL,
   count = NULL,
   DIDparams = NULL
 )
@@ -55,6 +56,8 @@ period \code{t}}
 \item{ipwqual}{the maximum propensity score}
 
 \item{attcalc}{similar to att but does not remove estimates when there are propensity score problems}
+
+\item{baseline}{the baseline of the unit}
 
 \item{count}{takes a count of the number of units in the component estimate}
 
