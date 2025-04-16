@@ -114,8 +114,8 @@ time period).</p></dd>
 
 <dt id="arg-egt">egt<a class="anchor" aria-label="anchor" href="#arg-egt"></a></dt>
 <dd><p>Holds the length of exposure (for dynamic effects), the
-group (for selective treatment timing), the unit (for selective treatment),
-cohort (for cohort level effects), or the time period (for calendar
+group, the unit,
+cohort, custom aggregator, or the time period (for calendar
 time effects)</p></dd>
 
 
@@ -140,13 +140,11 @@ time effects)</p></dd>
 
 
 <dt id="arg-crit-val-egt">crit.val.egt<a class="anchor" aria-label="anchor" href="#arg-crit-val-egt"></a></dt>
-<dd><p>A critical value for computing uniform confidence
-bands for dynamic effects, selective treatment timing, or time period
-effects.</p></dd>
+<dd><p>Always NULL because simultaneous option is turned off.</p></dd>
 
 
 <dt id="arg-inf-function">inf.function<a class="anchor" aria-label="anchor" href="#arg-inf-function"></a></dt>
-<dd><p>The bootstrap draws specific to the egt</p></dd>
+<dd><p>The bootstrap draws specific to the egt. Name is carried over from the did package.</p></dd>
 
 
 <dt id="arg-min-e">min_e<a class="anchor" aria-label="anchor" href="#arg-min-e"></a></dt>

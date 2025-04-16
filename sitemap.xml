@@ -1,7 +1,5 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://ransiw.github.io/didwrappers/404.html</loc></url>
-<url><loc>https://ransiw.github.io/didwrappers/LICENSE-text.html</loc></url>
-<url><loc>https://ransiw.github.io/didwrappers/LICENSE.html</loc></url>
 <url><loc>https://ransiw.github.io/didwrappers/articles/comparison_with_did.html</loc></url>
 <url><loc>https://ransiw.github.io/didwrappers/articles/index.html</loc></url>
 <url><loc>https://ransiw.github.io/didwrappers/articles/minimum-wage.html</loc></url>
@@ -21,18 +19,12 @@
 <url><loc>https://ransiw.github.io/didwrappers/reference/compute.aggite2.html</loc></url>
 <url><loc>https://ransiw.github.io/didwrappers/reference/compute.att_it.html</loc></url>
 <url><loc>https://ransiw.github.io/didwrappers/reference/demgdp.html</loc></url>
-<url><loc>https://ransiw.github.io/didwrappers/reference/getSE.html</loc></url>
-<url><loc>https://ransiw.github.io/didwrappers/reference/get_agg_inf_func.html</loc></url>
 <url><loc>https://ransiw.github.io/didwrappers/reference/index.html</loc></url>
 <url><loc>https://ransiw.github.io/didwrappers/reference/mpdta.html</loc></url>
 <url><loc>https://ransiw.github.io/didwrappers/reference/pre_process_did_i.html</loc></url>
-<url><loc>https://ransiw.github.io/didwrappers/reference/print.AGGITEobj.html</loc></url>
-<url><loc>https://ransiw.github.io/didwrappers/reference/print.MP_i.html</loc></url>
 <url><loc>https://ransiw.github.io/didwrappers/reference/process_attit.html</loc></url>
 <url><loc>https://ransiw.github.io/didwrappers/reference/sim_data.html</loc></url>
+<url><loc>https://ransiw.github.io/didwrappers/reference/std_ipw_did_panel_archive.html</loc></url>
 <url><loc>https://ransiw.github.io/didwrappers/reference/str_split_one.html</loc></url>
-<url><loc>https://ransiw.github.io/didwrappers/reference/summary.AGGITEobj.html</loc></url>
-<url><loc>https://ransiw.github.io/didwrappers/reference/summary.MP_i.html</loc></url>
-<url><loc>https://ransiw.github.io/didwrappers/reference/wif.html</loc></url>
 </urlset>
 

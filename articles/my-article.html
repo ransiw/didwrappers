@@ -248,7 +248,7 @@ the group level.</p>
 <p>There group level effects are quite different to the previous
 estimates of the <code>did</code> package. There are some large negative
 effects in addition to postive effects.</p>
-<p>The overall effects is insignificant.</p>
+<p>The overall effect is insignificant.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># overall effect</span></span>
 <span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.att</span></span>
@@ -366,6 +366,7 @@ the data to block cohorts,</p>
 <span>                              idname <span class="op">=</span> <span class="st">"wbnum"</span>,</span>
 <span>                              tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>                              cohort <span class="op">=</span> <span class="st">"regionnum"</span>,</span>
+<span>                              customnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"regionnum"</span><span class="op">)</span>,</span>
 <span>                              xformla <span class="op">=</span> <span class="op">~</span><span class="fl">1</span>,</span>
 <span>                              data <span class="op">=</span> <span class="va">demgdp</span>,</span>
 <span>                              panel <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -412,7 +413,9 @@ none of the industrialized countries are included, because there is a
 lack of industrialized non-democracies. This explains the difference
 between the overall effect of democratization when performed without
 within-cohort blocking, and performed with cohort blocking. Much of that
-positive effect is attributable to industralized countries.</p>
+positive effect is attributable to industralized countries. There are
+also insufficient control units within the South Asian regions to
+produce estimates.</p>
 <p>This exercise is only demonstrative, and should not be used to draw
 substantive conclusions about the relationship between democracy and
 growth.</p>

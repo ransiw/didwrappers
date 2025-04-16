@@ -61,6 +61,7 @@
 <span>  alp <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  ipwqual <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  attcalc <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  baseline <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  count <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  DIDparams <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -83,7 +84,7 @@
 
 
 <dt id="arg-att">att<a class="anchor" aria-label="anchor" href="#arg-att"></a></dt>
-<dd><p>the group-average treatment effect for group <code>group</code> and time
+<dd><p>the estimate for unit <code>id</code> and time
 period <code>t</code></p></dd>
 
 
@@ -96,9 +97,7 @@ period <code>t</code></p></dd>
 
 
 <dt id="arg-c">c<a class="anchor" aria-label="anchor" href="#arg-c"></a></dt>
-<dd><p>simultaneous critical value if one is obtaining simultaneous confidence
-bands. Otherwise it reports the critical value based on pointwise normal
-approximation.</p></dd>
+<dd><p>always NULL</p></dd>
 
 
 <dt id="arg-lci">lci<a class="anchor" aria-label="anchor" href="#arg-lci"></a></dt>
@@ -131,6 +130,10 @@ approximation.</p></dd>
 
 <dt id="arg-attcalc">attcalc<a class="anchor" aria-label="anchor" href="#arg-attcalc"></a></dt>
 <dd><p>similar to att but does not remove estimates when there are propensity score problems</p></dd>
+
+
+<dt id="arg-baseline">baseline<a class="anchor" aria-label="anchor" href="#arg-baseline"></a></dt>
+<dd><p>the baseline of the unit</p></dd>
 
 
 <dt id="arg-count">count<a class="anchor" aria-label="anchor" href="#arg-count"></a></dt>

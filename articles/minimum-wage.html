@@ -124,8 +124,8 @@ data-frame.</p>
 <span><span class="co">#&gt; 2 2006 -0.02290954 0.01110290 -0.04473838 -0.0027347204</span></span>
 <span><span class="co">#&gt; 3 2007 -0.02605441 0.01385443 -0.05273667  0.0009315512</span></span></code></pre></div>
 <p>This shows that on average counties that raised minimum wage in 2004,
-and 2007 saw a statistically significant (at 95%) drop in teen
-employment. For 2006, the effect was negative, but not statistically
+and 2006 saw a statistically significant (at 95%) drop in teen
+employment. For 2007, the effect was negative, but not statistically
 significant.</p>
 <p>One concern with this type of aggregation is that the counties that
 raised minimum wage in 2004 have more post-treatment observations than
@@ -144,7 +144,7 @@ at the dynamic level.</p>
 <span><span class="co">#&gt; 5   1 -0.0509573671 0.01555044 -0.080834987 -0.019104077</span></span>
 <span><span class="co">#&gt; 6   2 -0.1372587389 0.03460017 -0.207897849 -0.072700131</span></span>
 <span><span class="co">#&gt; 7   3 -0.1008113631 0.03268913 -0.165116522 -0.037500358</span></span></code></pre></div>
-<p>It also gives us placebo trends. All the post-treatment effects are
+<p>It also gives us placebo trends. All post-treatment effects are
 negative. But, the immediate placebo effect is also negative, which says
 that the counties that raised their minimum wage was already seeing a
 drop in teen employment. This does not necessarily imply that we should
@@ -201,19 +201,18 @@ to figure out the ones that are the problem.</p>
 condition failed.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out_it_lpop_tbl</span> <span class="op">&lt;-</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/attit_table.html">attit_table</a></span><span class="op">(</span><span class="va">out_it_lpop</span><span class="op">)</span></span>
-<span><span class="va">out_it_lpop_tbl</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">out_it_lpop_tbl</span><span class="op">$</span><span class="va">se</span><span class="op">)</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">7</span><span class="op">]</span></span>
-<span><span class="co">#&gt;        id group    t att se lci uci</span></span>
-<span><span class="co">#&gt; 533 30109  2007 2004  NA NA  NA  NA</span></span>
-<span><span class="co">#&gt; 534 30109  2007 2005  NA NA  NA  NA</span></span>
-<span><span class="co">#&gt; 535 30109  2007 2006  NA NA  NA  NA</span></span>
-<span><span class="co">#&gt; 536 30109  2007 2007  NA NA  NA  NA</span></span></code></pre></div>
+<span><span class="va">out_it_lpop_tbl</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">out_it_lpop_tbl</span><span class="op">$</span><span class="va">se</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span>,<span class="fl">8</span>,<span class="fl">9</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;        id group    t att se lci     attcalc   ipwqual</span></span>
+<span><span class="co">#&gt; 533 30109  2007 2004  NA NA  NA -0.06896633 0.9999998</span></span>
+<span><span class="co">#&gt; 534 30109  2007 2005  NA NA  NA -0.20352817 0.9999998</span></span>
+<span><span class="co">#&gt; 535 30109  2007 2006  NA NA  NA  0.31351022 0.9999998</span></span>
+<span><span class="co">#&gt; 536 30109  2007 2007  NA NA  NA -0.12816477 0.9999998</span></span></code></pre></div>
 <p>For one of the counties, overlap failed. As shown by the
-<code>ipwqual</code> field, which is very close to 1, the maximum
-propensity score being that close to 1 shows that almost all the weight
-lands on just one control unit. This can make standard errors inflate.
-If you want to see what would happen anyway set the option
-<code>overlap="retain"</code> in the initial <code>att_it</code>
-call.</p>
+<code>ipwqual</code> field, the maximum propensity score being that
+close to 1 shows that almost all the weight lands on just one control
+unit. This can make standard errors inflate. If you want to see what
+would happen anyway set the option <code>overlap="retain"</code> in the
+initial <code>att_it</code> call.</p>
 <p>The rest of the steps can continue as above. For a quick comparison
 to the dynamic effects, run the following snippet. Because the overlap
 problems create issues for the standard errors, we should drop
@@ -253,21 +252,17 @@ feature is the one to do that.</p>
 <span>              idname <span class="op">=</span> <span class="st">"countyreal"</span>,</span>
 <span>              tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>              cohort <span class="op">=</span> <span class="st">"lpop2"</span>,</span>
+<span>              customnames <span class="op">=</span> <span class="st">"lpop2"</span>,</span>
 <span>              data <span class="op">=</span> <span class="va">mpdta</span></span>
 <span>              <span class="op">)</span></span></code></pre></div>
 <p>Aggregating by population level,</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cohort</span> <span class="op">=</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite.html">aggite</a></span><span class="op">(</span><span class="va">out_it_cohort</span>, type<span class="op">=</span><span class="st">"lpop2"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">cohort</span> <span class="op">=</span> <span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite.html">aggite</a></span><span class="op">(</span><span class="va">out_it_cohort</span>, type<span class="op">=</span><span class="st">"group"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu">didwrappers</span><span class="fu">::</span><span class="fu"><a href="../reference/aggite_table.html">aggite_table</a></span><span class="op">(</span><span class="va">cohort</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   egt      att.egt      se.egt     lci.egt     uci.egt</span></span>
-<span><span class="co">#&gt; 1   0  0.286981056 0.215440258 -0.15082069  0.71027397</span></span>
-<span><span class="co">#&gt; 2   1  0.532846422 0.472782438 -0.42259987  1.45035245</span></span>
-<span><span class="co">#&gt; 3   2 -0.085410629 0.032880338 -0.14808951 -0.02145003</span></span>
-<span><span class="co">#&gt; 4   3 -0.049422986 0.011053669 -0.06997935 -0.02734389</span></span>
-<span><span class="co">#&gt; 5   4 -0.036732457 0.009404452 -0.05409637 -0.01754228</span></span>
-<span><span class="co">#&gt; 6   5 -0.040709356 0.011655497 -0.06401754 -0.01905216</span></span>
-<span><span class="co">#&gt; 7   6 -0.006380408 0.023315703 -0.04904999  0.04156895</span></span>
-<span><span class="co">#&gt; 8   7  0.015041373 0.038776263 -0.05925005  0.09460253</span></span></code></pre></div>
+<span><span class="co">#&gt;    egt     att.egt     se.egt     lci.egt       uci.egt</span></span>
+<span><span class="co">#&gt; 1 2004 -0.08364977 0.01576164 -0.11348464 -5.066119e-02</span></span>
+<span><span class="co">#&gt; 2 2006 -0.02295798 0.01147132 -0.04397223  1.060277e-05</span></span>
+<span><span class="co">#&gt; 3 2007 -0.02332198 0.01537263 -0.05288754  7.814570e-03</span></span></code></pre></div>
 <p>The effect is positive for the populations in bucket 0, 1, and 7, but
 these are also the same ones that we didn’t have enough treatment units
 of. So, they may not be representative of those population levels.</p>

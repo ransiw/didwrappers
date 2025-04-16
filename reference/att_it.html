@@ -61,6 +61,8 @@ where units treated in the same period is in a single group. Unlike the related 
 <span>  customnames <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">data</span>,</span>
 <span>  panel <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  fixedbase <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nobase <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  control_group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nevertreated"</span>, <span class="st">"notyettreated"</span><span class="op">)</span>,</span>
 <span>  anticipation <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  weightsname <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -104,7 +106,8 @@ A unit treated after the last period in <code>tname</code> is also considered ne
 
 
 <dt id="arg-cohort">cohort<a class="anchor" aria-label="anchor" href="#arg-cohort"></a></dt>
-<dd><p>the name of blocking variable in <code>data</code>, specified if comparisons should only be within cohort.</p></dd>
+<dd><p>the name of blocking variable in <code>data</code>, specified if comparisons should only be within pre-treatment cohort.
+If blocking is required across the entire trajectory, this must be imposed on the input to <code>data</code> prior to running this function.</p></dd>
 
 
 <dt id="arg-xformla">xformla<a class="anchor" aria-label="anchor" href="#arg-xformla"></a></dt>
@@ -122,7 +125,15 @@ is NULL which is equivalent to <code>xformla=~1</code>.</p></dd>
 
 
 <dt id="arg-panel">panel<a class="anchor" aria-label="anchor" href="#arg-panel"></a></dt>
-<dd><p>if panel is TRUE, the data is coerced to a balanced panel on the. Default is TRUE.</p></dd>
+<dd><p>if TRUE, the data is coerced to a balanced panel on the. Default is TRUE.</p></dd>
+
+
+<dt id="arg-fixedbase">fixedbase<a class="anchor" aria-label="anchor" href="#arg-fixedbase"></a></dt>
+<dd><p>if the user needs to fix a base period to be a particular period, use this option. Must be numeric. Default is NULL.</p></dd>
+
+
+<dt id="arg-nobase">nobase<a class="anchor" aria-label="anchor" href="#arg-nobase"></a></dt>
+<dd><p>if TRUE, the baseline vectors are set to zero. Estimates are not differences-in-differences. Default is FALSE.</p></dd>
 
 
 <dt id="arg-control-group">control_group<a class="anchor" aria-label="anchor" href="#arg-control-group"></a></dt>
@@ -160,32 +171,19 @@ is FALSE so that only the aggite step is weighted unless specified.</p></dd>
 
 
 <dt id="arg-bstrap">bstrap<a class="anchor" aria-label="anchor" href="#arg-bstrap"></a></dt>
-<dd><p>boolean for whether or not to compute standard errors using
-the multiplier bootstrap.  If standard errors are clustered, then one
-must set <code>bstrap=TRUE</code>. Default is <code>TRUE</code> (in addition, cband
-is also by default <code>TRUE</code> indicating that uniform confidence bands
-will be returned.  If bstrap is <code>FALSE</code>, then analytical
-standard errors are reported.</p></dd>
+<dd><p>a deprecated option. Only analytical standard errors are reported.</p></dd>
 
 
 <dt id="arg-cband">cband<a class="anchor" aria-label="anchor" href="#arg-cband"></a></dt>
-<dd><p>boolean for whether or not to compute a uniform confidence
-band that covers all of the group-time average treatment effects
-with fixed probability <code>1-alp</code>.  In order to compute uniform confidence
-bands, <code>bstrap</code> must also be set to <code>TRUE</code>.  The default is
-<code>TRUE</code>.</p></dd>
+<dd><p>a deprecated option. Does not produce uniform confidence bands.</p></dd>
 
 
 <dt id="arg-biters">biters<a class="anchor" aria-label="anchor" href="#arg-biters"></a></dt>
-<dd><p>the number of bootstrap iterations to use.  The default is 1000,
-and this is only applicable if <code>bstrap=TRUE</code>.</p></dd>
+<dd><p>a deprecated option, also see <code>bstrap</code>.</p></dd>
 
 
 <dt id="arg-clustervars">clustervars<a class="anchor" aria-label="anchor" href="#arg-clustervars"></a></dt>
-<dd><p>a vector of variables names to cluster on.  At most, there
-can be two variables (otherwise will throw an error) and one of these
-must be the same as idname which allows for clustering at the individual
-level. By default, we cluster at individual level (when <code>bstrap=TRUE</code>)</p></dd>
+<dd><p>a deprecated option, also see <code>bstrap</code>.</p></dd>
 
 
 <dt id="arg-est-method">est_method<a class="anchor" aria-label="anchor" href="#arg-est-method"></a></dt>
@@ -205,7 +203,7 @@ The other option, "retain" retains these units for inference.</p></dd>
 <dd><p>whether to use a "varying" base period or a
 "universal" base period for placebo tests. A varying base period calculates a pseudo-ATT for every two consecutive pre-treatment periods.
 A universal base period fixes the base period to always be (g-anticipation-1).  Either choice results in the same
-post-treatment estimates of ATT(g,t)'s.</p></dd>
+post-treatment estimates of ATT(i,t)'s.</p></dd>
 
 
 <dt id="arg-print-details">print_details<a class="anchor" aria-label="anchor" href="#arg-print-details"></a></dt>
@@ -228,8 +226,7 @@ Default is <code>FALSE</code>.</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># run the function with the default settings and default data</span></span></span>
-<span class="r-in"><span><span class="va">attobject</span> <span class="op">=</span> <span class="fu">att_it</span><span class="op">(</span>yname <span class="op">=</span> <span class="st">"y"</span>, tname <span class="op">=</span> <span class="st">"time"</span>, gname <span class="op">=</span> <span class="st">"treatg"</span>, idname <span class="op">=</span><span class="st">"unit"</span>, data <span class="op">=</span> <span class="fu"><a href="sim_data.html">sim_data</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">attobject</span> <span class="op">&lt;-</span> <span class="fu">att_it</span><span class="op">(</span>yname <span class="op">=</span> <span class="st">"y"</span>, tname <span class="op">=</span> <span class="st">"time"</span>, gname<span class="op">=</span><span class="st">"treatg"</span>, idname<span class="op">=</span><span class="st">"unit"</span>, data<span class="op">=</span><span class="fu"><a href="sim_data.html">sim_data</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
