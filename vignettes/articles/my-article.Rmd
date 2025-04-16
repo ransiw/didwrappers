@@ -169,7 +169,7 @@ abline(h=0,lty=3,col="red")
 There group level effects are quite different to the previous estimates of the `did` package. There are some large negative effects in addition to postive effects.
 
 
-The overall effects is insignificant. 
+The overall effect is insignificant. 
 
 ```{r}
 # overall effect
@@ -233,6 +233,7 @@ out_it <- didwrappers::att_it(yname = "gdppercapitaconstant2000us",
                               idname = "wbnum",
                               tname = "year",
                               cohort = "regionnum",
+                              customnames = c("regionnum"),
                               xformla = ~1,
                               data = demgdp,
                               panel = FALSE,
@@ -285,7 +286,7 @@ arrows(x0 = cohort_effects_it_df$egt, y0 = cohort_effects_it_df$lci.egt,
 abline(h=0,lty=3,col="red")
 ```
 
-Notice the extensive regional level heterogeneity. Also note that none of the industrialized countries are included, because there is a lack of industrialized non-democracies. This explains the difference between the overall effect of democratization when performed without within-cohort blocking, and performed with cohort blocking. Much of that positive effect is attributable to industralized countries. 
+Notice the extensive regional level heterogeneity. Also note that none of the industrialized countries are included, because there is a lack of industrialized non-democracies. This explains the difference between the overall effect of democratization when performed without within-cohort blocking, and performed with cohort blocking. Much of that positive effect is attributable to industralized countries. There are also insufficient control units within the South Asian regions to produce estimates.
 
 This exercise is only demonstrative, and should not be used to draw substantive conclusions about the relationship between democracy and growth.  
 
