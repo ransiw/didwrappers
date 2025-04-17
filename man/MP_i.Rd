@@ -21,6 +21,8 @@ MP_i(
   ipwqual = NULL,
   attcalc = NULL,
   baseline = NULL,
+  baset = NULL,
+  outcome = NULL,
   count = NULL,
   DIDparams = NULL
 )
@@ -58,6 +60,10 @@ period \code{t}}
 \item{attcalc}{similar to att but does not remove estimates when there are propensity score problems}
 
 \item{baseline}{the baseline of the unit}
+
+\item{baset}{the baseline time of the unit}
+
+\item{outcome}{the outcome of the unit at time t}
 
 \item{count}{takes a count of the number of units in the component estimate}
 

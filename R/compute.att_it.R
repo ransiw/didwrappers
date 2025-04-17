@@ -149,7 +149,7 @@ compute.att_it <- function(dp) {
       # and break without computing anything
       if (base_period == "universal") {
         if (tlist[pret] == tlist[(t+tfac)]) {
-          attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=0, baseline=NA, attcalc = NA, count=0)
+          attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=0, baseline=NA, baset=NA, outcome=NA, attcalc = NA, count=0)
           inffunc[,counter] <- rep(0,n)
           counter <- counter+1
           next
@@ -159,7 +159,7 @@ compute.att_it <- function(dp) {
       # similarly for a fixedbase
       if (!is.null(fixedbase)) {
         if (tlist[pret] == tlist[(t+tfac)]) {
-          attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=0, baseline=NA, attcalc = NA, count=0)
+          attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=0, baseline=NA, baset=NA, outcome=NA, attcalc = NA, count=0)
           inffunc[,counter] <- rep(0,n)
           counter <- counter+1
           next
@@ -241,17 +241,27 @@ compute.att_it <- function(dp) {
         message(paste0("No units for id ", idlist[g], " in time period ", tlist[t]))
         skip_this_att_gt <- TRUE
       }
+
+
+      if (skip_this_att_gt) {
+        attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=post.treat, baseline=NA, baset=NA, outcome=NA, attcalc = NA, count=0)
+        inffunc[,counter] <- NA
+        counter <- counter+1
+        next
+      }
+
+      skip_this_att_gt <- FALSE
       if (sum(C*post) == 0) {
         message(paste0("No available control units for id ", idlist[g], " in time period ", tlist[t+tfac]))
         skip_this_att_gt <- TRUE
       }
       if (sum(C*(1-post)) == 0) {
-        message(paste0("No availabe control units for group ", idlist[g], " in time period ", tlist[t]))
+        message(paste0("No available control units for group ", idlist[g], " in time period ", tlist[t]))
         skip_this_att_gt <- TRUE
       }
 
       if (skip_this_att_gt) {
-        attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=post.treat, baseline=NA, attcalc = NA, count=0)
+        attgt.list[[counter]] <- list(att=NA, id=idlist[g],  group=glist[g], year=tlist[(t+tfac)], ipwqual=NA, se=NA, lci=NA, uci=NA, post=post.treat, baseline=NA, baset=NA, outcome=Y[G*post==1], attcalc = NA, count=0)
         inffunc[,counter] <- NA
         counter <- counter+1
         next
@@ -358,7 +368,7 @@ compute.att_it <- function(dp) {
 
 
         if (reg_problems_likely | (pscore_problems_likely & overlap=="trim")) {
-          attgt.list[[counter]] <- list(att=NA, id=idlist[g], group=glist[g], year=tlist[(t+tfac)],ipwqual=maxpscore, se=NA, lci=NA, uci=NA, post=post.treat, baseline=Ypre[G==1], attcalc=attcalc, count=n1/2)
+          attgt.list[[counter]] <- list(att=NA, id=idlist[g], group=glist[g], year=tlist[(t+tfac)],ipwqual=maxpscore, se=NA, lci=NA, uci=NA, post=post.treat, baseline=Ypre[G==1], baset = tlist[pret], outcome=Ypost[G==1], attcalc=attcalc, count=n1/2)
           inffunc[,counter] <- NA
           counter <- counter+1
           next
@@ -413,7 +423,7 @@ compute.att_it <- function(dp) {
 
 
       attgt.list[[counter]] <- list(
-        att = attgt$ATT, id=idlist[g],  group = glist[g], year = tlist[(t+tfac)],ipwqual=maxpscore, se=attgt$se, lci=attgt$lci, uci=attgt$uci, post = post.treat, baseline=Ypre[G==1],
+        att = attgt$ATT, id=idlist[g],  group = glist[g], year = tlist[(t+tfac)],ipwqual=maxpscore, se=attgt$se, lci=attgt$lci, uci=attgt$uci, post = post.treat, baseline=Ypre[G==1], baset=tlist[pret], outcome=Ypost[G==1],
         attcalc = attgt$ATT, count=length(attgt$att.inf.func)
       )
 

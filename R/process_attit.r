@@ -11,7 +11,9 @@
 #' \item{lci}{the lower confidence interval of the unit time average treatment effect (NA if there were propensity score problems)}
 #' \item{uci}{the upper confidence interval of the unit time average treatment effect (NA if there were propensity score problems)}
 #' \item{ipwqual}{the maximum propensity score}
-#' \item{baseline}{the pre-treatement outcome value}
+#' \item{baseline}{the pre-treatment outcome value}
+#' \item{baset}{the pre-treatment time}
+#' \item{outcome}{the post-treatment outcome value}
 #' \item{attcalc}{the unit time average treatment effect (always complete unless NaN)}
 #'
 #' @export
@@ -34,6 +36,8 @@ process_attit <- function(attgt.list) {
   uci <- c()
   ipwqual <- c()
   baseline <- c()
+  baset <- c()
+  outcome <- c()
   attcalc <- c()
   count <- c()
   i <- 1
@@ -50,11 +54,13 @@ process_attit <- function(attgt.list) {
       uci[i] <- attgt.list[[i]]$uci
       ipwqual[i] <- attgt.list[[i]]$ipwqual
       baseline[i] <- attgt.list[[i]]$baseline
+      baset[i] <- attgt.list[[i]]$baset
+      outcome[i] <- attgt.list[[i]]$outcome
       attcalc[i] <- attgt.list[[i]]$attcalc
       count[i] <- attgt.list[[i]]$count
       i <- i+1
     }
   }
 
-  list(group=group, att=att, tt=tt, id=id, ipwqual=ipwqual,attcalc=attcalc,baseline=baseline,se=se,lci=lci,uci=uci,count=count)
+  list(group=group, att=att, tt=tt, id=id, ipwqual=ipwqual,attcalc=attcalc,baseline=baseline,baset=baset,outcome=outcome,se=se,lci=lci,uci=uci,count=count)
 }

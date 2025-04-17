@@ -19,6 +19,8 @@
 #' @param ipwqual the maximum propensity score
 #' @param attcalc similar to att but does not remove estimates when there are propensity score problems
 #' @param baseline the baseline of the unit
+#' @param baset the baseline time of the unit
+#' @param outcome the outcome of the unit at time t
 #' @param count takes a count of the number of units in the component estimate
 #' @param DIDparams a [`DIDparams_i`] object.  A way to optionally return the parameters
 #'  of the call to [att_it()].
@@ -30,9 +32,9 @@
 #' # Helper function for [att_it()]. See documentation of that function for an example.
 #'
 #'
-MP_i <- function(id, group, t, att, V_analytical, se, c, lci, uci, inffunc, n=NULL, aggite=NULL, alp = 0.05, ipwqual=NULL, attcalc=NULL, baseline=NULL, count=NULL, DIDparams=NULL) {
+MP_i <- function(id, group, t, att, V_analytical, se, c, lci, uci, inffunc, n=NULL, aggite=NULL, alp = 0.05, ipwqual=NULL, attcalc=NULL, baseline=NULL, baset=NULL,outcome=NULL, count=NULL, DIDparams=NULL) {
   out <- list(id=id,group=group, t=t, att=att, V_analytical=V_analytical, se=se, c=c, lci=lci, uci=uci,
-  inffunc=inffunc, n=n, aggite=aggite, alp = alp, ipwqual=ipwqual,attcalc=attcalc, count=count, baseline=baseline,
+  inffunc=inffunc, n=n, aggite=aggite, alp = alp, ipwqual=ipwqual,attcalc=attcalc, count=count, baseline=baseline, baset = baset, outcome=outcome,
   DIDparams=DIDparams, call=DIDparams$call)
   class(out) <- "MP_i"
   out
