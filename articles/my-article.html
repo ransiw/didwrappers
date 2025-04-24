@@ -252,12 +252,12 @@ effects in addition to postive effects.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># overall effect</span></span>
 <span><span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.att</span></span>
-<span><span class="co">#&gt; [1] -101.7914</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] -155.3961</span></span></code></pre></div>
 <p>The 95% confidence interval</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Confidence interval</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"["</span>,<span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.lci</span>,<span class="st">","</span>, <span class="va">group_effects_it</span><span class="op">$</span><span class="va">overall.uci</span>,<span class="st">"]"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "[ -455.190838821287 , 272.411569749994 ]"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "[ -362.725817297393 , 43.1088795272645 ]"</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="comparison">Comparison<a class="anchor" aria-label="anchor" href="#comparison"></a>
@@ -386,11 +386,11 @@ the data to block cohorts,</p>
 <p>The overall effect</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cohort_effects_it</span><span class="op">$</span><span class="va">overall.att</span></span>
-<span><span class="co">#&gt; [1] -399.1826</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] -5.111773</span></span></code></pre></div>
 <p>and confidence interval</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"["</span>,<span class="va">cohort_effects_it</span><span class="op">$</span><span class="va">overall.lci</span>,<span class="st">","</span>,<span class="va">cohort_effects_it</span><span class="op">$</span><span class="va">overall.uci</span>, <span class="st">"]"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "[-1428.23202640698,488.228649410157]"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "[-206.145840750434,195.698379214436]"</span></span></code></pre></div>
 <p>Plot the regional effects</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">cohort_effects_it_df</span><span class="op">$</span><span class="va">egt</span>, <span class="va">cohort_effects_it_df</span><span class="op">$</span><span class="va">att.egt</span>, col<span class="op">=</span><span class="st">"forestgreen"</span>, pch<span class="op">=</span><span class="fl">19</span>,</span>
