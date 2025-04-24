@@ -153,7 +153,7 @@ out_it_cohort <- didwrappers::att_it(yname = "lemp",
 Aggregating by population level,
 
 ```{r}
-cohort = didwrappers::aggite(out_it_cohort, type="group", na.rm = TRUE)
+cohort = didwrappers::aggite(out_it_cohort, type="lpop2", na.rm = TRUE)
 didwrappers::aggite_table(cohort)
 ```
 

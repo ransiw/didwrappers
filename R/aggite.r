@@ -35,7 +35,8 @@
 #' @param na.rm Logical value if we are to remove missing Values from analyses. Defaults is FALSE.
 #' @param bstrap This is always TRUE. Turning off makes no difference in the second-step.
 #' @param biters The number of bootstrap iterations to use.  The default is the value set in the MP_i object.
-#'
+#' @param maxbackp The number of pre-period observations sampled for baseline variance. Default is 5.
+#' @param ignorebackp Logical for whether the pre-period should be sampled for baseline variance. Default is FALSE.
 #' @param cband Does not apply. All confidence intervals are bootstrapped confidence intervals in the second-step.
 #' @param alp the significance level, default is value set in the MP_i object.
 #' @param clustervars ignored in this function.
@@ -63,6 +64,8 @@ aggite <- function(MP,
                   na.rm = FALSE,
                   bstrap = NULL,
                   biters = NULL,
+                  maxbackp = 5,
+                  ignorebackp = FALSE,
                   cband = NULL,
                   alp = NULL,
                   clustervars = NULL
@@ -78,6 +81,8 @@ aggite <- function(MP,
                 min_agg = min_agg,
                 na.rm = na.rm,
                 bstrap = bstrap,
+                maxbackp = maxbackp,
+                ignorebackp = ignorebackp,
                 biters = biters,
                 cband = cband,
                 alp = alp,

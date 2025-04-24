@@ -15,6 +15,8 @@ aggite2(
   na.rm = FALSE,
   bstrap = NULL,
   biters = NULL,
+  maxbackp = 5,
+  ignorebackp = FALSE,
   cband = NULL,
   alp = NULL,
   clustervars = NULL
@@ -61,6 +63,10 @@ all lengths of exposure are computed.}
 \item{bstrap}{This is always TRUE. Turning off makes no difference in the second-step.}
 
 \item{biters}{The number of bootstrap iterations to use.  The default is the value set in the MP_i object}
+
+\item{maxbackp}{The number of pre-period observations sampled for baseline variance. Default is 5.}
+
+\item{ignorebackp}{Logical for whether the pre-period should be sampled for baseline variance. Default is FALSE.}
 
 \item{cband}{Does not apply. All confidence intervals are bootstrapped confidence intervals in the second-step.}
 

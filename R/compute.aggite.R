@@ -1,7 +1,6 @@
 #' @title Compute Aggregated Treatment Effect Parameters
 #'
-#' @description Does the heavy lifting on computing aggregated group-time
-#'  average treatment effects
+#' @description Computes aggregated average treatment effects
 #'
 #' @inheritParams aggite
 #' @param call The function call to aggite
@@ -25,6 +24,8 @@ compute.aggite <- function(MP,
                           na.rm = FALSE,
                           bstrap = NULL,
                           biters = NULL,
+                          maxbackp = 5,
+                          ignorebackp = FALSE,
                           cband = NULL,
                           alp = NULL,
                           clustervars = NULL,
@@ -42,6 +43,9 @@ compute.aggite <- function(MP,
   dp <- MP$DIDparams
   inffunc1 <- MP$inffunc
   n <- MP$n
+  baseline <- MP$baseline
+  baset <- MP$baset
+  outcome <- MP$outcome
 
 
   gname <- dp$gname
@@ -85,6 +89,27 @@ compute.aggite <- function(MP,
     stop('`type` must be one of c("simple", "dynamic", "group", "unit", "calendar", or a custom aggregator)')
   }
 
+  # create the pre-treatment sds
+  if (ignorebackp){
+    sdibase <- rep(0,length(id))
+  } else{
+    sdibase <- lapply(1:length(id), function(l){
+      backlook <- outcome[id==id[l] & t<=(baset[l]) & t>=(baset[l]-maxbackp)]
+      backtime <- t[id==id[l] & t<=(baset[l]) & t>=(baset[l]-maxbackp)]
+      if (sum(!is.na(backlook))<2){
+        return(0)
+      } else{
+        cent_reg = stats::lm(backlook~backtime)
+        return(stats::sd(cent_reg$residuals))
+      }
+    })
+    sdibase <- unlist(sdibase)
+  }
+
+  if (length(sdibase)!=length(baseline)){
+    stop("base vectors are not the same length")
+  }
+
   if(na.rm){
     notna <- !is.na(se)
     group <- group[notna]
@@ -92,35 +117,39 @@ compute.aggite <- function(MP,
     id <- id[notna]
     att <- att[notna]
     se <- se[notna]
+    baseline <- baseline[notna]
+    sdibase <- sdibase[notna]
     inffunc1 <- inffunc1[, notna]
     #tlist <- sort(unique(t))
 
     # If aggte is of the group type, ensure we have non-missing post-treatment ATTs for each group
-    if(type == "group"){
-      glist <- sort(unique(group))
-      # Get the groups that have some non-missing ATT(g,t) in post-treatmemt periods
-      gnotna <- sapply(glist, function(g) {
-        # look at post-treatment periods for group g
-        whichg <- which( (group == g) & (g <= t))
-        attg <- att[whichg]
-        group_select <- !is.na(mean(attg))
-        return(group_select)
-      })
-      gnotna <- glist[gnotna]
-      # indicator for not all post-treatment ATT(g,t) missing
-      not_all_na <- group %in% gnotna
-      # Re-do the na.rm thing to update the groups
-      group <- group[not_all_na]
-      t <- t[not_all_na]
-      id <- id[not_all_na]
-      att <- att[not_all_na]
-      se <- se[not_all_na]
-      inffunc1 <- inffunc1[, not_all_na]
-      #tlist <- sort(unique(t))
-      glist <- sort(unique(group))
-    }
+    # if(type == "group"){
+    #   glist <- sort(unique(group))
+    #   # Get the groups that have some non-missing ATT(g,t) in post-treatmemt periods
+    #   gnotna <- sapply(glist, function(g) {
+    #     # look at post-treatment periods for group g
+    #     whichg <- which( (group == g) & (g <= t))
+    #     attg <- att[whichg]
+    #     group_select <- !is.na(mean(attg))
+    #     return(group_select)
+    #   })
+    #   gnotna <- glist[gnotna]
+    #   # indicator for not all post-treatment ATT(g,t) missing
+    #   not_all_na <- group %in% gnotna
+    #   # Re-do the na.rm thing to update the groups
+    #   group <- group[not_all_na]
+    #   t <- t[not_all_na]
+    #   id <- id[not_all_na]
+    #   att <- att[not_all_na]
+    #   se <- se[not_all_na]
+    #   baseline <- baseline[not_all_na]
+    #   sdibase <- sdibase[not_all_na]
+    #   inffunc1 <- inffunc1[, not_all_na]
+    #   #tlist <- sort(unique(t))
+    #   glist <- sort(unique(group))
+    # }
 
-    if(type %in% c("unit", customnames)){
+    if(type %in% c("unit", "simple", "group", customnames)){
       idlist <- sort(unique(id))
       # Get the units that have some non-missing ATT(g,t) in post-treatmemt periods
       gnotna <- sapply(idlist, function(g) {
@@ -139,6 +168,8 @@ compute.aggite <- function(MP,
       id <- id[not_all_na]
       att <- att[not_all_na]
       se <- se[not_all_na]
+      baseline <- baseline[not_all_na]
+      sdibase <- sdibase[not_all_na]
       inffunc1 <- inffunc1[, not_all_na]
       #tlist <- sort(unique(t))
       # redoing the glist here to drop any NA observations
@@ -190,6 +221,7 @@ compute.aggite <- function(MP,
   # if the na.rm is FALSE the glist for group should be unique
   if (type == "group"){
     glist <- sort(unique(group))
+    idlist <- sort(unique(id))
   }
 
   if (type == "unit"){
@@ -234,56 +266,234 @@ compute.aggite <- function(MP,
   # n x 1 vector of group variable
   G <-  unlist(lapply(dta[,gname], orig2t))
 
+
   #-----------------------------------------------------------------------------
-  # Compute the simple ATT summary
+  # Compute simple aggregate using the unit-level
   #-----------------------------------------------------------------------------
 
-  if (type == "simple") {
+  # change the pg to pi to extract the weights for the treated groups
+  pg <- dta[dta[,idname] %in% idlist,".w"]
 
-    # change the pg to pi to extract the weights for the treated groups
-    pg <- dta[dta[,idname] %in% idlist,".w"]
+  # length of this is equal to number of treated units or number of units in idlist
+  pgg <- pg
 
-    # length of this is equal to number of treated units or number of units in idlist
-    pgg <- pg
+  # same but length is equal to the number of ATT(g,t)
+  pg <- pg[match(id, idlist)]
 
-    # same but length is equal to the number of ATT(g,t)
-    pg <- pg[match(id, idlist)]
+  # get group specific ATTs
+  # note: there are no estimated weights here
+  simple.att.i <- sapply(idlist, function(g) {
+    # look at post-treatment periods for group g
+    whichi <- which( (id == g) & (group <= t) & (t<= (group + max_e))) ### added last condition to allow for limit on longest period included in att
+    atti <- att[whichi]
+    # Take out of if else condition
+    sum(atti*(pg[whichi]/sum(pg[whichi])))
+    # if (length(whichi)<min_agg){
+    #   NA
+    # } else {
+    #   sum(atti*(pg[whichi]/sum(pg[whichi])))
+    # }
+  })
+  simple.att.i[is.nan(simple.att.i)] <- NA
 
-    # simple att
-    # averages all post-treatment ATT(i,t) with weights
-    # given by group size
-    simple.att <- sum(att[keepers]*pg[keepers])/(sum(pg[keepers]))
-    #simple.att <- sum(att[keepers])/(length(att[keepers]))
-    if(is.nan(simple.att)) simple.att <- NA
 
-    pgkeepers <- pg[keepers]/(sum(pg[keepers]))
+  # get standard errors for each group specific ATT
+  simple.se.inner <- lapply(idlist, function(g) {
+    whichi <- which( (id == g) & (group <= t) & (t<= (group + max_e)))  ### added last condition to allow for limit on longest period included in att
 
-    if (length(keepers)<2){
-      simple.if <- NA
-      simple.se <- NA
-      simple.lci <- NA
-      simple.uci <- NA
+    if (length(whichi)<min_agg){
+      inf.func.i <- NA
+      se.i <- NA
+      lci.i <- NA
+      uci.i <- NA
     } else{
-      simple.if <- replicate(biters, {
-        random_draws <- sapply(1:length(keepers), function(j) stats::rnorm(1, mean = att[keepers][j], sd = se[keepers][j]))
-        sd.simple <- stats::sd(random_draws)
-        random_draws <- random_draws + stats::rnorm(length(random_draws),sd=sd.simple)
-        sum(random_draws*pgkeepers)
+      inf.func.i <- replicate(biters, {
+        random_draws <- stats::rnorm(length(whichi), mean = att[whichi], sd = se[whichi])
+        random_draws <- random_draws + baseline[whichi] - stats::rnorm(1,baseline[whichi],sdibase[whichi])
+        if (length(random_draws)<2){
+          random_draws <- random_draws
+        } else{
+          random_draws <- random_draws + stats::rnorm(length(whichi),sd=stats::sd(random_draws))
+        }
+        sum(random_draws*(pg[whichi]/sum(pg[whichi])))
       })
-      simple.se <- stats::sd(simple.if)
-      simple.lci <- stats::quantile(simple.if,alp/2)
-      simple.uci <- stats::quantile(simple.if,1-alp/2)
+      # se.e <- getSE(inf.func.e, dp)
+      se.i <- stats::sd(inf.func.i)
+      lci.i <- stats::quantile(inf.func.i,alp/2)
+      uci.i <- stats::quantile(inf.func.i,1-alp/2)
+
     }
+    list(inf.func=inf.func.i, se=se.i, lci=lci.i, uci=uci.i)
+  })
+
+  # recover standard errors separately by group
+  simple.se.i <- unlist(BMisc::getListElement(simple.se.inner, "se"))
+  simple.se.i[simple.se.i <= sqrt(.Machine$double.eps)*10] <- NA
+
+  # recover influence function separately by group
+  # simple.if <- simplify2array(BMisc::getListElement(simple.se.inner, "inf.func"))
+
+  # add a positional argument to notate the missings
+  epos <- !is.na(simple.att.i)
+
+  # get overall att under selective treatment timing
+  # (here use pgg instead of pg because we can just look at each group)
+  simple.att <- sum(simple.att.i[which(epos)] * pgg[which(epos)])/sum(pgg[which(epos)])
 
 
+  if (sum(epos)<min_agg) {
+    simple.inf.func <- NA
+    simple.se <- NA
+    simple.lci <- NA
+    simple.uci <- NA
+  } else{
+    simple.inf.func <- replicate(biters, {
+      random_draws <- sapply(1:sum(epos), function(j)
+        if (is.na(simple.se.i[which(epos)][j])){
+          simple.att.i[which(epos)][j]
+        } else{
+          stats::rnorm(1, mean = simple.att.i[which(epos)][j], sd = simple.se.i[which(epos)][j])
+        })
+      random_draws <- random_draws + stats::rnorm(sum(epos),sd = stats::sd(random_draws))
+      sum((pgg[which(epos)]/sum(pgg[which(epos)]))*random_draws)
+    })
+
+    simple.se <- stats::sd(simple.inf.func)
+    simple.lci <- stats::quantile(simple.inf.func,alp/2)
+    simple.uci <- stats::quantile(simple.inf.func,1-alp/2)
+  }
+
+
+  if(!is.na(simple.se)){
+    if((simple.se <= sqrt(.Machine$double.eps)*10)) simple.se <- NA
+  }
+
+  if (type == "simple"){
     return(AGGITEobj(overall.att = simple.att,
-                    overall.se = simple.se,
-                    overall.lci = simple.lci,
-                    overall.uci = simple.uci,
-                    type = type,
-                    inf.function = list(simple.att = simple.if),
-                    call=call,
-                    DIDparams=dp))
+                     overall.se = simple.se,
+                     overall.lci = simple.lci,
+                     overall.uci = simple.uci,
+                     type = type,
+                     inf.function = NULL,
+                     call=call,
+                     DIDparams=dp))
+  }
+
+  #-----------------------------------------------------------------------------
+  # Compute unit level aggregate
+  #-----------------------------------------------------------------------------
+
+  if (type == "unit") {
+
+    # Not run since same as above
+
+    # # change the pg to pi to extract the weights for the treated groups
+    # pg <- dta[dta[,idname] %in% idlist,".w"]
+    #
+    # # length of this is equal to number of treated units or number of units in idlist
+    # pgg <- pg
+    #
+    # # same but length is equal to the number of ATT(g,t)
+    # pg <- pg[match(id, idlist)]
+    #
+    # # get group specific ATTs
+    # # note: there are no estimated weights here
+    # selective.att.i <- sapply(idlist, function(g) {
+    #   # look at post-treatment periods for group g
+    #   whichi <- which( (id == g) & (group <= t) & (t<= (group + max_e))) ### added last condition to allow for limit on longest period included in att
+    #   atti <- att[whichi]
+    #   if (length(whichi)<min_agg){
+    #     NA
+    #   } else {
+    #     sum(atti*(pg[whichi]/sum(pg[whichi])))
+    #   }
+    # })
+    # selective.att.i[is.nan(selective.att.i)] <- NA
+    #
+    #
+    # # get standard errors for each group specific ATT
+    # selective.se.inner <- lapply(idlist, function(g) {
+    #   whichi <- which( (id == g) & (group <= t) & (t<= (group + max_e)))  ### added last condition to allow for limit on longest period included in att
+    #
+    #   if (length(whichi)<min_agg){
+    #     inf.func.i <- NA
+    #     se.i <- NA
+    #     lci.i <- NA
+    #     uci.i <- NA
+    #   } else{
+    #     inf.func.i <- replicate(biters, {
+    #       random_draws <- stats::rnorm(length(whichi), mean = att[whichi], sd = se[whichi])
+    #       random_draws <- random_draws + baseline[whichi] - stats::rnorm(1,baseline[whichi],sdibase[whichi])
+    #       random_draws <- random_draws + stats::rnorm(length(whichi),sd=stats::sd(random_draws))
+    #       sum(random_draws*(pg[whichi]/sum(pg[whichi])))
+    #     })
+    #     se.i <- stats::sd(inf.func.i)
+    #     lci.i <- stats::quantile(inf.func.i,alp/2)
+    #     uci.i <- stats::quantile(inf.func.i,1-alp/2)
+    #
+    #   }
+    #   list(inf.func=inf.func.i, se=se.i, lci=lci.i, uci=uci.i)
+    # })
+    #
+    # # recover standard errors separately by group
+    # selective.se.i <- unlist(BMisc::getListElement(selective.se.inner, "se"))
+    # selective.se.i[selective.se.i <= sqrt(.Machine$double.eps)*10] <- NA
+    #
+    # selective.lci.i <- unlist(BMisc::getListElement(selective.se.inner, "lci"))
+    # selective.uci.i <- unlist(BMisc::getListElement(selective.se.inner, "uci"))
+    #
+    # # recover influence function separately by group
+    # selective.inf.func.i <- simplify2array(BMisc::getListElement(selective.se.inner, "inf.func"))
+    #
+    # # add a positional argument to notate the missings
+    # epos <- !is.na(selective.att.i)
+    #
+    # # get overall att under selective treatment timing
+    # # (here use pgg instead of pg because we can just look at each group)
+    # selective.att <- sum(selective.att.i[which(epos)] * pgg[which(epos)])/sum(pgg[which(epos)])
+    #
+    #
+    # if (sum(epos)<2) {
+    #   selective.inf.func <- NA
+    #   selective.se <- NA
+    #   selective.lci <- NA
+    #   selective.uci <- NA
+    # } else{
+    #   selective.inf.func <- replicate(biters, {
+    #     random_draws <- sapply(1:sum(epos), function(j) stats::rnorm(1, mean = selective.att.i[which(epos)][j], sd = selective.se.i[which(epos)][j]))
+    #     random_draws <- random_draws + stats::rnorm(sum(epos),sd = stats::sd(random_draws))
+    #     sum((pgg[which(epos)]/sum(pgg[which(epos)]))*random_draws)
+    #   })
+    #
+    #   selective.se <- stats::sd(selective.inf.func)
+    #   selective.lci <- stats::quantile(selective.inf.func,alp/2)
+    #   selective.uci <- stats::quantile(selective.inf.func,1-alp/2)
+    # }
+    #
+    #
+    # if(!is.na(selective.se)){
+    #   if((selective.se <= sqrt(.Machine$double.eps)*10)) selective.se <- NA
+    # }
+
+    # Add the confidence intervals to component estimates
+    simple.lci.i <- unlist(BMisc::getListElement(simple.se.inner, "lci"))
+    simple.uci.i <- unlist(BMisc::getListElement(simple.se.inner, "uci"))
+
+    return(AGGITEobj(overall.att=simple.att,
+                     overall.se=simple.se,
+                     overall.lci=simple.lci,
+                     overall.uci=simple.uci,
+                     type=type,
+                     egt=idlist,
+                     att.egt=simple.att.i,
+                     se.egt=simple.se.i,
+                     lci.egt=simple.lci.i,
+                     uci.egt=simple.uci.i,
+                     crit.val.egt=NULL,
+                     inf.function = NULL,
+                     call=call,
+                     DIDparams=dp))
+
   }
 
   #-----------------------------------------------------------------------------
@@ -326,9 +536,28 @@ compute.aggite <- function(MP,
         uci.g <- NA
       } else{
         inf.func.g <- replicate(biters, {
-          random_draws <- sapply(1:length(whichg), function(j) stats::rnorm(1, mean = att[whichg][j], sd = se[whichg][j]))
-          random_draws <- random_draws + stats::rnorm(length(whichg),sd=stats::sd(random_draws))
-          sum(random_draws*(pg[whichg]/sum(pg[whichg])))
+          # random_draws <- stats::rnorm(length(whichg), mean = att[whichg], sd = se[whichg])
+          # random_draws <- random_draws + baseline[whichg] - unlist(lapply(unique(id[whichg]),function(j){
+          #   whichj <- id[whichg]==j
+          #   basedraw <- stats::rnorm(1,mean=baseline[whichg][whichj],sd=sdibase[whichg][whichj])
+          #   return(rep(basedraw,sum(whichj)))
+          #   }))
+          # random_draws <- random_draws + stats::rnorm(length(whichg),sd=stats::sd(random_draws))
+          # sum(random_draws*(pg[whichg]/sum(pg[whichg])))
+          random_draws <- sapply(unique(id[whichg]), function(j){
+            if (is.na(simple.se.i[which(idlist==j)])){
+              return(simple.att.i[which(idlist==j)])
+            } else{
+              sd.impute = simple.se.i[which(idlist==j)]
+            }
+            return(stats::rnorm(1,mean = simple.att.i[which(idlist==j)],sd=sd.impute))
+            })
+          if (length(random_draws)>1){
+            random_draws <- random_draws + stats::rnorm(length(unique(id[whichg])),sd = stats::sd(random_draws))
+          } else{
+            random_draws <- random_draws
+          }
+          sum((pgg[which(idlist %in% unique(id[whichg]))]/sum(pgg[which(idlist %in% unique(id[whichg]))]))*random_draws)
         })
         # se.e <- getSE(inf.func.e, dp)
         se.g <- stats::sd(inf.func.g)
@@ -347,39 +576,40 @@ compute.aggite <- function(MP,
     selective.uci.g <- unlist(BMisc::getListElement(selective.se.inner, "uci"))
 
     # recover influence function separately by group
-    selective.inf.func.g <- simplify2array(BMisc::getListElement(selective.se.inner, "inf.func"))
+    # selective.inf.func.g <- simplify2array(BMisc::getListElement(selective.se.inner, "inf.func"))
+
+    #Not run since the aggregate comes from the simple
+
+    # # add a positional argument to notate the missings
+    # epos <- !is.na(selective.att.g)
+    #
+    # # get overall att under selective treatment timing
+    # # (here use pgg instead of pg because we can just look at each group)
+    # selective.att <- sum(selective.att.g[which(epos)] * (pgg[which(epos)]/sum(pgg[which(epos)])))
+    #
+    #
+    # if (sum(epos)<2) {
+    #   selective.inf.func <- NA
+    #   selective.se <- NA
+    #   selective.lci <- NA
+    #   selective.uci <- NA
+    # } else{
+    #   selective.inf.func <- replicate(biters, {
+    #     random_draws <- sapply(1:sum(epos), function(j) stats::rnorm(1, mean = selective.att.g[which(epos)][j], sd = selective.se.g[which(epos)][j]))
+    #     random_draws <- random_draws + stats::rnorm(sum(epos),sd = stats::sd(random_draws))
+    #     sum((pgg[which(epos)]/sum(pgg[which(epos)]))*random_draws)
+    #   })
+    #
+    #   selective.se <- stats::sd(selective.inf.func)
+    #   selective.lci <- stats::quantile(selective.inf.func,alp/2)
+    #   selective.uci <- stats::quantile(selective.inf.func,1-alp/2)
+    # }
 
 
-    # add a positional argument to notate the missings
-    epos <- !is.na(selective.att.g)
-
-    # get overall att under selective treatment timing
-    # (here use pgg instead of pg because we can just look at each group)
-    selective.att <- sum(selective.att.g[which(epos)] * (pgg[which(epos)]/sum(pgg[which(epos)])))
-
-
-    if (sum(epos)<2) {
-      selective.inf.func <- NA
-      selective.se <- NA
-      selective.lci <- NA
-      selective.uci <- NA
-    } else{
-      selective.inf.func <- replicate(biters, {
-        random_draws <- sapply(1:sum(epos), function(j) stats::rnorm(1, mean = selective.att.g[which(epos)][j], sd = selective.se.g[which(epos)][j]))
-        random_draws <- random_draws + stats::rnorm(sum(epos),sd = stats::sd(random_draws))
-        sum((pgg[which(epos)]/sum(pgg[which(epos)]))*random_draws)
-      })
-
-      selective.se <- stats::sd(selective.inf.func)
-      selective.lci <- stats::quantile(selective.inf.func,alp/2)
-      selective.uci <- stats::quantile(selective.inf.func,1-alp/2)
-    }
-
-
-    return(AGGITEobj(overall.att=selective.att,
-                    overall.se=selective.se,
-                    overall.lci = selective.lci,
-                    overall.uci = selective.uci,
+    return(AGGITEobj(overall.att=simple.att,
+                    overall.se=simple.se,
+                    overall.lci = simple.lci,
+                    overall.uci = simple.uci,
                     type=type,
                     egt=originalglist,
                     att.egt=selective.att.g,
@@ -387,124 +617,12 @@ compute.aggite <- function(MP,
                     lci.egt = selective.lci.g,
                     uci.egt = selective.uci.g,
                     crit.val.egt=NULL,
-                    inf.function = list(selective.inf.func.g = selective.inf.func.g,
-                                        selective.inf.func = selective.inf.func),
+                    inf.function = NULL,
                     call=call,
                     DIDparams=dp))
 
   }
 
-  #-----------------------------------------------------------------------------
-  # Compute the unit level aggregates
-  #-----------------------------------------------------------------------------
-
-  if (type == "unit") {
-
-    # change the pg to pi to extract the weights for the treated groups
-    pg <- dta[dta[,idname] %in% idlist,".w"]
-
-    # length of this is equal to number of treated units or number of units in idlist
-    pgg <- pg
-
-    # same but length is equal to the number of ATT(g,t)
-    pg <- pg[match(id, idlist)]
-
-    # get group specific ATTs
-    # note: there are no estimated weights here
-    selective.att.i <- sapply(idlist, function(g) {
-      # look at post-treatment periods for group g
-      whichi <- which( (id == g) & (group <= t) & (t<= (group + max_e))) ### added last condition to allow for limit on longest period included in att
-      atti <- att[whichi]
-      if (length(whichi)<min_agg){
-        NA
-      } else {
-        sum(atti*(pg[whichi]/sum(pg[whichi])))
-      }
-    })
-    selective.att.i[is.nan(selective.att.i)] <- NA
-
-
-    # get standard errors for each group specific ATT
-    selective.se.inner <- lapply(idlist, function(g) {
-      whichi <- which( (id == g) & (group <= t) & (t<= (group + max_e)))  ### added last condition to allow for limit on longest period included in att
-
-      if (length(whichi)<min_agg){
-        inf.func.i <- NA
-        se.i <- NA
-        lci.i <- NA
-        uci.i <- NA
-      } else{
-        inf.func.i <- replicate(biters, {
-          random_draws <- sapply(1:length(whichi), function(j) stats::rnorm(1, mean = att[whichi][j], sd = se[whichi][j]))
-          random_draws <- random_draws + stats::rnorm(length(whichi),sd=stats::sd(random_draws))
-          sum(random_draws*(pg[whichi]/sum(pg[whichi])))
-        })
-        # se.e <- getSE(inf.func.e, dp)
-        se.i <- stats::sd(inf.func.i)
-        lci.i <- stats::quantile(inf.func.i,alp/2)
-        uci.i <- stats::quantile(inf.func.i,1-alp/2)
-
-      }
-      list(inf.func=inf.func.i, se=se.i, lci=lci.i, uci=uci.i)
-    })
-
-    # recover standard errors separately by group
-    selective.se.i <- unlist(BMisc::getListElement(selective.se.inner, "se"))
-    selective.se.i[selective.se.i <= sqrt(.Machine$double.eps)*10] <- NA
-
-    selective.lci.i <- unlist(BMisc::getListElement(selective.se.inner, "lci"))
-    selective.uci.i <- unlist(BMisc::getListElement(selective.se.inner, "uci"))
-
-    # recover influence function separately by group
-    selective.inf.func.i <- simplify2array(BMisc::getListElement(selective.se.inner, "inf.func"))
-
-    # add a positional argument to notate the missings
-    epos <- !is.na(selective.att.i)
-
-    # get overall att under selective treatment timing
-    # (here use pgg instead of pg because we can just look at each group)
-    selective.att <- sum(selective.att.i[which(epos)] * pgg[which(epos)])/sum(pgg[which(epos)])
-
-
-    if (sum(epos)<2) {
-      selective.inf.func <- NA
-      selective.se <- NA
-      selective.lci <- NA
-      selective.uci <- NA
-    } else{
-      selective.inf.func <- replicate(biters, {
-        random_draws <- sapply(1:sum(epos), function(j) stats::rnorm(1, mean = selective.att.i[which(epos)][j], sd = selective.se.i[which(epos)][j]))
-        random_draws <- random_draws + stats::rnorm(sum(epos),sd = stats::sd(random_draws))
-        sum((pgg[which(epos)]/sum(pgg[which(epos)]))*random_draws)
-      })
-
-      selective.se <- stats::sd(selective.inf.func)
-      selective.lci <- stats::quantile(selective.inf.func,alp/2)
-      selective.uci <- stats::quantile(selective.inf.func,1-alp/2)
-    }
-
-
-    if(!is.na(selective.se)){
-      if((selective.se <= sqrt(.Machine$double.eps)*10)) selective.se <- NA
-    }
-
-    return(AGGITEobj(overall.att=selective.att,
-                     overall.se=selective.se,
-                     overall.lci=selective.lci,
-                     overall.uci=selective.uci,
-                     type=type,
-                     egt=idlist,
-                     att.egt=selective.att.i,
-                     se.egt=selective.se.i,
-                     lci.egt=selective.lci.i,
-                     uci.egt=selective.uci.i,
-                     crit.val.egt=NULL,
-                     inf.function = list(selective.inf.func.i = selective.inf.func.i,
-                                         selective.inf.func = selective.inf.func),
-                     call=call,
-                     DIDparams=dp))
-
-  }
 
 
   #-----------------------------------------------------------------------------
@@ -548,9 +666,23 @@ compute.aggite <- function(MP,
         uci.c <- NA
       } else{
         inf.func.c <- replicate(biters, {
-          random_draws <- sapply(1:length(whichc), function(j) stats::rnorm(1, mean = att[whichc][j], sd = se[whichc][j]))
-          random_draws <- random_draws + stats::rnorm(length(whichc),sd=stats::sd(random_draws))
-          sum(random_draws*(pg[whichc]/sum(pg[whichc])))
+          # random_draws <- sapply(1:length(whichc), function(j) stats::rnorm(1, mean = att[whichc][j], sd = se[whichc][j]))
+          # random_draws <- random_draws + stats::rnorm(length(whichc),sd=stats::sd(random_draws))
+          # sum(random_draws*(pg[whichc]/sum(pg[whichc])))
+          random_draws <- sapply(unique(id[whichc]), function(j){
+            if (is.na(simple.se.i[which(idlist==j)])){
+              return(simple.att.i[which(idlist==j)])
+            } else{
+              sd.impute = simple.se.i[which(idlist==j)]
+            }
+            return(stats::rnorm(1,mean = simple.att.i[which(idlist==j)],sd=sd.impute))
+          })
+          if (length(random_draws)>1){
+            random_draws <- random_draws + stats::rnorm(length(unique(id[whichc])),sd = stats::sd(random_draws))
+          } else{
+            random_draws <- random_draws
+          }
+          sum((pgg[which(idlist %in% unique(id[whichc]))]/sum(pgg[which(idlist %in% unique(id[whichc]))]))*random_draws)
         })
         # se.e <- getSE(inf.func.e, dp)
         se.c <- stats::sd(inf.func.c)
@@ -572,40 +704,40 @@ compute.aggite <- function(MP,
     selective.inf.func.c <- simplify2array(BMisc::getListElement(selective.se.inner, "inf.func"))
 
 
-    # positional argument to denote missings
-    epos <- !is.na(selective.att.c)
+    # # positional argument to denote missings
+    # epos <- !is.na(selective.att.c)
+    #
+    # # get overall att under selective treatment timing
+    # # (here use pgg instead of pg because we can just look at each group)
+    # selective.att <- sum(selective.att.c[which(epos)] * pgg[which(epos)])/sum(pgg[which(epos)])
+    #
+    #
+    # if (sum(epos)<2) {
+    #   selective.inf.func <- NA
+    #   selective.se <- NA
+    #   selective.lci <- NA
+    #   selective.uci <- NA
+    # } else{
+    #   selective.inf.func <- replicate(biters, {
+    #     random_draws <- sapply(1:sum(epos), function(j) stats::rnorm(1, mean = selective.att.c[which(epos)][j], sd = selective.se.c[which(epos)][j]))
+    #     random_draws <- random_draws + stats::rnorm(sum(epos),sd = stats::sd(random_draws))
+    #     sum((pgg[which(epos)]/sum(pgg[which(epos)]))*random_draws)
+    #   })
+    #
+    #   selective.se <- stats::sd(selective.inf.func)
+    #   selective.lci <- stats::quantile(selective.inf.func,alp/2)
+    #   selective.uci <- stats::quantile(selective.inf.func,1-alp/2)
+    # }
+    #
+    #
+    # if(!is.na(selective.se)){
+    #   if((selective.se <= sqrt(.Machine$double.eps)*10)) selective.se <- NA
+    # }
 
-    # get overall att under selective treatment timing
-    # (here use pgg instead of pg because we can just look at each group)
-    selective.att <- sum(selective.att.c[which(epos)] * pgg[which(epos)])/sum(pgg[which(epos)])
-
-
-    if (sum(epos)<2) {
-      selective.inf.func <- NA
-      selective.se <- NA
-      selective.lci <- NA
-      selective.uci <- NA
-    } else{
-      selective.inf.func <- replicate(biters, {
-        random_draws <- sapply(1:sum(epos), function(j) stats::rnorm(1, mean = selective.att.c[which(epos)][j], sd = selective.se.c[which(epos)][j]))
-        random_draws <- random_draws + stats::rnorm(sum(epos),sd = stats::sd(random_draws))
-        sum((pgg[which(epos)]/sum(pgg[which(epos)]))*random_draws)
-      })
-
-      selective.se <- stats::sd(selective.inf.func)
-      selective.lci <- stats::quantile(selective.inf.func,alp/2)
-      selective.uci <- stats::quantile(selective.inf.func,1-alp/2)
-    }
-
-
-    if(!is.na(selective.se)){
-      if((selective.se <= sqrt(.Machine$double.eps)*10)) selective.se <- NA
-    }
-
-    return(AGGITEobj(overall.att=selective.att,
-                     overall.se=selective.se,
-                     overall.lci=selective.lci,
-                     overall.uci=selective.uci,
+    return(AGGITEobj(overall.att=simple.att,
+                     overall.se=simple.se,
+                     overall.lci=simple.lci,
+                     overall.uci=simple.uci,
                      type=type,
                      egt=cohortlist,
                      att.egt=selective.att.c,
@@ -613,8 +745,7 @@ compute.aggite <- function(MP,
                      lci.egt=selective.lci.c,
                      uci.egt=selective.uci.c,
                      crit.val.egt=NULL,
-                     inf.function = list(selective.inf.func.c = selective.inf.func.c,
-                                         selective.inf.func = selective.inf.func),
+                     inf.function = NULL,
                      call=call,
                      DIDparams=dp))
 
@@ -711,37 +842,37 @@ compute.aggite <- function(MP,
 
     dynamic.inf.func.e <- simplify2array(BMisc::getListElement(dynamic.se.inner, "inf.func"))
 
-    # get overall average treatment effect
-    # by averaging over positive dynamics
-    epos <- (eseq >= 0 & !is.na(dynamic.att.e))
+    # # get overall average treatment effect
+    # # by averaging over positive dynamics
+    # epos <- (eseq >= 0 & !is.na(dynamic.att.e))
+    #
+    # # recalculate the weights
+    # pgg <- sapply(eseq[which(epos)], function(e) sum( ((originalt - originalgroup == e) & (include.balanced.gt)) * pg))
+    #
+    # dynamic.att <- sum(pgg*dynamic.att.e[which(epos)])/sum(pgg)
+    #
+    # if (sum(epos)<2) {
+    #   dynamic.inf.func <- NA
+    #   dynamic.se <- NA
+    #   dynamic.lci <- NA
+    #   dynamic.uci <- NA
+    # } else{
+    #   dynamic.inf.func <- replicate(biters, {
+    #     random_draws <- sapply(1:sum(epos), function(j) stats::rnorm(1, mean = dynamic.att.e[which(epos)][j], sd = dynamic.se.e[which(epos)][j]))
+    #     sd.e <- stats::sd(random_draws)/sqrt(sum(epos))
+    #     sum((pgg/sum(pgg))*random_draws) + stats::rnorm(1,sd=sd.e)
+    #   })
+    #
+    #   dynamic.se <- stats::sd(dynamic.inf.func)
+    #   dynamic.lci <- stats::quantile(dynamic.inf.func,alp/2)
+    #   dynamic.uci <- stats::quantile(dynamic.inf.func,1-alp/2)
+    # }
+    #
 
-    # recalculate the weights
-    pgg <- sapply(eseq[which(epos)], function(e) sum( ((originalt - originalgroup == e) & (include.balanced.gt)) * pg))
-
-    dynamic.att <- sum(pgg*dynamic.att.e[which(epos)])/sum(pgg)
-
-    if (sum(epos)<2) {
-      dynamic.inf.func <- NA
-      dynamic.se <- NA
-      dynamic.lci <- NA
-      dynamic.uci <- NA
-    } else{
-      dynamic.inf.func <- replicate(biters, {
-        random_draws <- sapply(1:sum(epos), function(j) stats::rnorm(1, mean = dynamic.att.e[which(epos)][j], sd = dynamic.se.e[which(epos)][j]))
-        sd.e <- stats::sd(random_draws)/sqrt(sum(epos))
-        sum((pgg/sum(pgg))*random_draws) + stats::rnorm(1,sd=sd.e)
-      })
-
-      dynamic.se <- stats::sd(dynamic.inf.func)
-      dynamic.lci <- stats::quantile(dynamic.inf.func,alp/2)
-      dynamic.uci <- stats::quantile(dynamic.inf.func,1-alp/2)
-    }
-
-
-    return(AGGITEobj(overall.att=dynamic.att,
-                    overall.se=dynamic.se,
-                    overall.lci = dynamic.lci,
-                    overall.uci = dynamic.uci,
+    return(AGGITEobj(overall.att=simple.att,
+                    overall.se=simple.se,
+                    overall.lci = simple.lci,
+                    overall.uci = simple.uci,
                     type=type,
                     egt=eseq,
                     att.egt=dynamic.att.e,
@@ -749,8 +880,7 @@ compute.aggite <- function(MP,
                     lci.egt = dynamic.lci.e,
                     uci.egt = dynamic.uci.e,
                     crit.val.egt= NULL,
-                    inf.function = list(bootstrap.comp = dynamic.inf.func.e,
-                                        bootstrap = dynamic.inf.func),
+                    inf.function = NULL,
                     call=call,
                     min_e=min_e,
                     max_e=max_e,
@@ -835,41 +965,42 @@ compute.aggite <- function(MP,
     # recover influence function separately by time
     calendar.inf.func.t <- simplify2array(BMisc::getListElement(calendar.se.inner, "inf.func"))
 
-    # index for non-missing
-    epos <- !is.na(calendar.att.t)
+    # # index for non-missing
+    # epos <- !is.na(calendar.att.t)
+    #
+    # pgg <- sapply(calendar.tlist, function(t1) sum(((t == t1) & (group <= t)) * pg))
+    #
+    # # get overall att under calendar time effects
+    # # this is just average over all time periods
+    # calendar.att <- sum(calendar.att.t[which(epos)]*pgg[which(epos)])/sum(pgg[which(epos)])
+    #
+    # if (sum(epos)<2) {
+    #   calendar.inf.func <- NA
+    #   calendar.se <- NA
+    #   calendar.lci <- NA
+    #   calendar.uci <- NA
+    # } else{
+    #   calendar.inf.func <- replicate(biters, {
+    #     random_draws <- sapply(1:sum(epos), function(j) stats::rnorm(1, mean = calendar.att.t[which(epos)][j], sd = calendar.se.t[which(epos)][j]))
+    #     sd.e <- stats::sd(random_draws)/sqrt(length(random_draws))
+    #     sum((pgg[which(epos)]/sum(pgg[which(epos)]))*random_draws) + stats::rnorm(1,sd=sd.e)
+    #   })
+    #
+    #   calendar.se <- stats::sd(calendar.inf.func)
+    #   calendar.lci <- stats::quantile(calendar.inf.func,alp/2)
+    #   calendar.uci <- stats::quantile(calendar.inf.func,1-alp/2)
+    # }
+    #
+    #
+    # # get overall standard error
+    # if(!is.na(calendar.se)){
+    #   if (calendar.se <= sqrt(.Machine$double.eps)*10) calendar.se <- NA
+    # }
 
-    pgg <- sapply(calendar.tlist, function(t1) sum(((t == t1) & (group <= t)) * pg))
-
-    # get overall att under calendar time effects
-    # this is just average over all time periods
-    calendar.att <- sum(calendar.att.t[which(epos)]*pgg[which(epos)])/sum(pgg[which(epos)])
-
-    if (sum(epos)<2) {
-      calendar.inf.func <- NA
-      calendar.se <- NA
-      calendar.lci <- NA
-      calendar.uci <- NA
-    } else{
-      calendar.inf.func <- replicate(biters, {
-        random_draws <- sapply(1:sum(epos), function(j) stats::rnorm(1, mean = calendar.att.t[which(epos)][j], sd = calendar.se.t[which(epos)][j]))
-        sd.e <- stats::sd(random_draws)/sqrt(length(random_draws))
-        sum((pgg[which(epos)]/sum(pgg[which(epos)]))*random_draws) + stats::rnorm(1,sd=sd.e)
-      })
-
-      calendar.se <- stats::sd(calendar.inf.func)
-      calendar.lci <- stats::quantile(calendar.inf.func,alp/2)
-      calendar.uci <- stats::quantile(calendar.inf.func,1-alp/2)
-    }
-
-
-    # get overall standard error
-    if(!is.na(calendar.se)){
-      if (calendar.se <= sqrt(.Machine$double.eps)*10) calendar.se <- NA
-    }
-    return(AGGITEobj(overall.att=calendar.att,
-                    overall.se=calendar.se,
-                    overall.lci = calendar.lci,
-                    overall.uci = calendar.uci,
+    return(AGGITEobj(overall.att=simple.att,
+                    overall.se=simple.se,
+                    overall.lci = simple.lci,
+                    overall.uci = simple.uci,
                     type=type,
                     egt=sapply(calendar.tlist,t2orig),
                     att.egt=calendar.att.t,
@@ -877,8 +1008,7 @@ compute.aggite <- function(MP,
                     lci.egt=calendar.lci.t,
                     uci.egt=calendar.uci.t,
                     crit.val.egt=NULL,
-                    inf.function = list(calendar.inf.func.t = calendar.inf.func.t,
-                                        calendar.inf.func = calendar.inf.func),
+                    inf.function = NULL,
                     call=call,
                     DIDparams=dp
     ))

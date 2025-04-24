@@ -83,11 +83,11 @@ didwrappers::aggite_table(group_effects)
 Now, to trying this with the unit-time object. The syntax is quite similar, and these aggregation functions are not so computationally expensive to run, even with a larger object. 
 
 ```{r}
-group_effects_it <- didwrappers::aggite(out_it, type = "group")
+group_effects_it <- didwrappers::aggite(out_it, type = "group", ignorebackp = TRUE, na.rm = TRUE)
 didwrappers::aggite_table(group_effects_it)
 ```
 
-The estimates produced by these packages are the same. The differences are in the standard errors. The standard errors are smaller under the latter which uses a bootstrap in the second stage. This isn't always the case, however. 
+The estimates produced by these packages are the same. The differences are in the standard errors.
 
 One more aggregation method before the end of this vignette. Going back to the group-time object, 
 
@@ -103,7 +103,7 @@ es_it <- didwrappers::aggite(out_it, type = "dynamic")
 didwrappers::aggite_table(es_it)
 ```
 
-Again the differences are in the standard errors, which are smaller under the latter algorithm. But the substantive results are the same. 
+Again the differences are in the standard errors, which are smaller under the latter algorithm in this instance. But the post-treatment results are in agreement.
 
 Let's now look at the overall post-treatment effect. Different aggregations give different effects. Starting with the outputs of `did`,
 
@@ -112,6 +112,9 @@ paste("Overall effect from group aggregation is",round(group_effects$overall.att
 paste("Overall effect from dynamic aggregation is",round(es$overall.att,3))
 ```
 
+They are not the same, but are the same sign. The differences are in the weighting, which is slightly different across the two aggregation schemes.  
+
+
 For the outputs of `didwrappers`,
 
 ```{r}
@@ -119,7 +122,7 @@ paste("Overall effect from group aggregation is", round(group_effects_it$overall
 paste("Overall effect from dynamic aggregation is",round(es_it$overall.att,3))
 ```
 
-They are not the same, but are the same sign. The differences are in the weighting, which is slightly different across the two algorithms and even across the aggregation schemes.  
+The latter package reports the same overall estimates across all aggregations.
 
 For 95\% confidence intervals, starting with the `did` objects:
 
@@ -134,8 +137,6 @@ Using the `didwrappers` object,
 paste("CI for overall effect from group aggregation is","[",round(group_effects_it$overall.lci,3),",",round(group_effects_it$overall.uci,3),"]")
 paste("CI for overall effect from dynamic aggregation is","[",round(es_it$overall.lci,3),",",round(es_it$overall.uci,3),"]")
 ```
-
-The overall dynamic effects are not significant under the latter algorithm, despite all of the component dynamic effects being so. 
 
 
 The results presented were for an unconditional differences-in-difference. But unconditional results might be misleading, because the treatment and control groups are too different. In such cases, re-weighting the control units so that they look similar is one way to proceed. This is the snippet that would implement a weighting algorithm in the `did` package.

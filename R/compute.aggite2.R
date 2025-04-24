@@ -26,6 +26,8 @@ compute.aggite2 <- function(MP,
                            na.rm = FALSE,
                            bstrap = NULL,
                            biters = NULL,
+                           maxbackp = 5,
+                           ignorebackp = FALSE,
                            cband = NULL,
                            alp = NULL,
                            clustervars = NULL,
@@ -43,6 +45,9 @@ compute.aggite2 <- function(MP,
   dp <- MP$DIDparams
   inffunc1 <- MP$inffunc
   n <- MP$n
+  baseline <- MP$baseline
+  baset <- MP$baset
+  outcome <- MP$outcome
 
 
   gname <- dp$gname
@@ -90,6 +95,27 @@ compute.aggite2 <- function(MP,
     stop('`type2` must "dynamic')
   }
 
+  # create the pre-treatment sds
+  if (ignorebackp){
+    sdibase <- rep(0,length(id))
+  } else{
+    sdibase <- lapply(1:length(id), function(l){
+      backlook <- outcome[id==id[l] & t<=(baset[l]) & t>=(baset[l]-maxbackp)]
+      backtime <- t[id==id[l] & t<=(baset[l]) & t>=(baset[l]-maxbackp)]
+      if (sum(!is.na(backlook))<2){
+        return(0)
+      } else{
+        cent_reg = stats::lm(backlook~backtime)
+        return(stats::sd(cent_reg$residuals))
+      }
+    })
+    sdibase <- unlist(sdibase)
+  }
+
+  if (length(sdibase)!=length(baseline)){
+    stop("base vectors are not the same length")
+  }
+
   if(na.rm){
     notna <- !is.na(se)
     group <- group[notna]
@@ -97,6 +123,8 @@ compute.aggite2 <- function(MP,
     id <- id[notna]
     att <- att[notna]
     se <- se[notna]
+    baseline <- baseline[notna]
+    sdibase <- sdibase[notna]
     inffunc1 <- inffunc1[, notna]
     #tlist <- sort(unique(t))
 
@@ -120,6 +148,8 @@ compute.aggite2 <- function(MP,
       id <- id[not_all_na]
       att <- att[not_all_na]
       se <- se[not_all_na]
+      baseline <- baseline[not_all_na]
+      sdibase <- sdibase[not_all_na]
       inffunc1 <- inffunc1[, not_all_na]
       #tlist <- sort(unique(t))
       glist <- sort(unique(group))
@@ -144,6 +174,8 @@ compute.aggite2 <- function(MP,
       id <- id[not_all_na]
       att <- att[not_all_na]
       se <- se[not_all_na]
+      baseline <- baseline[not_all_na]
+      sdibase <- sdibase[not_all_na]
       inffunc1 <- inffunc1[, not_all_na]
       #tlist <- sort(unique(t))
       # redoing the glist here to drop any NA observations
@@ -387,10 +419,10 @@ compute.aggite2 <- function(MP,
         if (dynamic.se <= sqrt(.Machine$double.eps)*10) dynamic.se <- NA
       }
 
-      return(AGGITEobj(overall.att=dynamic.att,
-                       overall.se=dynamic.se,
-                       overall.lci = dynamic.lci,
-                       overall.uci = dynamic.uci,
+      return(AGGITEobj(overall.att=NULL,
+                       overall.se=NULL,
+                       overall.lci = NULL,
+                       overall.uci = NULL,
                        type=type,
                        type2=type2,
                        egt= sapply(unlist(BMisc::getListElement(egtlist, "egt")),t2orig),
@@ -400,8 +432,7 @@ compute.aggite2 <- function(MP,
                        lci.egt=dynamic.lci.e,
                        uci.egt=dynamic.uci.e,
                        crit.val.egt=NULL,
-                       inf.function = list(dynamic.inf.func.e = dynamic.inf.func.e,
-                                           dynamic.inf.func = dynamic.inf.func),
+                       inf.function = NULL,
                        call=call,
                        min_e=min_e,
                        max_e=max_e,
@@ -528,10 +559,10 @@ compute.aggite2 <- function(MP,
         if (dynamic.se <= sqrt(.Machine$double.eps)*10) dynamic.se <- NA
       }
 
-      return(AGGITEobj(overall.att=dynamic.att,
-                       overall.se=dynamic.se,
-                       overall.lci=dynamic.lci,
-                       overall.uci=dynamic.uci,
+      return(AGGITEobj(overall.att=NULL,
+                       overall.se=NULL,
+                       overall.lci=NULL,
+                       overall.uci=NULL,
                        type=type,
                        type2=type2,
                        egt= unlist(BMisc::getListElement(egtlist, "egt")),
@@ -541,8 +572,7 @@ compute.aggite2 <- function(MP,
                        lci.egt=dynamic.lci.e,
                        uci.egt=dynamic.uci.e,
                        crit.val.egt=NULL,
-                       inf.function = list(dynamic.inf.func.e = dynamic.inf.func.e,
-                                           dynamic.inf.func = dynamic.inf.func),
+                       inf.function = NULL,
                        call=call,
                        min_e=min_e,
                        max_e=max_e,
