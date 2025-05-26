@@ -1,11 +1,11 @@
 pandoc: 3.1.11
-pkgdown: 2.1.1
+pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   comparison_with_did: comparison_with_did.html
   minimum-wage: minimum-wage.html
   articles/my-article: my-article.html
-last_built: 2025-04-24T14:11Z
+last_built: 2025-05-26T03:45Z
 urls:
   reference: https://ransiw.github.io/didwrappers/reference
   article: https://ransiw.github.io/didwrappers/articles

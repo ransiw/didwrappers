@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Comparison between did and didwrappers • didwrappers</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -57,8 +62,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Comparison between did and didwrappers</h1>
+      <img src="../logo.svg" class="logo" alt=""><h1>Comparison between did and didwrappers</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/ransiw/didwrappers/blob/main/vignettes/comparison_with_did.Rmd" class="external-link"><code>vignettes/comparison_with_did.Rmd</code></a></small>
@@ -99,7 +103,7 @@ the run times.</p>
 <span>              <span class="op">)</span></span>
 <span><span class="va">endt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Time elapsed:"</span>,<span class="va">endt</span><span class="op">-</span><span class="va">startt</span>,<span class="st">"seconds"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Time elapsed: 0.290079355239868 seconds"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Time elapsed: 0.147775888442993 seconds"</span></span></code></pre></div>
 <p>The <code>didwrappers</code> package produces a similar object but at
 the more granular unit-time level. This takes longer to run. The syntax
 remains the same, only the function name should need to change.</p>
@@ -115,7 +119,7 @@ remains the same, only the function name should need to change.</p>
 <span>              <span class="op">)</span></span>
 <span><span class="va">endt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Time elapsed:"</span>,<span class="va">endt</span><span class="op">-</span><span class="va">startt</span>,<span class="st">"seconds"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Time elapsed: 5.19338607788086 seconds"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Time elapsed: 5.39046931266785 seconds"</span></span></code></pre></div>
 <p>It takes quite a bit longer to do things at the county level than at
 the group level, which is the year that minimum wage is raised. There
 are certain advantages to having the more disaggregate county-level
@@ -269,7 +273,7 @@ diagnose outliers that are obscured by a group-level algorithm.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>
